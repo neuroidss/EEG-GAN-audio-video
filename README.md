@@ -9,6 +9,9 @@ Neurofeedback on Abstract Art & Anime Portraits & TADNE & Drums with StyleGAN2 &
 
 [![EEG stream connectivity Generate Abstract Art&Drums with StyleGAN2&WaveGAN](https://img.youtube.com/vi/-WXiATAGeJo/0.jpg)](https://www.youtube.com/watch?v=-WXiATAGeJo)
 
+
+https://github.com/neuroidss/EEG-GAN-audio-video/blob/main/EEG_stream_connectivity_Generate_Abstract_Art%26Anime_Portraits%26TADNE%26Drums_with_StyleGAN2%26WaveGAN.ipynb
+
 https://github.com/neuroidss/EEG-GAN-audio-video/blob/main/EEG_stream_video_connectivity_Generate_Abstract_Art%26Anime_Portraits%26TADNE%26Drums_with_StyleGAN2%26WaveGAN.ipynb
 
 Transfer learning on TPU from TADNE in Google Colab:
