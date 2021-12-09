@@ -1,4 +1,11 @@
 # EEG-GAN-audio-video
+
+EEG coherence game Anime Portraits vs Abstract Art with StyleGAN2 32ch test on shorted channels:
+
+[![EEG coherence game Anime Portraits vs Abstract Art with StyleGAN2 32ch test on shorted channels](https://img.youtube.com/vi/d7d-J-QCVx0/0.jpg)](https://www.youtube.com/watch?v=d7d-J-QCVx0)
+
+https://github.com/neuroidss/EEG-GAN-audio-video/blob/main/EEG_coherence_game_Anime_Portraits_vs_Abstract_Art_with_StyleGAN2%26WaveGAN.ipynb
+
 Abstract Art with StyleGAN2 FreeEEG32 32ch EEG 8-12Hz Coh:
 
 [![Abstract Art with StyleGAN2 FreeEEG32 32ch EEG 8-12Hz Coh](https://img.youtube.com/vi/Qr6EfHLD0C4/0.jpg)](https://www.youtube.com/watch?v=Qr6EfHLD0C4)
