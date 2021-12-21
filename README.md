@@ -32,7 +32,7 @@ https://github.com/neuroidss/EEG-GAN-audio-video/blob/main/transfer_learning_fro
 
 ---
 
-EEG coherence game Anime Portraits vs Abstract Art with StyleGAN2 32ch test on shorted channels:
+Anime Portraits Drums StyleGAN2 WaveGAN FreeEEG32-alpha1.5 eeg psd avg 8ch 10fps 161.5bpm n1107:
 
 [![Anime Portraits Drums StyleGAN2 WaveGAN FreeEEG32-alpha1.5 eeg psd avg 8ch 10fps 161.5bpm n1107](https://img.youtube.com/vi/3ViN6QzKlfk/0.jpg)](https://www.youtube.com/watch?v=3ViN6QzKlfk)
 
