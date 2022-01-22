@@ -19,6 +19,9 @@ https://github.com/neuroidss/EEG-GAN-audio-video/blob/main/EEG_connectivity_Gene
 Neurofeedback on Abstract Art & Anime Portraits & TADNE & Drums with StyleGAN2 & WaveGAN on FreeEEG32 32ch EEG 8-12Hz Coherence:
 
 [![EEG stream connectivity Generate Abstract Art&Drums with StyleGAN2&WaveGAN](https://img.youtube.com/vi/-WXiATAGeJo/0.jpg)](https://www.youtube.com/watch?v=-WXiATAGeJo)
+[![Neurofeedback on Abstract Art & Drums with StyleGAN2 & WaveGAN on FreeEEG32 32ch EEG 8-12Hz MSC](https://img.youtube.com/vi/MUau3ZseWYs/0.jpg)](https://www.youtube.com/watch?v=MUau3ZseWYs?t=1465)
+
+
 
 https://github.com/neuroidss/EEG-GAN-audio-video/blob/main/EEG_stream_connectivity_Generate_Abstract_Art%26Anime_Portraits%26TADNE%26Drums_with_StyleGAN2%26WaveGAN.ipynb
 
