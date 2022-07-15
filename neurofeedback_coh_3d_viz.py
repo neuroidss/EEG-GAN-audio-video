@@ -139,7 +139,7 @@ if True:
         # epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=0.1, preload=False))
           epochs.append(mne.make_fixed_length_epochs(datas[band], 
-                                            duration=5*1/bands[band][0], preload=False, overlap=5*1/bands[band][0]-0.1))
+                                            duration=5*1/bands[band][0], preload=False, overlap=5*1/bands[band][0]-0.1, verbose=50))
 #          epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
 
@@ -335,7 +335,8 @@ if True:
         if True:
             fig.canvas.draw()
 
-            image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+            #image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+            image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
             image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
 
             size = 592
