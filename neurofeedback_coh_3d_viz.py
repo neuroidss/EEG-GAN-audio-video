@@ -62,12 +62,35 @@ if True:
 #biosemi32
   ch_names = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz']
   ch_names_pick = ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2']
+#  ch_names_pick = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5']
 #Bernard's 19ch headset
 #  ch_names = ["O2","T6","T4","F8","Fp2","F4","C4","P4","ch9","ch10","ch11","ch12","Pz","ch14","ch15","ch16","Fz","ch18","ch19","ch20","ch21","ch22","ch23","ch24","Fp1","F3","C3","P3","O1","T5","T3","F7"]
 #  ch_names_pick = ['Fz','Fp1','F7','F3','T3','C3','T5','P3','O1','Pz','O2','P4','T6','C4','T4','F4','F8','Fp2']
 
   label_names = ch_names
   label_names = ch_names_pick
+
+#  cons=[]
+#  for cons_index in range(int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)):
+#    cons.append(np.zeros(int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)))
+  cons_len=int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)
+  cons_index=0
+  cons=np.zeros((cons_len,cons_len),dtype=float)
+
+
+  cohs_tril_indices=np.zeros((2,cons_len),dtype=int)
+  cohs_tril_indices_count=0
+  for cons_index_diag in range(len(ch_names_pick)):
+    for cons_index_diag_2 in range(2):
+      for cons_index_diag_r in range(cons_index_diag+1):
+        cons_index_diag_r_i=(cons_index_diag-cons_index_diag_r)
+        if cons_index_diag+cons_index_diag_r+cons_index_diag_2+1<len(ch_names_pick):
+          if cohs_tril_indices_count<cons_len:
+            cohs_tril_indices[0][cohs_tril_indices_count]=cons_index_diag+cons_index_diag_r+cons_index_diag_2+1
+            cohs_tril_indices[1][cohs_tril_indices_count]=cons_index_diag_r_i
+            cohs_tril_indices_count=cohs_tril_indices_count+1
+
+#  print(cohs_tril_indices)
 
   while True:
 
@@ -196,8 +219,8 @@ if True:
         #plt.show()
 #        if (i==part_len-1) or (ji==n_generate-1) :
 #        fig = plt.figure()
-        if True:
-#        if False:
+#        if True:
+        if False:
 #          con_res = dict()
 #          for method, c in zip(methods, con):
 #            con_res[method] = c[:, :, 0]
@@ -332,6 +355,41 @@ if True:
             fig = raw.plot_psd(average=False, show=False)  
 #            plt.show(block=False)
 
+        if True:
+          px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+          fig = plt.figure(figsize=(800*px, 800*px))
+#fig.tight_layout(pad=0)
+#fig.canvas.draw()
+
+
+
+#          cons.append(con.flatten('F'))
+#          cons.append(con[np.tril_indices(len(con[0]))])
+#          np.append(cons,con[np.tril_indices(len(con[0]))])
+          
+#          print(np.tril_indices(len(con[0]),k=-1))
+
+#          cons[cons_index]=con[np.tril_indices(len(con[0]),k=-1)].flatten('F')
+          #print(con[np.tril_indices(len(con[0]),k=-1)].flatten('F'))
+          #print(np.tril_indices(len(con[0]),k=-1))
+          #print(con[cohs_tril_indices].flatten('F'))
+          #print((cohs_tril_indices[0],cohs_tril_indices[1]))
+          cons[cons_index]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+          cons_index=cons_index+1
+          if cons_index>=cons_len:
+            cons_index=0
+          #cons = cons[-int(len(cons[0])):]
+
+#          plt.imshow(cons, extent=[0,4.2,0,int(32*(32-1)/2)], cmap='jet',
+#             vmin=-100, vmax=0, origin='lower', aspect='auto')
+          plt.imshow(cons, cmap='jet',
+             origin='lower', aspect='auto')
+          plt.colorbar()
+#          plt.show()
+          plt.close()
+          #fig.canvas.draw()
+
+#        if False:
         if True:
             fig.canvas.draw()
 
