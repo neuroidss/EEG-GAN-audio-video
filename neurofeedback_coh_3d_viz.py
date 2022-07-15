@@ -61,10 +61,13 @@ if True:
   methods = ['coh']
 #biosemi32
   ch_names = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz']
-  ch_names_pick = ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2']
+#  ch_names_pick = ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2']
+#  ch_names_pick = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','Cz','Fz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2']
+#  ch_names_pick = ['F7','FC5','T7','CP5','P7','O1','PO3','P3','CP1','C3','FC1','F3','AF3','FP1','Fz','Cz','Pz','Oz','O2','PO4','P4','CP2','C4','FC2','F4','AF4','FP2','F8','FC6','T8','CP6','P8']
 #  ch_names_pick = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5']
 #Bernard's 19ch headset
 #  ch_names = ["O2","T6","T4","F8","Fp2","F4","C4","P4","ch9","ch10","ch11","ch12","Pz","ch14","ch15","ch16","Fz","ch18","ch19","ch20","ch21","ch22","ch23","ch24","Fp1","F3","C3","P3","O1","T5","T3","F7"]
+  ch_names_pick = ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2']
 #  ch_names_pick = ['Fz','Fp1','F7','F3','T3','C3','T5','P3','O1','Pz','O2','P4','T6','C4','T4','F4','F8','Fp2']
 
   label_names = ch_names
@@ -74,8 +77,16 @@ if True:
 #  for cons_index in range(int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)):
 #    cons.append(np.zeros(int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)))
   cons_len=int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)
+#  cons_dur=fps
+  fs_mult=3
+  audio_volume_mult=200
+  cons_dur=fs_mult#fps
+  show_cons=False
+  sound_cons_swap=False
+#  sound_cons_swap=True
+  audio_cons_fs=int(cons_len*(fs_mult-0.0))
   cons_index=0
-  cons=np.zeros((cons_len,cons_len),dtype=float)
+  cons=np.zeros((cons_dur,cons_len),dtype=float)
 
 
   cohs_tril_indices=np.zeros((2,cons_len),dtype=int)
@@ -94,8 +105,10 @@ if True:
 
   while True:
 
-    while board.get_board_data_count() > int((sample_rate*5*1/bands[0][0])/fps): # because stream.read_available seems to max out, leading us to not read enough with one read
-#    while board.get_board_data_count() > 0: # because stream.read_available seems to max out, leading us to not read enough with one read
+    while board.get_board_data_count() > int((sample_rate)/fps): 
+#    while board.get_board_data_count() > int((sample_rate*5*1/bands[0][0])/fps): 
+#    while board.get_board_data_count() > 0: 
+# because stream.read_available seems to max out, leading us to not read enough with one read
       data = board.get_board_data()
             #eeg_data.append(data[eeg_channels,:].T)
       eeg_data = data[eeg_channels, :]
@@ -355,9 +368,8 @@ if True:
             fig = raw.plot_psd(average=False, show=False)  
 #            plt.show(block=False)
 
+#        if False:
         if True:
-          px = 1/plt.rcParams['figure.dpi']  # pixel in inches
-          fig = plt.figure(figsize=(800*px, 800*px))
 #fig.tight_layout(pad=0)
 #fig.canvas.draw()
 
@@ -374,22 +386,59 @@ if True:
           #print(np.tril_indices(len(con[0]),k=-1))
           #print(con[cohs_tril_indices].flatten('F'))
           #print((cohs_tril_indices[0],cohs_tril_indices[1]))
-          cons[cons_len-cons_index-1]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
-          cons_index_current=cons_index
-          cons_index=cons_index+1
-          if cons_index>=cons_len:
-            cons_index=0
+          #from scipy.ndimage.interpolation import shift
+          #shift(cons, -1)#, cval=np.NaN)
+          cons=np.roll(cons,1,axis=0)
+#          cons[1:,:] = cons[:len(cons),:]
+          cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+          #cons[cons_dur-cons_index-1]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+          #cons_index_current=cons_index
+          #cons_index=cons_index+1
+          #if cons_index>=cons_dur:
+          #  cons_index=0
           #cons = cons[-int(len(cons[0])):]
+
+          if show_cons:
+#          if False:
+            px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+            fig = plt.figure(figsize=(800*px, 800*px))
 
 #          plt.imshow(cons, extent=[0,4.2,0,int(32*(32-1)/2)], cmap='jet',
 #             vmin=-100, vmax=0, origin='lower', aspect='auto')
-          plt.imshow(cons.T[:,::-1], cmap='jet',
-             origin='lower', aspect='auto')
-          plt.colorbar()
+            plt.imshow(cons.T, cmap='jet', origin='lower', aspect='auto', vmin=0, vmax=1)
+#            plt.imshow(cons.T[:,::-1], cmap='jet', origin='lower', aspect='auto', vmin=0, vmax=1)
+            plt.colorbar()
 #          plt.show()
-          plt.close()
+            plt.close()
           #fig.canvas.draw()
 
+#        if False:
+#        if True:
+            fig.canvas.draw()
+
+            #image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+            image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+            image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+            size1=16*4
+            size = 592+size1
+#            size = 608
+            #im3 = im1.resize((576, 576), Image.ANTIALIAS)
+            left=348-int(size/2)+int(size1/2)
+            top=404-int(size/2)+int(size1/16)
+
+            image_crop=image[top:top+size,left:left+size]   
+            #im2 = im1.crop((left, top, left+size, top+size))
+
+#            image_rot90 = np.rot90(image_crop)
+#            image_rot90 = np.rot90(image)
+
+#            screen.update(image)
+            screen.update(image_crop)
+#            screen.update(image_rot90)
+
+            plt.close(fig)
+            del fig
  
         if True:
           #import stft
@@ -400,14 +449,14 @@ if True:
           import librosa
           from librosa import load
 #          y, sr = librosa.load(librosa.example('brahms'), duration=5.0)
-          y, sr = librosa.load(librosa.example('brahms'), offset=cons_index/10, duration=5.0)
+#          y, sr = librosa.load(librosa.example('brahms'), offset=cons_index/10, duration=5.0)
 
           from librosa.core import stft, istft
 #          y, sample_rate = load('/content/out/1.wav', duration=5.0)
-          spectrum = stft(y)
-          spectrum_abs=np.abs(spectrum)
-          spectrum_db=librosa.amplitude_to_db(spectrum,ref=np.max)
-          back_y = istft(spectrum)
+#          spectrum = stft(y)
+#          spectrum_abs=np.abs(spectrum)
+#          spectrum_db=librosa.amplitude_to_db(spectrum,ref=np.max)
+#          back_y = istft(spectrum)
 
           if False:
 
@@ -430,14 +479,19 @@ if True:
 #          for spectrum_db_range in range(spectrum_db):
 #           spectrum_db=cons[cons_index] 
 
-          spectrum_db=cons.T[:,::-1]
+#          spectrum_db=np.abs(cons.T[:,::-1])
+          spectrum_db=np.abs(cons.T)
           spectrum_db_l=spectrum_db[:int(len(spectrum_db)/2)]
           spectrum_db_r=spectrum_db[-int(len(spectrum_db)/2):]
           spectrum_db_r=spectrum_db_r[::-1]
 #          spectrum_db_s=[spectrum_db_l,spectrum_db_r]
           spectrum=librosa.db_to_amplitude(spectrum_db)
-          spectrum_l=librosa.db_to_amplitude(spectrum_db_l)
-          spectrum_r=librosa.db_to_amplitude(spectrum_db_r)
+          if sound_cons_swap:
+            spectrum_r=librosa.db_to_amplitude(spectrum_db_l)
+            spectrum_l=librosa.db_to_amplitude(spectrum_db_r)
+          else:
+            spectrum_l=librosa.db_to_amplitude(spectrum_db_l)
+            spectrum_r=librosa.db_to_amplitude(spectrum_db_r)
 #          back_y = stft.istft(spectrum, 128)
           back_y = istft(spectrum)
           back_y_l = istft(spectrum_l)
@@ -453,11 +507,37 @@ if True:
 #          sr=44100
 #          sr=22050
           #sr=11025
-          sr=int(48000/10)
+#          sr=int(48000/10)
 #          sr=int(48000/20)
 #          sr=cons_len
+          sr=4000
           sf.write('/content/out/cons_back.wav', back_y, sr, 'PCM_24')
           sf.write('/content/out/cons_back_s.wav', back_y_s, sr, 'PCM_24')
+          import sounddevice as sd
+          filename='/content/out/cons_back_s.wav'
+#          device=
+          #print(sd.query_devices())
+#          try:
+          if False:
+#          if True:
+            data, fs = sf.read(filename, dtype='float32')
+            sd.play(data, fs)#, device=device)
+          if True:
+            data=back_y_s*audio_volume_mult
+            fs=audio_cons_fs
+            sd.play(data, fs)#, device=device)
+
+            #mydata = sd.rec(int(data),fs,channels=2, blocking=True)
+            #sf.write(filename, data, fs)
+
+
+            #status = sd.wait()
+#          except KeyboardInterrupt:
+#            parser.exit('\nInterrupted by user')
+#          except Exception as e:
+#            parser.exit(type(e).__name__ + ': ' + str(e))
+#          if status:
+#            parser.exit('Error during playback: ' + str(status))          
 
           #from librosa import output
           #librosa.output.write_wav('/content/out/file_trim_5s.wav', y, s_r)
@@ -471,31 +551,6 @@ if True:
 #print 'continuing computation'
 #            show()
 
-#       if False:
-        if True:
-            fig.canvas.draw()
-
-            #image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-            image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
-            image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-
-            size = 592
-            #im3 = im1.resize((576, 576), Image.ANTIALIAS)
-            left=348-int(size/2)
-            top=404-int(size/2)
-
-            image_crop=image[top:top+size,left:left+size]   
-            #im2 = im1.crop((left, top, left+size, top+size))
-
-#            image_rot90 = np.rot90(image_crop)
-#            image_rot90 = np.rot90(image)
-
-#            screen.update(image)
-            screen.update(image_crop)
-#            screen.update(image_rot90)
-
-            plt.close(fig)
-            del fig
 
 #for k in range(100):
 #  fig, ax = plt.subplots(figsize=(37.33, 21))
