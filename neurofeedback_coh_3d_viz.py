@@ -374,7 +374,8 @@ if True:
           #print(np.tril_indices(len(con[0]),k=-1))
           #print(con[cohs_tril_indices].flatten('F'))
           #print((cohs_tril_indices[0],cohs_tril_indices[1]))
-          cons[cons_index]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+          cons[cons_len-cons_index-1]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+          cons_index_current=cons_index
           cons_index=cons_index+1
           if cons_index>=cons_len:
             cons_index=0
@@ -382,14 +383,95 @@ if True:
 
 #          plt.imshow(cons, extent=[0,4.2,0,int(32*(32-1)/2)], cmap='jet',
 #             vmin=-100, vmax=0, origin='lower', aspect='auto')
-          plt.imshow(cons, cmap='jet',
+          plt.imshow(cons.T[:,::-1], cmap='jet',
              origin='lower', aspect='auto')
           plt.colorbar()
 #          plt.show()
           plt.close()
           #fig.canvas.draw()
 
-#        if False:
+ 
+        if True:
+          #import stft
+
+#          spectrum = stft.stft(y, 128)
+#          back_y = stft.istft(spectrum, 128)
+
+          import librosa
+          from librosa import load
+#          y, sr = librosa.load(librosa.example('brahms'), duration=5.0)
+          y, sr = librosa.load(librosa.example('brahms'), offset=cons_index/10, duration=5.0)
+
+          from librosa.core import stft, istft
+#          y, sample_rate = load('/content/out/1.wav', duration=5.0)
+          spectrum = stft(y)
+          spectrum_abs=np.abs(spectrum)
+          spectrum_db=librosa.amplitude_to_db(spectrum,ref=np.max)
+          back_y = istft(spectrum)
+
+          if False:
+
+            px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+            fig = plt.figure(figsize=(800*px, 800*px))
+
+#          cons[cons_index]=spectrum_db[-int(len(cons[0])):]
+            cons_index_current=cons_index
+            cons_index=cons_index+1
+            if cons_index>=cons_len:
+              cons_index=0
+
+            plt.imshow(spectrum_db, cmap='jet', origin='lower', aspect='auto')
+#          plt.imshow(cons, cmap='jet', origin='lower', aspect='auto')
+            plt.colorbar()
+#          plt.show()
+            plt.close()
+
+ 
+#          for spectrum_db_range in range(spectrum_db):
+#           spectrum_db=cons[cons_index] 
+
+          spectrum_db=cons.T[:,::-1]
+          spectrum_db_l=spectrum_db[:int(len(spectrum_db)/2)]
+          spectrum_db_r=spectrum_db[-int(len(spectrum_db)/2):]
+          spectrum_db_r=spectrum_db_r[::-1]
+#          spectrum_db_s=[spectrum_db_l,spectrum_db_r]
+          spectrum=librosa.db_to_amplitude(spectrum_db)
+          spectrum_l=librosa.db_to_amplitude(spectrum_db_l)
+          spectrum_r=librosa.db_to_amplitude(spectrum_db_r)
+#          back_y = stft.istft(spectrum, 128)
+          back_y = istft(spectrum)
+          back_y_l = istft(spectrum_l)
+          back_y_r = istft(spectrum_r)
+          back_y_s = np.asarray([back_y_l,back_y_r]).T
+
+          import numpy as np
+          import soundfile as sf
+#          sf.write('/content/out/stereo_file.wav', np.random.randn(10, 2), 44100, 'PCM_24')
+#          sf.write('/content/out/file_trim_5s.wav', y, sr, 'PCM_24')
+#          sf.write('/content/out/file_trim_5s_back.wav', back_y, sr, 'PCM_24')
+#          sr=48000
+#          sr=44100
+#          sr=22050
+          #sr=11025
+          sr=int(48000/10)
+#          sr=int(48000/20)
+#          sr=cons_len
+          sf.write('/content/out/cons_back.wav', back_y, sr, 'PCM_24')
+          sf.write('/content/out/cons_back_s.wav', back_y_s, sr, 'PCM_24')
+
+          #from librosa import output
+          #librosa.output.write_wav('/content/out/file_trim_5s.wav', y, s_r)
+#          librosa.output.write_wav('/content/out/file_trim_5s_back.wav', back_y, sample_rate)
+             
+
+#            fig.show()
+#            fig.show(0)
+
+#            draw() 
+#print 'continuing computation'
+#            show()
+
+#       if False:
         if True:
             fig.canvas.draw()
 
@@ -405,23 +487,15 @@ if True:
             image_crop=image[top:top+size,left:left+size]   
             #im2 = im1.crop((left, top, left+size, top+size))
 
-            image_rot90 = np.rot90(image_crop)
+#            image_rot90 = np.rot90(image_crop)
 #            image_rot90 = np.rot90(image)
 
 #            screen.update(image)
-            screen.update(image_rot90)
+            screen.update(image_crop)
+#            screen.update(image_rot90)
 
             plt.close(fig)
             del fig
-
-
-#            fig.show()
-#            fig.show(0)
-
-#            draw() 
-#print 'continuing computation'
-#            show()
-
 
 #for k in range(100):
 #  fig, ax = plt.subplots(figsize=(37.33, 21))
