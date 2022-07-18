@@ -16,6 +16,15 @@ import mne
 from mne.connectivity import spectral_connectivity, seed_target_indices
 from mne.viz import circular_layout, plot_connectivity_circle
 
+import librosa
+from librosa import load
+from librosa.core import stft, istft
+import numpy as np
+import soundfile as sf
+import sounddevice as sd
+
+sd.default.reset()
+
 debug = False
 
 if True:
@@ -25,8 +34,8 @@ if True:
     sample_rate = 512
   else:
     board_id = BoardIds.FREEEEG32_BOARD.value
-    params.serial_port = '/dev/ttyACM0'
-#            params.serial_port = '/dev/ttyS11'
+#    params.serial_port = '/dev/ttyACM0'
+    params.serial_port = '/dev/ttyS20'
     sample_rate = 512
     eeg_channels = BoardShim.get_eeg_channels(board_id)
 #        if num_channels is not None:
@@ -77,11 +86,15 @@ if True:
 #  for cons_index in range(int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)):
 #    cons.append(np.zeros(int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)))
   cons_len=int(len(ch_names_pick)*(len(ch_names_pick)-1)/2)
-#  cons_dur=fps
   fs_mult=3
   audio_volume_mult=200
-  cons_dur=fs_mult#fps
-  show_cons=False
+#  cons_dur=fs_mult#fps
+  cons_dur=fps*10
+  show_circle_cons=True
+#  show_circle_cons=False
+  show_spectrum_cons=False
+#  show_spectrum_cons=True
+  sound_cons=False
   sound_cons_swap=False
 #  sound_cons_swap=True
   audio_cons_fs=int(cons_len*(fs_mult-0.0))
@@ -233,7 +246,7 @@ if True:
 #        if (i==part_len-1) or (ji==n_generate-1) :
 #        fig = plt.figure()
 #        if True:
-        if False:
+        if show_circle_cons:
 #          con_res = dict()
 #          for method, c in zip(methods, con):
 #            con_res[method] = c[:, :, 0]
@@ -364,12 +377,42 @@ if True:
 #          imageio.imwrite('/content/out/img_buf.png', im_arr_rot, format='png')
           imageio.imwrite('/content/out/img_buf.png', im, format='png')
 
+
+        if True:
+
+            fig.canvas.draw()
+
+            #image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+            image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+            image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+            size1=16*4
+            size = 592+size1
+#            size = 608
+            #im3 = im1.resize((576, 576), Image.ANTIALIAS)
+            left=348-int(size/2)+int(size1/2)
+            top=404-int(size/2)+int(size1/16)
+
+            image_crop=image[top:top+size,left:left+size]   
+            #im2 = im1.crop((left, top, left+size, top+size))
+
+            image_rot90 = np.rot90(image_crop)
+#            image_rot90 = np.rot90(image)
+
+#            screen.update(image)
+#            screen.update(image_crop)
+            screen.update(image_rot90)
+
+            plt.close(fig)
+            del fig
+
+
         if False:
             fig = raw.plot_psd(average=False, show=False)  
 #            plt.show(block=False)
 
 #        if False:
-        if True:
+        if show_spectrum_cons:
 #fig.tight_layout(pad=0)
 #fig.canvas.draw()
 
@@ -398,7 +441,7 @@ if True:
           #  cons_index=0
           #cons = cons[-int(len(cons[0])):]
 
-          if show_cons:
+          if show_spectrum_cons:
 #          if False:
             px = 1/plt.rcParams['figure.dpi']  # pixel in inches
             fig = plt.figure(figsize=(800*px, 800*px))
@@ -440,18 +483,15 @@ if True:
             plt.close(fig)
             del fig
  
-        if True:
+        if sound_cons:
           #import stft
 
 #          spectrum = stft.stft(y, 128)
 #          back_y = stft.istft(spectrum, 128)
 
-          import librosa
-          from librosa import load
 #          y, sr = librosa.load(librosa.example('brahms'), duration=5.0)
 #          y, sr = librosa.load(librosa.example('brahms'), offset=cons_index/10, duration=5.0)
 
-          from librosa.core import stft, istft
 #          y, sample_rate = load('/content/out/1.wav', duration=5.0)
 #          spectrum = stft(y)
 #          spectrum_abs=np.abs(spectrum)
@@ -493,13 +533,11 @@ if True:
             spectrum_l=librosa.db_to_amplitude(spectrum_db_l)
             spectrum_r=librosa.db_to_amplitude(spectrum_db_r)
 #          back_y = stft.istft(spectrum, 128)
-          back_y = istft(spectrum)
+          back_y = istft(spectrum)*audio_volume_mult
           back_y_l = istft(spectrum_l)
           back_y_r = istft(spectrum_r)
-          back_y_s = np.asarray([back_y_l,back_y_r]).T
+          back_y_s = np.asarray([back_y_l,back_y_r]).T*audio_volume_mult
 
-          import numpy as np
-          import soundfile as sf
 #          sf.write('/content/out/stereo_file.wav', np.random.randn(10, 2), 44100, 'PCM_24')
 #          sf.write('/content/out/file_trim_5s.wav', y, sr, 'PCM_24')
 #          sf.write('/content/out/file_trim_5s_back.wav', back_y, sr, 'PCM_24')
@@ -513,7 +551,6 @@ if True:
           sr=4000
           sf.write('/content/out/cons_back.wav', back_y, sr, 'PCM_24')
           sf.write('/content/out/cons_back_s.wav', back_y_s, sr, 'PCM_24')
-          import sounddevice as sd
           filename='/content/out/cons_back_s.wav'
 #          device=
           #print(sd.query_devices())
@@ -523,7 +560,7 @@ if True:
             data, fs = sf.read(filename, dtype='float32')
             sd.play(data, fs)#, device=device)
           if True:
-            data=back_y_s*audio_volume_mult
+            data=back_y_s
             fs=audio_cons_fs
             sd.play(data, fs)#, device=device)
 
