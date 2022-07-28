@@ -42,10 +42,10 @@ if 2*1/fps_wg>duration:
 
 def download_file_from_google_drive(file_id,dest_path):
   import os.path
-  if not os.path.isfile(dest_path):  
-    !mkdir -p $(dirname {dest_path})
-    !wget --save-cookies cookies.txt 'https://docs.google.com/uc?export=download&id='{file_id} -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1/p' > confirm.txt
-    !wget --load-cookies cookies.txt -O {dest_path} 'https://docs.google.com/uc?export=download&id='{file_id}'&confirm='$(<confirm.txt)
+#  if not os.path.isfile(dest_path):  
+#    !mkdir -p $(dirname {dest_path})
+#    !wget --save-cookies cookies.txt 'https://docs.google.com/uc?export=download&id='{file_id} -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1/p' > confirm.txt
+#    !wget --load-cookies cookies.txt -O {dest_path} 'https://docs.google.com/uc?export=download&id='{file_id}'&confirm='$(<confirm.txt)
 
 #!mkdir /content/eeg
 #!pip install --upgrade gdown
