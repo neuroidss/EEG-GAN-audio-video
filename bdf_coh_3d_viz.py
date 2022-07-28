@@ -715,7 +715,7 @@ for j in range(n_parts): # display separate audio for each break
 #            plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
 #                                             title=method, show = False)
             #px = 1/plt.rcParams['figure.dpi']  # pixel in inches
-            #fig = plt.figure(figsize=(576*px, 576*px))
+            #fig = plt.figure(figsize=(800*px, 800*px))
 #            fig,_ = 
 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
@@ -798,7 +798,8 @@ for j in range(n_parts): # display separate audio for each break
           im1 = Image.open(img_buf)
 
 #          size = 432
-          size = 592
+          size = 640
+#          size = 592
           #im3 = im1.resize((576, 576), Image.ANTIALIAS)
           left=348-size/2
           top=404-size/2
