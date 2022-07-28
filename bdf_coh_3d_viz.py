@@ -39,12 +39,13 @@ if 2*1/fps_wg>duration:
 #vscale = (vref/gain)*stepSize #volts per step.
 #uVperStep = 1000000 * ((vref/gain)*stepSize) #uV per step.
 #scalar = 1/(1000000 / ((vref/gain)*stepSize)) #steps per uV.
+
 def download_file_from_google_drive(file_id,dest_path):
   import os.path
-#  if not os.path.isfile(dest_path):  
-#    !mkdir -p $(dirname {dest_path})
-#    !wget --save-cookies cookies.txt 'https://docs.google.com/uc?export=download&id='{file_id} -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1/p' > confirm.txt
-#    !wget --load-cookies cookies.txt -O {dest_path} 'https://docs.google.com/uc?export=download&id='{file_id}'&confirm='$(<confirm.txt)
+  if not os.path.isfile(dest_path):  
+    !mkdir -p $(dirname {dest_path})
+    !wget --save-cookies cookies.txt 'https://docs.google.com/uc?export=download&id='{file_id} -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1/p' > confirm.txt
+    !wget --load-cookies cookies.txt -O {dest_path} 'https://docs.google.com/uc?export=download&id='{file_id}'&confirm='$(<confirm.txt)
 
 #!mkdir /content/eeg
 #!pip install --upgrade gdown
@@ -55,15 +56,15 @@ files_path=[]
 #if generate&gen_drums:
 files_path = [['1Nfzi6yT83SBZxtgIYVtYp7C7g_Sq9OdS', '/content/eeg/record-[2019.11.13-22.23.59].csv'],
               ['1LtMfr9GduR3semMVgh_6JoUSKbCG8XbH', '/content/eeg/record-[2020.06.28-14.26.09].csv']]
-for i in range(len(files_path)):
-#  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
-  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
+#for i in range(len(files_path)):
+##  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
+#  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
 files_path = [['1nIiilGVq8XXU7bb1UC5GDtmGbovuil9C', '/content/eeg/5min_experienced_meditator_unfiltered_signals.bdf', '5min_experienced_meditator_unfiltered_signals']]
 
-for i in range(len(files_path)):
-#  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
-  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
+#for i in range(len(files_path)):
+##  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
+#  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
 files_path = [['1BphDQFJZ0aIMiZbkQ55_MzNxOrdq0Jcb', '/content/eeg/01-07-2022_15-34.bdf', '01-07-2022_15-34'],
               ['1HlDuAO8n_hmH1PWlT46T1Waqyy5yz1LV', '/content/eeg/01-07-2022_18-32.bdf', '01-07-2022_18-32'],
@@ -72,9 +73,9 @@ files_path = [['1BphDQFJZ0aIMiZbkQ55_MzNxOrdq0Jcb', '/content/eeg/01-07-2022_15-
               ['1JMLtO_sQtZtdQHQ2RCZ0RbRj3cvk0G_2', '/content/eeg/01-07-2022_14-05.bdf', '01-07-2022_14-05'],
               ['1ag-1yK-HSxNRh_5wnP9h-kOkVyX3YqSs', '/content/eeg/01-07-2022_18-32_signals.csv']]
 
-for i in range(len(files_path)):
-#  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
-  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
+#for i in range(len(files_path)):
+##  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
+#  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
 files_path = [['16j4PwPoudiCVB_HF9m0fCYIt3uUZR3kA', '/content/eeg/20211130-162023-sync1.bdf', '20211130-162023-sync1', '20211130-162023-syncs'],
               ['16kSyskI7qOZRitvNIzd4iy6irqhgLwsI', '/content/eeg/20211130-162023-sync2.bdf', '20211130-162023-sync2', '20211130-162023-syncs'],
