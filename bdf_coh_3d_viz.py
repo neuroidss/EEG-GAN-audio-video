@@ -40,12 +40,12 @@ if 2*1/fps_wg>duration:
 #uVperStep = 1000000 * ((vref/gain)*stepSize) #uV per step.
 #scalar = 1/(1000000 / ((vref/gain)*stepSize)) #steps per uV.
 
-def download_file_from_google_drive(file_id,dest_path):
-  import os.path
-#  if not os.path.isfile(dest_path):  
-#    !mkdir -p $(dirname {dest_path})
-#    !wget --save-cookies cookies.txt 'https://docs.google.com/uc?export=download&id='{file_id} -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1/p' > confirm.txt
-#    !wget --load-cookies cookies.txt -O {dest_path} 'https://docs.google.com/uc?export=download&id='{file_id}'&confirm='$(<confirm.txt)
+#def download_file_from_google_drive(file_id,dest_path):
+#  import os.path
+##  if not os.path.isfile(dest_path):  
+##    !mkdir -p $(dirname {dest_path})
+##    !wget --save-cookies cookies.txt 'https://docs.google.com/uc?export=download&id='{file_id} -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1/p' > confirm.txt
+##    !wget --load-cookies cookies.txt -O {dest_path} 'https://docs.google.com/uc?export=download&id='{file_id}'&confirm='$(<confirm.txt)
 
 #!mkdir /content/eeg
 #!pip install --upgrade gdown
@@ -60,56 +60,104 @@ files_path = [['1Nfzi6yT83SBZxtgIYVtYp7C7g_Sq9OdS', '/content/eeg/record-[2019.1
 ##  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 #  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
-files_path = [['1nIiilGVq8XXU7bb1UC5GDtmGbovuil9C', '/content/eeg/5min_experienced_meditator_unfiltered_signals.bdf', '5min_experienced_meditator_unfiltered_signals']]
+#files_path = [['1nIiilGVq8XXU7bb1UC5GDtmGbovuil9C', '/content/eeg/5min_experienced_meditator_unfiltered_signals.bdf', '5min_experienced_meditator_unfiltered_signals']]
 
 #for i in range(len(files_path)):
 ##  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 #  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
-files_path = [['1BphDQFJZ0aIMiZbkQ55_MzNxOrdq0Jcb', '/content/eeg/01-07-2022_15-34.bdf', '01-07-2022_15-34'],
-              ['1HlDuAO8n_hmH1PWlT46T1Waqyy5yz1LV', '/content/eeg/01-07-2022_18-32.bdf', '01-07-2022_18-32'],
-              ['1u_8ANTzYB9jP7wCnErivF1ClM1rXixSg', '/content/eeg/01-07-2022_16-52.bdf', '01-07-2022_16-52'],
-              ['1_cgoBcHAf3VRIorYafC-vHLAGpv8Papz', '/content/eeg/01-07-2022_17-39.bdf', '01-07-2022_17-39'],
-              ['1JMLtO_sQtZtdQHQ2RCZ0RbRj3cvk0G_2', '/content/eeg/01-07-2022_14-05.bdf', '01-07-2022_14-05'],
-              ['1ag-1yK-HSxNRh_5wnP9h-kOkVyX3YqSs', '/content/eeg/01-07-2022_18-32_signals.csv']]
+#files_path = [['1BphDQFJZ0aIMiZbkQ55_MzNxOrdq0Jcb', '/content/eeg/01-07-2022_15-34.bdf', '01-07-2022_15-34'],
+#              ['1HlDuAO8n_hmH1PWlT46T1Waqyy5yz1LV', '/content/eeg/01-07-2022_18-32.bdf', '01-07-2022_18-32'],
+#              ['1u_8ANTzYB9jP7wCnErivF1ClM1rXixSg', '/content/eeg/01-07-2022_16-52.bdf', '01-07-2022_16-52'],
+#              ['1_cgoBcHAf3VRIorYafC-vHLAGpv8Papz', '/content/eeg/01-07-2022_17-39.bdf', '01-07-2022_17-39'],
+#              ['1JMLtO_sQtZtdQHQ2RCZ0RbRj3cvk0G_2', '/content/eeg/01-07-2022_14-05.bdf', '01-07-2022_14-05'],
+#              ['1ag-1yK-HSxNRh_5wnP9h-kOkVyX3YqSs', '/content/eeg/01-07-2022_18-32_signals.csv']]
 
 #for i in range(len(files_path)):
 ##  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 #  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
-files_path = [['16j4PwPoudiCVB_HF9m0fCYIt3uUZR3kA', '/content/eeg/20211130-162023-sync1.bdf', '20211130-162023-sync1', '20211130-162023-syncs'],
-              ['16kSyskI7qOZRitvNIzd4iy6irqhgLwsI', '/content/eeg/20211130-162023-sync2.bdf', '20211130-162023-sync2', '20211130-162023-syncs'],
-              ['16k88jpP7uZKKDT-WhZKcvGsnPclDA2TF', '/content/eeg/20211130-162023-sync3.bdf', '20211130-162023-sync3', '20211130-162023-syncs'],
-              ['16licSohQPcbLnJmMD88In5PbiiLjOB_N', '/content/eeg/20211130-162023-sync4.bdf', '20211130-162023-sync4', '20211130-162023-syncs'],
-              ['16nHtHn1BBkzb9oTl4EhJmPHPEB4Q8CVl', '/content/eeg/20211130-221138-sync1.bdf', '20211130-221138-sync1', '20211130-221138-syncs'],
-              ['16m5Kp0WEdz3GixvQ7-jPVLdQUhXmIbA6', '/content/eeg/20211130-221138-sync2.bdf', '20211130-221138-sync2', '20211130-221138-syncs'],
-              ['16mJVZV1XT-RULgcSKUSROOQnQr6CHYCK', '/content/eeg/20211130-221138-sync3.bdf', '20211130-221138-sync3', '20211130-221138-syncs'],
-              ['16nh5R44VIRDFbYmFk7sDQeMXEAA1veY4', '/content/eeg/20211130-221138-sync4.bdf', '20211130-221138-sync4', '20211130-221138-syncs'],
-              ['16oygYh5ZerFWmNHNMaFqZxUNbC0yj-oW', '/content/eeg/20211130-231131-sync1.bdf', '20211130-231131-sync1', '20211130-231131-syncs'],
-              ['16q-Rl-L6NcTxdKco347Q63eK8Z3e5h-F', '/content/eeg/20211130-231131-sync2.bdf', '20211130-231131-sync2', '20211130-231131-syncs'],
-              ['16o9MNod2FHz3tplGv14a8vxNR8EVGfxx', '/content/eeg/20211130-231131-sync3.bdf', '20211130-231131-sync3', '20211130-231131-syncs'],
-              ['16oszc_L44xtZNOgBuEJtgSjwl1Pob825', '/content/eeg/20211130-231131-sync4.bdf', '20211130-231131-sync4', '20211130-231131-syncs']]
+#files_path = [['16j4PwPoudiCVB_HF9m0fCYIt3uUZR3kA', '/content/eeg/20211130-162023-sync1.bdf', '20211130-162023-sync1', '20211130-162023-syncs'],
+#              ['16kSyskI7qOZRitvNIzd4iy6irqhgLwsI', '/content/eeg/20211130-162023-sync2.bdf', '20211130-162023-sync2', '20211130-162023-syncs'],
+#              ['16k88jpP7uZKKDT-WhZKcvGsnPclDA2TF', '/content/eeg/20211130-162023-sync3.bdf', '20211130-162023-sync3', '20211130-162023-syncs'],
+#              ['16licSohQPcbLnJmMD88In5PbiiLjOB_N', '/content/eeg/20211130-162023-sync4.bdf', '20211130-162023-sync4', '20211130-162023-syncs'],
+#              ['16nHtHn1BBkzb9oTl4EhJmPHPEB4Q8CVl', '/content/eeg/20211130-221138-sync1.bdf', '20211130-221138-sync1', '20211130-221138-syncs'],
+#              ['16m5Kp0WEdz3GixvQ7-jPVLdQUhXmIbA6', '/content/eeg/20211130-221138-sync2.bdf', '20211130-221138-sync2', '20211130-221138-syncs'],
+#              ['16mJVZV1XT-RULgcSKUSROOQnQr6CHYCK', '/content/eeg/20211130-221138-sync3.bdf', '20211130-221138-sync3', '20211130-221138-syncs'],
+#              ['16nh5R44VIRDFbYmFk7sDQeMXEAA1veY4', '/content/eeg/20211130-221138-sync4.bdf', '20211130-221138-sync4', '20211130-221138-syncs'],
+#              ['16oygYh5ZerFWmNHNMaFqZxUNbC0yj-oW', '/content/eeg/20211130-231131-sync1.bdf', '20211130-231131-sync1', '20211130-231131-syncs'],
+#              ['16q-Rl-L6NcTxdKco347Q63eK8Z3e5h-F', '/content/eeg/20211130-231131-sync2.bdf', '20211130-231131-sync2', '20211130-231131-syncs'],
+#              ['16o9MNod2FHz3tplGv14a8vxNR8EVGfxx', '/content/eeg/20211130-231131-sync3.bdf', '20211130-231131-sync3', '20211130-231131-syncs'],
+#              ['16oszc_L44xtZNOgBuEJtgSjwl1Pob825', '/content/eeg/20211130-231131-sync4.bdf', '20211130-231131-sync4', '20211130-231131-syncs']]
 
-for i in range(len(files_path)):
-#  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
-  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
+#for i in range(len(files_path)):
+##  gdd.download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
+#  download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 #!pip install mne==0.23.3
+
+from absl import flags
+FLAGS = flags.FLAGS
+flags.DEFINE_boolean('debug', False, 'debug')
+flags.DEFINE_list('input', None, 'input')
+flags.DEFINE_list('prefix', None, 'prefix')
+flags.DEFINE_string('output', None, 'output')
+flags.DEFINE_list('ch_names', None, 'ch_names')
+flags.DEFINE_list('bands', None, 'bands')
+flags.DEFINE_list('methods', None, 'methods')
+flags.DEFINE_string('vmin', None, 'vmin')
+flags.DEFINE_string('duration', None, 'duration')
+flags.DEFINE_string('overlap', None, 'overlap')
+flags.mark_flag_as_required('input')
+flags.mark_flag_as_required('prefix')
+flags.mark_flag_as_required('output')
+flags.mark_flag_as_required('ch_names')
+flags.mark_flag_as_required('bands')
+flags.mark_flag_as_required('methods')
+flags.mark_flag_as_required('vmin')
+flags.mark_flag_as_required('duration')
+flags.mark_flag_as_required('overlap')
+import sys
+FLAGS(sys.argv)
+
+#files_path=flags.path
+files_path=FLAGS.input
+if len(FLAGS.prefix)==0:
+  FLAGS.prefix=['']
+#print('FLAGS.prefix: ',FLAGS.prefix)
+#print('len(FLAGS.prefix): ',len(FLAGS.prefix))
+#print('files_path: ',files_path)
+#print('len(files_path): ',len(files_path))
+ch_names=FLAGS.ch_names
+#bands=[{}]*1
+#bands[0]=FLAGS.bands
+bands=[[float(FLAGS.bands[0]),float(FLAGS.bands[1])]]
+methods=FLAGS.methods
+vmin=FLAGS.vmin
+duration=float(FLAGS.duration)
+overlap=float(FLAGS.overlap)
+
+#files_path = [['16j4PwPoudiCVB_HF9m0fCYIt3uUZR3kA', '/content/eeg/20211130-162023-sync1.bdf', 'sync1_', '20211130-162023-syncs'],
+#              ['16kSyskI7qOZRitvNIzd4iy6irqhgLwsI', '/content/eeg/20211130-162023-sync2.bdf', 'sync2_', '20211130-162023-syncs'],
+#              ['16k88jpP7uZKKDT-WhZKcvGsnPclDA2TF', '/content/eeg/20211130-162023-sync3.bdf', 'sync3_', '20211130-162023-syncs'],
+#              ['16licSohQPcbLnJmMD88In5PbiiLjOB_N', '/content/eeg/20211130-162023-sync4.bdf', 'sync4_', '20211130-162023-syncs']]
+
+#files_path = [['16j4PwPoudiCVB_HF9m0fCYIt3uUZR3kA', '/content/eeg/20211130-162023-sync1.bdf', '', '20211130-162023-syncs']]
 
 import mne
 from mne import io
 
 if True:
-    ch_names = ['Fz','Fp1','F7','F3','T3','C3','T5','P3','O1','Pz','O2','P4','T6','C4','T4','F4','F8','Fp2']
+#    ch_names = ['Fz','Fp1','F7','F3','T3','C3','T5','P3','O1','Pz','O2','P4','T6','C4','T4','F4','F8','Fp2']
 #    ch_names = ['Fp1','F7','F3','T3','C3','T5','P3','O1','Pz','O2','P4','T6','C4','T4','F4','F8','Fp2','Fz']
 #    ch_names = ['F4','F8','Fp2','Fz','Fp1','F7','F3','T3','C3','T5','P3','O1','Pz','O2','P4','T6','C4','T4']
 #    ch_names = ['Fp1','F7','F3','T3','C3','T5','P3','Pz','O1','O2','P4','T6','C4','T4','F4','F8','Fp2','Fz']
 #    ch_names = ['FP1','F7','F3','T3','C3','T5','P3','PZ','O1','O2','P4','T6','C4','T4','F4','F8','FP2','FZ']
 #    ch_names = ['O2','T6','T4','F8','FP2','F4','C4','P4','PZ','FZ','FP1','F3','C3','P3','O1','T5','T3','F7']
 
-    sfreq = 512 
+#    sfreq = 512 
     ch_types=['eeg']*len(ch_names)
-    info = mne.create_info(ch_names = ch_names, sfreq = sfreq, ch_types=ch_types)
-    misc_ch_names = ['','']
+#    info = mne.create_info(ch_names = ch_names, sfreq = sfreq, ch_types=ch_types)
+#    misc_ch_names = ['','']
 
 if False:
     input_fname=files_path[0][1]
@@ -119,33 +167,27 @@ if False:
 
 if True:
     files_path_from=0
-    input_fname_name=files_path[files_path_from*4+0][3]
+    input_fname_name=FLAGS.output
+#    input_fname_name=files_path[0][3]
 
-    input_fnames=[{}]*4
-    input_fnames[0]=files_path[files_path_from*4+0][1]
-    input_fnames[1]=files_path[files_path_from*4+1][1]
-    input_fnames[2]=files_path[files_path_from*4+2][1]
-    input_fnames[3]=files_path[files_path_from*4+3][1]
-    input_fname_names=[{}]*4
-    input_fname_names[0]=files_path[files_path_from*4+0][2]
-    input_fname_names[1]=files_path[files_path_from*4+1][2]
-    input_fname_names[2]=files_path[files_path_from*4+2][2]
-    input_fname_names[3]=files_path[files_path_from*4+3][2]
-    raws=[{}]*4
-    raws[0] = io.read_raw_bdf(input_fnames[0], eog=None, misc=None, stim_channel='auto', 
-                          exclude=(), preload=False, verbose=True)
-    raws[1] = io.read_raw_bdf(input_fnames[1], eog=None, misc=None, stim_channel='auto', 
-                          exclude=(), preload=False, verbose=True)
-    raws[2] = io.read_raw_bdf(input_fnames[2], eog=None, misc=None, stim_channel='auto', 
-                          exclude=(), preload=False, verbose=True)
-    raws[3] = io.read_raw_bdf(input_fnames[3], eog=None, misc=None, stim_channel='auto', 
+    input_fnames=[{}]*len(files_path)
+    for file_path_index in range(len(files_path)):
+      input_fnames[file_path_index]=FLAGS.input[file_path_index]
+#      input_fnames[file_path_index]=files_path[file_path_index][1]
+    input_fname_names=[{}]*len(files_path)
+    for file_path_index in range(len(files_path)):
+      input_fname_names[file_path_index]=FLAGS.prefix[file_path_index]
+#      input_fname_names[file_path_index]=files_path[file_path_index][2]
+    raws=[{}]*len(files_path)
+    for file_path_index in range(len(files_path)):
+      raws[file_path_index] = io.read_raw_bdf(input_fnames[file_path_index], eog=None, misc=None, stim_channel='auto', 
                           exclude=(), preload=False, verbose=True)
 
-    raw_picks=[{}]*4
-    raw_picks[0] = raws[0].pick(ch_names)
-    raw_picks[1] = raws[1].pick(ch_names)
-    raw_picks[2] = raws[2].pick(ch_names)
-    raw_picks[3] = raws[3].pick(ch_names)
+    sfreq = raws[0].info['sfreq']  # the sampling frequency
+
+    raw_picks=[{}]*len(files_path)
+    for file_path_index in range(len(files_path)):
+      raw_picks[file_path_index] = raws[file_path_index].pick(ch_names)
 #    raw_picks[0].ch_names
 
 #!pip install mne==0.23.3
@@ -162,28 +204,27 @@ from mne.connectivity import spectral_connectivity, seed_target_indices
 import pandas as pd
 import numpy as np
 
-raws_for_hstack=[{}]*4
-raws_for_hstack[0] = raw_picks[0][:][0]
-raws_for_hstack[1] = raw_picks[1][:][0]
-raws_for_hstack[2] = raw_picks[2][:][0]
-raws_for_hstack[3] = raw_picks[3][:][0]
+raws_for_hstack=[{}]*len(files_path)
+for file_path_index in range(len(files_path)):
+  raws_for_hstack[file_path_index] = raw_picks[file_path_index][:][0]
 
 raws_vstack = np.vstack(raws_for_hstack)
 len(raws[0][:][0])
 len(raws_vstack)
 raws_vstack
-ch_names_syncs=[{}]*4
-syncs=[{}]*4
-syncs[0]=['sync1']*len(ch_names)
-syncs[1]=['sync2']*len(ch_names)
-syncs[2]=['sync3']*len(ch_names)
-syncs[3]=['sync4']*len(ch_names)
+ch_names_syncs=[{}]*len(files_path)
+syncs=[{}]*len(files_path)
+for file_path_index in range(len(files_path)):
+  syncs[file_path_index]=[FLAGS.prefix[file_path_index]]*len(ch_names)
+#  syncs[file_path_index]=[files_path[file_path_index][2]]*len(ch_names)
 
-ch_names_syncs[0] = [syncs[0][i] + '_' + ch_names[i] for i in range(len(ch_names))]
-ch_names_syncs[1] = [syncs[1][i] + '_' + ch_names[i] for i in range(len(ch_names))]
-ch_names_syncs[2] = [syncs[2][i] + '_' + ch_names[i] for i in range(len(ch_names))]
-ch_names_syncs[3] = [syncs[3][i] + '_' + ch_names[i] for i in range(len(ch_names))]
-ch_names_sync=ch_names_syncs[0]+ch_names_syncs[1]+ch_names_syncs[2]+ch_names_syncs[3]
+for file_path_index in range(len(files_path)):
+  ch_names_syncs[file_path_index] = [syncs[file_path_index][i] + '' + ch_names[i] for i in range(len(ch_names))]
+#  ch_names_syncs[file_path_index] = [syncs[file_path_index][i] + '_' + ch_names[i] for i in range(len(ch_names))]
+ch_names_sync=ch_names_syncs[0]
+for file_path_index in range(len(files_path)):
+  if file_path_index>0:
+    ch_names_sync=ch_names_sync+ch_names_syncs[file_path_index]
 #ch_names_sync=ch_names_syncs[0]+ch_names_syncs[1]+ch_names_syncs[2]
 #ch_names_sync=ch_names_syncs[0]+ch_names_syncs[1]
 ch_names_sync
@@ -198,7 +239,7 @@ ch_names = ch_names_sync
 #raws_for_hstack[2] = raw_picks[3][:][0]
 #raws_for_hstack[3] = raw_picks[3][:][0]
 #raws_vstack = np.vstack(raws_for_hstack)
-sfreq = 512 
+#sfreq = 512 
 
 ch_types=['eeg']*len(ch_names)
 info = mne.create_info(ch_names = ch_names, sfreq = sfreq, ch_types=ch_types)
@@ -280,7 +321,7 @@ raw = raw_sync
 #for img in imgs:
 #  out.append_data(np.asarray(img))
 #out.close()
-bands = [[8.,12.]]
+#bands = [[8.,12.]]
 #bands = [[4.,7.],[8.,12.],[13.,29.]]
 #bands = [[8.,12.],[8.,12.],[8.,12.]]
 #bands_name = ['theta','alpha','beta']
@@ -293,7 +334,7 @@ for band in range(len(bands)):
 #theta_data = raw.filter(l_freq=4, h_freq=7,method='iir')
 #alpha_data = raw.filter(l_freq=8, h_freq=12,method='iir')
 #beta_data = raw.filter(l_freq=13, h_freq=29,method='iir')
-methods = ['coh']
+#methods = ['coh']
 #methods = ['ciplv']
 #methods = ['wpli']
 #methods = ['coh', 'plv', 'ciplv', 'ppc', 'pli', 'wpli']
@@ -302,7 +343,8 @@ for band in range(len(bands)):
 # epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=0.1, preload=False))
  epochs.append(mne.make_fixed_length_epochs(datas[band], 
-                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
+                                            duration=duration, preload=False, overlap=overlap))
+#                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
 # epochs.append(mne.make_fixed_length_epochs(datas[band], duration=1.25, preload=False, overlap=1.15))
 #epochs = [mne.make_fixed_length_epochs(theta_data, duration=0.1, preload=False),
 #          mne.make_fixed_length_epochs(alpha_data, duration=0.1, preload=False),
@@ -319,11 +361,13 @@ for band in range(len(bands)):
 #fmin=8.
 #fmax=13.
 fmin=bands[0][0]
-fmax=bands[0][1]+1.
+fmax=bands[0][1]
+#fmax=bands[0][1]+1.
           
 sfreq = raw.info['sfreq']  # the sampling frequency
 #con_methods = ['coh', 'pli', 'ciplv']
-con_methods = ['coh', 'plv', 'ciplv', 'ppc', 'pli', 'wpli']
+con_methods = [methods[0]]
+#con_methods = ['coh', 'plv', 'ciplv', 'ppc', 'pli', 'wpli']
 #con_methods = ['coh', 'plv', 'ciplv', 'ppc', 'pli', 'pli2_unbiased', 'wpli', 'wpli2_debiased']
 #con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
 #    epochs, method=con_methods, mode='multitaper', sfreq=sfreq, fmin=fmin,
@@ -336,29 +380,32 @@ con_methods = ['coh', 'plv', 'ciplv', 'ppc', 'pli', 'wpli']
 #    fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=1)
 
 con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
-    epochs[0][2000:2010], method=con_methods, mode='multitaper', sfreq=sfreq, fmin=fmin,
+    epochs[0][0:10], method=con_methods, mode='multitaper', sfreq=sfreq, fmin=fmin,
+#    epochs[0][2000:2010], method=con_methods, mode='multitaper', sfreq=sfreq, fmin=fmin,
     fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=1)
 
 #epochs[0][2000:2010]
 #print(epochs[0][2000:2010])
-
-con_res = dict()
-for method, c in zip(con_methods, con):
-    con_res[method] = c[:, :, 0]
-
-#sfreq
-#con_res
 
 from mne.viz import circular_layout, plot_connectivity_circle
 #import matplotlib.pyplot as plt
 
 label_names = ch_names
 
-#plot_connectivity_circle(con_res['pli'], label_names, 
-#                                                  title='All-to-All Connectivity (PLI)')
-#fig = plt.figure(num=None, figsize=(8, 4), facecolor='black')
-no_names = [''] * len(label_names)
-for ii, method in enumerate(con_methods):
+if False:
+  con_res = dict()
+  for method, c in zip(con_methods, con):
+    con_res[method] = c[:, :, 0]
+
+  #sfreq
+  #con_res
+
+
+  #plot_connectivity_circle(con_res['pli'], label_names, 
+  #                                                  title='All-to-All Connectivity (PLI)')
+  #fig = plt.figure(num=None, figsize=(8, 4), facecolor='black')
+  no_names = [''] * len(label_names)
+  for ii, method in enumerate(con_methods):
     plot_connectivity_circle(con_res[method], label_names, n_lines=300,
                              title=method)
     #plot_connectivity_circle(con_res[method], label_names, n_lines=300,
@@ -368,9 +415,9 @@ for ii, method in enumerate(con_methods):
     #plot_connectivity_circle(con_res[method], no_names, n_lines=300,
     #                         title=method, padding=0, fontsize_colorbar=6,
     #                         fig=fig, subplot=(1, 6, ii + 1))
-plt.show()
+  plt.show()
 
-#con_res['coh']
+  #con_res['coh']
 
 import io
 from PIL import Image
