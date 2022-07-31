@@ -132,7 +132,7 @@ ch_names=FLAGS.ch_names
 #bands[0]=FLAGS.bands
 bands=[[float(FLAGS.bands[0]),float(FLAGS.bands[1])]]
 methods=FLAGS.methods
-vmin=FLAGS.vmin
+vmin=float(FLAGS.vmin)
 duration=float(FLAGS.duration)
 overlap=float(FLAGS.overlap)
 
@@ -663,8 +663,8 @@ n_parts_now = 0
 #z_avg_samples=n_generate
 #for i in range(n_generate): # display separate audio for each break
 for j in range(n_parts): # display separate audio for each break
-  out_file = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin0.7_'+str(len(epochs[0].events)-2)+'_'+str(j)+'.mp4'
-  out_file_parts = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin0.7_'+str(len(epochs[0].events)-2)+'_'+str(j)+'.mp4'
+  out_file = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'_'+str(j)+'.mp4'
+  out_file_parts = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'_'+str(j)+'.mp4'
 
   import os.path
   if not os.path.isfile(out_file_parts):  
@@ -769,13 +769,13 @@ for j in range(n_parts): # display separate audio for each break
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
 #                                             title=method, show = False, vmin=0, vmax=1)#, fig=fig)
             con_sort=np.sort(np.abs(con).ravel())[::-1]
-            n_lines=np.argmax(con_sort<0.7)
+            n_lines=np.argmax(con_sort<vmin)
             fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=n_lines, 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names,# n_lines=300, 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2), 
-                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin0.7_'+str(len(epochs[0].events)-2)+'\n'+str(ji), 
+                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'\n'+str(ji), 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2)+'_'+str(ji), 
-                                             show = False, vmin=0.7, vmax=1, fontsize_names=8)#, fig=fig)
+                                             show = False, vmin=vmin, vmax=1, fontsize_names=8)#, fig=fig)
 #                                             show = False, vmin=0, vmax=1, fontsize_names=8)#16)#, fig=fig)
             #ax.set_theta_offset(np.deg2rad(360/len(label_names)))
 #            fig = plot_sensors_connectivity(raw.info, con[:, :, 0], picks=label_names, cbar_label=method)
@@ -868,16 +868,18 @@ for j in range(n_parts): # display separate audio for each break
 
           #print(im.shape)
           #(412, 399, 4)
-#          im_arr = np.array(im)
+          if len(files_path)==1:
+            im_arr = np.array(im)
           #print(im_arr.shape)
 #          #im_arr.reshape(416, 416, 4)
-#          im_arr_rot = np.rot90(im_arr)
+            im_arr_rot = np.rot90(im_arr)
           #im_arr_rot.resize((400, 416))
 
-          out.append_data(im)
-#          out.append_data(im_arr_rot)
-#          imageio.imwrite('/content/out/img_buf.png', im_arr_rot, format='png')
-          imageio.imwrite('/content/out/img_buf.png', im, format='png')
+            out.append_data(im_arr_rot)
+            imageio.imwrite('/content/out/img_buf.png', im_arr_rot, format='png')
+          else:
+            out.append_data(im)
+            imageio.imwrite('/content/out/img_buf.png', im, format='png')
 #          out.append_data(im)
           #del img_buf
           #del im
@@ -939,35 +941,37 @@ for j in range(n_parts): # display separate audio for each break
   #display(Audio(np.tile(_G_z[i], 1), rate=32768)) # change rate for different tempo
 #out.close()
 
-#!mkdir '/content/out/parts'
-out_file_parts_txt = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin0.7_'+str(len(epochs[0].events)-2)+'.txt'
-#!rm {out_file_parts_txt}
-out_file_mp4 = '/content/out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin0.7_'+str(len(epochs[0].events)-2)+'.mp4'
+if n_parts_now>0:
+  #!mkdir '/content/out/parts'
+  out_file_parts_txt = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.txt'
+  out_file_parts_out_txt = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.txt'
+  #!rm {out_file_parts_txt}
+  out_file_mp4 = '/content/out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.mp4'
 
-out_file_sh = '/content/out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin0.7_'+str(len(epochs[0].events)-2)+'.sh'
+  out_file_sh = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.sh'
 
-if os.path.isfile(out_file_parts_txt): 
-  os.remove(out_file_parts_txt)
+  if os.path.isfile(out_file_parts_txt): 
+    os.remove(out_file_parts_txt)
 
-with open(out_file_parts_txt, 'a') as the_file:
- for j in range(n_parts): # display separate audio for each break
-  out_file_part = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin0.7_'+str(len(epochs[0].events)-2)+'_'+str(j)+'.mp4'
-  the_file.write("file '")
-  the_file.write(out_file_part)
-  the_file.write("'\n")
+  with open(out_file_parts_txt, 'a') as the_file:
+   for j in range(n_parts): # display separate audio for each break
+    out_file_part = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'_'+str(j)+'.mp4'
+    the_file.write("file '")
+    the_file.write(out_file_part)
+    the_file.write("'\n")
 #  import os.path
 #  if not os.path.isfile(out_file):  
 #    out = imageio.get_writer(out_file, fps=fps)
 #!rm {out_file_mp4}
 
-if os.path.isfile(out_file_sh): 
-  os.remove(out_file_sh)
+  if os.path.isfile(out_file_sh): 
+    os.remove(out_file_sh)
 
-with open(out_file_sh, 'a') as the_file:
-  the_file.write("ffmpeg -f concat -safe 0 -i ")
-  the_file.write(out_file_parts_txt)
-  the_file.write(" -c copy ")
-  the_file.write(out_file_mp4)
+  with open(out_file_sh, 'a') as the_file:
+    the_file.write("ffmpeg -f concat -safe 0 -i ")
+    the_file.write(out_file_parts_txt)
+    the_file.write(" -c copy ")
+    the_file.write(out_file_mp4)
 #!ffmpeg -f concat -safe 0 -i {out_file_parts_txt} -c copy {out_file_mp4}
 #!ffmpeg -vfilters "rotate=90" -i {out_file_mp4} {out_file_mp4}
 
