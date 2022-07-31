@@ -108,6 +108,8 @@ flags.DEFINE_string('vmin', None, 'vmin')
 flags.DEFINE_string('duration', None, 'duration')
 flags.DEFINE_string('overlap', None, 'overlap')
 flags.DEFINE_string('fps', None, 'fps')
+flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
+flags.DEFINE_string('part_len', None, 'part_len')
 flags.mark_flag_as_required('input')
 flags.mark_flag_as_required('prefix')
 flags.mark_flag_as_required('output')
@@ -118,6 +120,8 @@ flags.mark_flag_as_required('vmin')
 flags.mark_flag_as_required('duration')
 flags.mark_flag_as_required('overlap')
 flags.mark_flag_as_required('fps')
+flags.mark_flag_as_required('n_parts_one_time')
+flags.mark_flag_as_required('part_len')
 import sys
 FLAGS(sys.argv)
 
@@ -138,6 +142,8 @@ methods=FLAGS.methods
 vmin=float(FLAGS.vmin)
 duration=float(FLAGS.duration)
 overlap=float(FLAGS.overlap)
+n_parts_one_time=int(FLAGS.n_parts_one_time)
+part_len=int(FLAGS.part_len)
 
 #files_path = [['16j4PwPoudiCVB_HF9m0fCYIt3uUZR3kA', '/content/eeg/20211130-162023-sync1.bdf', 'sync1_', '20211130-162023-syncs'],
 #              ['16kSyskI7qOZRitvNIzd4iy6irqhgLwsI', '/content/eeg/20211130-162023-sync2.bdf', 'sync2_', '20211130-162023-syncs'],
@@ -438,7 +444,7 @@ import imageio
 
 from mne_connectivity.viz import plot_sensors_connectivity
 
-n_parts_one_time = 3
+#n_parts_one_time = 3
 #matplotlib.use('agg')
 #fig = plt.figure()
 
@@ -491,7 +497,7 @@ n_generate=len(epochs[0].events)-2
 #n_generate=int((10-2)*fps)
 #n_generate=int((1607-2)*fps)
 #n_generate=150
-part_len = 100
+#part_len = 100
 #part_len = 1000
 #part_len = 275
 dim = 512
