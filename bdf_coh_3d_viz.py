@@ -107,6 +107,7 @@ flags.DEFINE_list('methods', None, 'methods')
 flags.DEFINE_string('vmin', None, 'vmin')
 flags.DEFINE_string('duration', None, 'duration')
 flags.DEFINE_string('overlap', None, 'overlap')
+flags.DEFINE_string('fps', None, 'fps')
 flags.mark_flag_as_required('input')
 flags.mark_flag_as_required('prefix')
 flags.mark_flag_as_required('output')
@@ -116,9 +117,11 @@ flags.mark_flag_as_required('methods')
 flags.mark_flag_as_required('vmin')
 flags.mark_flag_as_required('duration')
 flags.mark_flag_as_required('overlap')
+flags.mark_flag_as_required('fps')
 import sys
 FLAGS(sys.argv)
 
+fps=float(FLAGS.fps)
 #files_path=flags.path
 files_path=FLAGS.input
 if len(FLAGS.prefix)==0:
@@ -439,7 +442,7 @@ n_parts_one_time = 3
 #matplotlib.use('agg')
 #fig = plt.figure()
 
-fps=10
+#fps=10
 #out = imageio.get_writer('/content/out/output.mp4', fps=fps)
 #out = imageio.get_writer('/content/out/'+input_fname_name+'_circle_'+methods[0]+'_'+
 #                         str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2)+'.mp4', fps=fps)
