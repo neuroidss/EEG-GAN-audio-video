@@ -950,10 +950,10 @@ out_file_mp4 = '/content/out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(in
 out_file_sh = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.sh'
 
 if n_parts_now>0:
-  if os.path.isfile(out_file_parts_txt): 
-    os.remove(out_file_parts_txt)
+  if os.path.isfile(out_file_parts_out_txt): 
+    os.remove(out_file_parts_out_txt)
 
-  with open(out_file_parts_txt, 'a') as the_file:
+  with open(out_file_parts_out_txt, 'a') as the_file:
    for j in range(n_parts): # display separate audio for each break
     out_file_part = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'_'+str(j)+'.mp4'
     the_file.write("file '")
