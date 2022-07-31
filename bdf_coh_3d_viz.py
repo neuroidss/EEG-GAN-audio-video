@@ -941,15 +941,15 @@ for j in range(n_parts): # display separate audio for each break
   #display(Audio(np.tile(_G_z[i], 1), rate=32768)) # change rate for different tempo
 #out.close()
 
+#!mkdir '/content/out/parts'
+out_file_parts_txt = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.txt'
+out_file_parts_out_txt = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.txt'
+#!rm {out_file_parts_txt}
+out_file_mp4 = '/content/out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.mp4'
+
+out_file_sh = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.sh'
+
 if n_parts_now>0:
-  #!mkdir '/content/out/parts'
-  out_file_parts_txt = '/content/out/parts/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.txt'
-  out_file_parts_out_txt = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.txt'
-  #!rm {out_file_parts_txt}
-  out_file_mp4 = '/content/out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.mp4'
-
-  out_file_sh = '/content/out/parts_out/'+input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+'_'+str(len(epochs[0].events)-2)+'.sh'
-
   if os.path.isfile(out_file_parts_txt): 
     os.remove(out_file_parts_txt)
 
@@ -964,14 +964,14 @@ if n_parts_now>0:
 #    out = imageio.get_writer(out_file, fps=fps)
 #!rm {out_file_mp4}
 
-  if os.path.isfile(out_file_sh): 
-    os.remove(out_file_sh)
+if os.path.isfile(out_file_sh): 
+  os.remove(out_file_sh)
 
-  with open(out_file_sh, 'a') as the_file:
-    the_file.write("ffmpeg -f concat -safe 0 -i ")
-    the_file.write(out_file_parts_txt)
-    the_file.write(" -c copy ")
-    the_file.write(out_file_mp4)
+with open(out_file_sh, 'a') as the_file:
+  the_file.write("ffmpeg -f concat -safe 0 -i ")
+  the_file.write(out_file_parts_txt)
+  the_file.write(" -c copy ")
+  the_file.write(out_file_mp4)
 #!ffmpeg -f concat -safe 0 -i {out_file_parts_txt} -c copy {out_file_mp4}
 #!ffmpeg -vfilters "rotate=90" -i {out_file_mp4} {out_file_mp4}
 
