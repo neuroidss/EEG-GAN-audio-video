@@ -9,7 +9,7 @@ from matplotlib.pyplot import draw, figure, show
 
 
 import brainflow
-from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, IpProtocolType
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 
 import mne
@@ -34,8 +34,8 @@ if True:
     sample_rate = 512
   else:
     board_id = BoardIds.FREEEEG32_BOARD.value
-#    params.serial_port = '/dev/ttyACM0'
-    params.serial_port = '/dev/ttyS20'
+    params.serial_port = '/dev/ttyACM0'
+#    params.serial_port = '/dev/ttyS20'
     sample_rate = 512
     eeg_channels = BoardShim.get_eeg_channels(board_id)
 #        if num_channels is not None:
