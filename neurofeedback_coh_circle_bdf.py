@@ -361,17 +361,15 @@ if True:
 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
 #                                             title=method, show = False, vmin=0, vmax=1)#, fig=fig)
-            if vmin>0:
-              con_sort=np.sort(np.abs(con).ravel())[::-1]
-              n_lines=np.argmax(con_sort<0.7)
-              vmin_text='vmin0.7_'
-            else:
-              n_lines=None
-              vmin_text=''
+            con_sort=np.sort(np.abs(con).ravel())[::-1]
+            n_lines=np.argmax(con_sort<vmin)
+               
+#            print(freqs)
             fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=n_lines, 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names,# n_lines=300, 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2), 
-                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+vmin_text+str(len(epochs[0].events)-2)+'\n'+str(ji), 
+                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{freqs[0][1]:.1f}'+'-'+f'{freqs[0][2]:.1f}'+'hz_'+'vmin'+str(vmin)+str(len(epochs[0].events)-2)+'\n'+str(ji), 
+#               title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+str(len(epochs[0].events)-2)+'\n'+str(ji), 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2)+'_'+str(ji), 
                                              show = False, vmin=vmin, vmax=1, fontsize_names=8)#, fig=fig)
 #                                             show = False, vmin=0, vmax=1, fontsize_names=8)#16)#, fig=fig)
