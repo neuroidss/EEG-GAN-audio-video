@@ -185,10 +185,11 @@ if True:
       data = board.get_board_data()
             #eeg_data.append(data[eeg_channels,:].T)
       eeg_data = data[eeg_channels, :]
+
+      signals = eeg_data
+
       eeg_data = eeg_data / 1000000 # BrainFlow returns uV, convert to V for MNE
 #      eeg_data.append(data[eeg_channels,:])#.T)
-
-      signals = eeg_data *1000000
       
       if buf is not None:
         bufs=[{}]*2
@@ -217,9 +218,10 @@ if True:
 
       if len(bufs_hstack[0])>=int(sample_rate):
         bufs_hstack_cut = bufs_hstack[:,:sample_rate]
-##todo: chech if correct edges
       
         buf = bufs_hstack[:,sample_rate:]
+        #chech if correct edges
+        #print(len(bufs_hstack[0]), len(bufs_hstack_cut[0]), len(buf[0]))
 
 #      if len(bufs_hstack_cut[0])>=int(sample_rate):
 
@@ -228,8 +230,6 @@ if True:
         bdf.writeSamples(bufs_hstack_cut)
 #      bdf.blockWriteDigitalSamples(signals)
 #      bdf.blockWritePhysicalSamples(signals)
-      
-      
 
 
   # Creating MNE objects from brainflow data arrays
@@ -267,11 +267,6 @@ if True:
       ch_types_pick = ['eeg'] * len(ch_names_pick)
       info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
       raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose=50)
-
-
-
-
-
 
 
     if raw is not None:
