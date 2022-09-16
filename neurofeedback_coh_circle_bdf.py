@@ -33,7 +33,7 @@ flags.DEFINE_boolean('debug', False, 'debug')
 flags.DEFINE_string('input_name', 'neurofeedback', 'input')
 flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
 #flags.DEFINE_list('prefix', None, 'prefix')
-#flags.DEFINE_string('output', None, 'output')
+flags.DEFINE_string('output', None, 'output, if None, used: input_name+"_%Y-%m-%d_%H:%M:%S.bdf"')
 flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
 flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2']
 , 'ch_names')
@@ -201,7 +201,11 @@ if True:
 
   dt_string = now.strftime("%Y-%m-%d_%H:%M:%S")
   
-  dst=input_name+"_"+dt_string+".bdf"
+  if FLAGS.output==None:
+    dst=input_name+"_"+dt_string+".bdf"
+  else:
+    dst=FLAGS.output
+  
   pmax=300000
   dmax = 8388607
   dmin = -8388608
