@@ -25,7 +25,77 @@ import sounddevice as sd
 
 sd.default.reset()
 
-debug = False
+from absl import flags
+FLAGS = flags.FLAGS
+#  bands = [[8.,12.]]
+#  methods = ['coh']
+flags.DEFINE_boolean('debug', False, 'debug')
+flags.DEFINE_string('input_name', 'neurofeedback', 'input')
+flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
+#flags.DEFINE_list('prefix', None, 'prefix')
+#flags.DEFINE_string('output', None, 'output')
+flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
+flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2']
+, 'ch_names')
+flags.DEFINE_list('bands', [8.,12.], 'bands')
+flags.DEFINE_list('methods', ['coh'], 'methods')
+flags.DEFINE_string('vmin', '0.7', 'vmin')
+flags.DEFINE_string('duration', None, 'duration, if None, used: 5*1/bands[0]')
+flags.DEFINE_string('fps', '10', 'fps')
+flags.DEFINE_string('overlap', None, 'overlap, if None, used: duration-1/fps')
+#flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
+#flags.DEFINE_string('part_len', None, 'part_len')
+#flags.mark_flag_as_required('input')
+#flags.mark_flag_as_required('prefix')
+#flags.mark_flag_as_required('output')
+#flags.mark_flag_as_required('ch_names')
+#flags.mark_flag_as_required('bands')
+#flags.mark_flag_as_required('methods')
+#flags.mark_flag_as_required('vmin')
+#flags.mark_flag_as_required('duration')
+#flags.mark_flag_as_required('overlap')
+#flags.mark_flag_as_required('fps')
+#flags.mark_flag_as_required('n_parts_one_time')
+#flags.mark_flag_as_required('part_len')
+import sys
+FLAGS(sys.argv)
+
+debug = FLAGS.debug
+serial_port=FLAGS.serial_port
+
+#fps=float(FLAGS.fps)
+#files_path=flags.path
+input_name=FLAGS.input_name
+#if len(FLAGS.prefix)==0:
+#  FLAGS.prefix=['']
+#print('FLAGS.prefix: ',FLAGS.prefix)
+#print('len(FLAGS.prefix): ',len(FLAGS.prefix))
+#print('files_path: ',files_path)
+#print('len(files_path): ',len(files_path))
+ch_names=FLAGS.ch_names
+ch_names_pick=FLAGS.ch_names_pick
+#bands=[{}]*1
+#bands[0]=FLAGS.bands
+bands=[[float(FLAGS.bands[0]),float(FLAGS.bands[1])]]
+methods=FLAGS.methods
+vmin=float(FLAGS.vmin)
+
+if FLAGS.duration==None:
+  duration=5*1/bands[0][0]
+else:
+  duration=float(FLAGS.duration)
+
+fps=float(FLAGS.fps)  
+
+if FLAGS.overlap==None:
+  overlap=duration-1/fps
+else:
+  overlap=float(FLAGS.overlap)
+
+print(FLAGS)
+
+#n_parts_one_time=int(FLAGS.n_parts_one_time)
+#part_len=int(FLAGS.part_len)
 
 if True:
   params = BrainFlowInputParams()
@@ -34,7 +104,8 @@ if True:
     sample_rate = 512
   else:
     board_id = BoardIds.FREEEEG32_BOARD.value
-    params.serial_port = '/dev/ttyACM0'
+    #params.serial_port = '/dev/ttyACM0'
+    params.serial_port = serial_port
 #    params.serial_port = '/dev/ttyS20'
     sample_rate = 512
     eeg_channels = BoardShim.get_eeg_channels(board_id)
@@ -61,23 +132,23 @@ if True:
 
   buf = None
   raw = None
-  input_fname_name='neurofeedback'
-  vmin=0#0.7
-  vmin=0.7
-  fps=10
+  input_fname_name=input_name
+#  vmin=0#0.7
+#  vmin=0.7
+#  fps=10
 #        bands = [[30.,45.]]
 #bands = [[4.,7.],[8.,12.],[13.,29.],[30.,45.]]
-  bands = [[8.,12.]]
-  methods = ['coh']
+#  bands = [[8.,12.]]
+#  methods = ['coh']
 #biosemi32
-  ch_names = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz']
+#  ch_names = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz']
 #  ch_names_pick = ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2']
 #  ch_names_pick = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','Cz','Fz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2']
 #  ch_names_pick = ['F7','FC5','T7','CP5','P7','O1','PO3','P3','CP1','C3','FC1','F3','AF3','FP1','Fz','Cz','Pz','Oz','O2','PO4','P4','CP2','C4','FC2','F4','AF4','FP2','F8','FC6','T8','CP6','P8']
 #  ch_names_pick = ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5']
 #Bernard's 19ch headset
 #  ch_names = ["O2","T6","T4","F8","Fp2","F4","C4","P4","ch9","ch10","ch11","ch12","Pz","ch14","ch15","ch16","Fz","ch18","ch19","ch20","ch21","ch22","ch23","ch24","Fp1","F3","C3","P3","O1","T5","T3","F7"]
-  ch_names_pick = ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2']
+#  ch_names_pick = ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2']
 #  ch_names_pick = ['Fz','Fp1','F7','F3','T3','C3','T5','P3','O1','Pz','O2','P4','T6','C4','T4','F4','F8','Fp2']
 
   label_names = ch_names
@@ -90,7 +161,7 @@ if True:
   fs_mult=3
   audio_volume_mult=200
 #  cons_dur=fs_mult#fps
-  cons_dur=fps*10
+  cons_dur=int(fps*10)
   show_circle_cons=True
 #  show_circle_cons=False
   show_spectrum_cons=False
@@ -130,7 +201,7 @@ if True:
 
   dt_string = now.strftime("%Y-%m-%d_%H:%M:%S")
   
-  dst="record_"+dt_string+".bdf"
+  dst=input_name+"_"+dt_string+".bdf"
   pmax=300000
   dmax = 8388607
   dmin = -8388608
