@@ -46,6 +46,11 @@ flags.DEFINE_string('duration', None, 'duration, if None, used: 5*1/bands[0]')
 flags.DEFINE_string('fps', '10', 'fps')
 flags.DEFINE_string('overlap', None, 'overlap, if None, used: duration-1/fps')
 flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
+flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
+flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
+flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
+flags.DEFINE_boolean('sound_cons_swap', True, 'sound_cons_swap')
+flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.mark_flag_as_required('input')
@@ -134,10 +139,25 @@ if True:
   import time
  
         #fig = plt.figure()
-         
-  canvas = np.zeros((800,800))
+
+  show_circle_cons=FLAGS.show_circle_cons
+#  show_circle_cons=False
+  show_spectrum_cons=FLAGS.show_spectrum_cons
+#  show_spectrum_cons=True
+  sound_cons=FLAGS.sound_cons
+  sound_cons_swap=FLAGS.sound_cons_swap
+#  sound_cons_swap=True
+  sound_cons_buffer_path=FLAGS.sound_cons_buffer_path
+
+  if show_circle_cons:
+    canvas = np.zeros((800,800))
 #  canvas = np.zeros((480,640))
-  screen = pf.screen(canvas, 'Sinusoid')
+    screen = pf.screen(canvas, 'circle_cons')
+
+  if show_spectrum_cons:
+    canvas2 = np.zeros((800,800))
+#  canvas = np.zeros((480,640))
+    screen2 = pf.screen(canvas2, 'spectrum_cons')
 
   buf = None
   raw = None
@@ -171,13 +191,6 @@ if True:
   audio_volume_mult=200
 #  cons_dur=fs_mult#fps
   cons_dur=int(fps*10)
-  show_circle_cons=True
-#  show_circle_cons=False
-  show_spectrum_cons=False
-#  show_spectrum_cons=True
-  sound_cons=False
-  sound_cons_swap=False
-#  sound_cons_swap=True
   audio_cons_fs=int(cons_len*(fs_mult-0.0))
   cons_index=0
   cons=np.zeros((cons_dur,cons_len),dtype=float)
@@ -439,7 +452,7 @@ if True:
 #          for method, c in zip(methods, con):
 #            con_res[method] = c[:, :, 0]
 #            con_res[method] = c[:, :]
-          for ii, method in enumerate(methods):
+         for ii, method in enumerate(methods):
 #            fig,_ = plot_connectivity_circle(con_res[method], label_names, n_lines=300, 
 
 #            plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
@@ -477,7 +490,7 @@ if True:
           #if ji%100==0 :
           #  gc.collect()
 
-        if False:
+         if False:
 #        if True:
 
           #plt.close(fig)
@@ -565,7 +578,7 @@ if True:
           imageio.imwrite('/content/out/img_buf.png', im, format='png')
 
 
-        if True:
+         if True:
 
             fig.canvas.draw()
 
@@ -664,7 +677,7 @@ if True:
 #            image_rot90 = np.rot90(image)
 
 #            screen.update(image)
-            screen.update(image_crop)
+            screen2.update(image_crop)
 #            screen.update(image_rot90)
 
             plt.close(fig)
@@ -736,9 +749,9 @@ if True:
 #          sr=int(48000/20)
 #          sr=cons_len
           sr=4000
-          sf.write('/content/out/cons_back.wav', back_y, sr, 'PCM_24')
-          sf.write('/content/out/cons_back_s.wav', back_y_s, sr, 'PCM_24')
-          filename='/content/out/cons_back_s.wav'
+          sf.write(sound_cons_buffer_path+'cons_back.wav', back_y, sr, 'PCM_24')
+          sf.write(sound_cons_buffer_path+'cons_back_s.wav', back_y_s, sr, 'PCM_24')
+          filename=sound_cons_buffer_path+'cons_back_s.wav'
 #          device=
           #print(sd.query_devices())
 #          try:
