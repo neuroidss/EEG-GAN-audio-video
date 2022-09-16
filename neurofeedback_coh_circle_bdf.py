@@ -29,6 +29,7 @@ from absl import flags
 FLAGS = flags.FLAGS
 #  bands = [[8.,12.]]
 #  methods = ['coh']
+flags.DEFINE_boolean('help', False, 'show help and exit')
 flags.DEFINE_boolean('debug', False, 'debug')
 flags.DEFINE_string('input_name', 'neurofeedback', 'input')
 flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
@@ -61,6 +62,10 @@ flags.DEFINE_string('overlap', None, 'overlap, if None, used: duration-1/fps')
 import sys
 FLAGS(sys.argv)
 
+print(FLAGS)
+
+if FLAGS.help:
+  exit()
 debug = FLAGS.debug
 serial_port=FLAGS.serial_port
 
@@ -92,8 +97,6 @@ if FLAGS.overlap==None:
   overlap=duration-1/fps
 else:
   overlap=float(FLAGS.overlap)
-
-print(FLAGS)
 
 #n_parts_one_time=int(FLAGS.n_parts_one_time)
 #part_len=int(FLAGS.part_len)
