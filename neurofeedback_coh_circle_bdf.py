@@ -59,6 +59,7 @@ if True:
 #  canvas = np.zeros((480,640))
   screen = pf.screen(canvas, 'Sinusoid')
 
+  buf = None
   raw = None
   input_fname_name='neurofeedback'
   vmin=0#0.7
@@ -188,7 +189,43 @@ if True:
 #      eeg_data.append(data[eeg_channels,:])#.T)
 
       signals = eeg_data *1000000
-      bdf.writeSamples(signals)
+      
+      if buf is not None:
+        bufs=[{}]*2
+        bufs[0] = buf
+        bufs[1] = signals
+        #raw_picks=[{}]*2
+        #raw_picks[0] = raws[0].pick(ch_names_pick)
+        #raw_picks[1] = raws[1].pick(ch_names_pick)
+        bufs_for_hstack=[{}]*2
+        bufs_for_hstack[0] = bufs[0][:][:]
+        bufs_for_hstack[1] = bufs[1][:][:]
+      else:
+        bufs=[{}]*1
+        bufs[0] = signals
+        #raw_picks=[{}]*1
+        #raw_picks[0] = raws[0].pick(ch_names_pick)
+        bufs_for_hstack=[{}]*1
+        bufs_for_hstack[0] = bufs[0][:][:]
+
+      bufs_hstack = np.hstack(bufs_for_hstack)
+#      print(raws_hstack)
+#      print(len(raws_hstack))
+#      raws_hstack_cut = raws_hstack[:,:]
+
+      buf = bufs_hstack
+
+      if len(bufs_hstack[0])>=int(sample_rate):
+        bufs_hstack_cut = bufs_hstack[:,:sample_rate]
+##todo: chech if correct edges
+      
+        buf = bufs_hstack[:,sample_rate:]
+
+#      if len(bufs_hstack_cut[0])>=int(sample_rate):
+
+#      print(raws_hstack_cut)
+     
+        bdf.writeSamples(bufs_hstack_cut)
 #      bdf.blockWriteDigitalSamples(signals)
 #      bdf.blockWritePhysicalSamples(signals)
       
