@@ -45,6 +45,7 @@ flags.DEFINE_string('vmin', '0.7', 'vmin')
 flags.DEFINE_string('duration', None, 'duration, if None, used: 5*1/bands[0]')
 flags.DEFINE_string('fps', '10', 'fps')
 flags.DEFINE_string('overlap', None, 'overlap, if None, used: duration-1/fps')
+flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.mark_flag_as_required('input')
@@ -66,6 +67,10 @@ print(FLAGS)
 
 if FLAGS.help:
   exit()
+  
+print_freq_once = FLAGS.print_freq_once
+print_freq_once_printed = False
+  
 debug = FLAGS.debug
 serial_port=FLAGS.serial_port
 
@@ -342,7 +347,7 @@ if True:
 #      print(raws_hstack)
 #      print(len(raws_hstack))
 #      raws_hstack_cut = raws_hstack[:,:]
-      raws_hstack_cut = raws_hstack[:,-int(sample_rate*5*1/bands[0][0]):]
+      raws_hstack_cut = raws_hstack[:,-int(sample_rate*duration*2):]
 #      print(raws_hstack_cut)
 
       ch_types_pick = ['eeg'] * len(ch_names_pick)
@@ -351,7 +356,7 @@ if True:
 
 
     if raw is not None:
-     if len(raws_hstack_cut[0])>=int(sample_rate*5*1/bands[0][0]):
+     if len(raws_hstack_cut[0])>=int(sample_rate*duration*2):
 
   # its time to plot something!
 
@@ -368,7 +373,7 @@ if True:
         # epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=0.1, preload=False))
           epochs.append(mne.make_fixed_length_epochs(datas[band], 
-                                            duration=5*1/bands[band][0], preload=False, overlap=5*1/bands[band][0]-0.1, verbose=50))
+                                            duration=duration, preload=False, overlap=overlap, verbose=50))
 #          epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
 
@@ -387,6 +392,9 @@ if True:
             epochs[band][ji:ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
 #            epochs[band][ji:ji+10], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
             fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=4, verbose=50)
+           if print_freq_once and not print_freq_once_printed:
+             print(freqs)
+             print_freq_once_printed = True
           #con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
           #  epochs[band][ji,ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
           #  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=1)
@@ -449,7 +457,8 @@ if True:
             fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=n_lines, 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names,# n_lines=300, 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2), 
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{freqs[0][1]:.1f}'+'-'+f'{freqs[0][2]:.1f}'+'hz_'+'vmin'+str(vmin)+str(len(epochs[0].events)-2)+'\n'+str(ji), 
+                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
+#                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{freqs[0][0]:.1f}'+'-'+f'{freqs[0][len(freqs[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
 #               title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+str(len(epochs[0].events)-2)+'\n'+str(ji), 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2)+'_'+str(ji), 
                                              show = False, vmin=vmin, vmax=1, fontsize_names=8)#, fig=fig)
