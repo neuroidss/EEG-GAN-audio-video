@@ -1,3 +1,5 @@
+#pip install matplotlib brainflow mne==0.23.3 librosa sounddevice absl-py pyformulas pyedflib
+
 #%matplotlib inline
 
 import matplotlib.pyplot as plt
