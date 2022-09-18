@@ -21,6 +21,7 @@ from mne.viz import circular_layout, plot_connectivity_circle
 #from pynput.mouse import Listener
 
 
+import os
     
 from absl import flags
 FLAGS = flags.FLAGS
@@ -50,7 +51,7 @@ flags.DEFINE_boolean('sound_cons_swap', True, 'sound_cons_swap')
 flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
 flags.DEFINE_boolean('rotate', True, 'rotate')
 flags.DEFINE_boolean('show_stable_diffusion_cons', True, 'show_stable_diffusion_cons')
-flags.DEFINE_string('huggingface_hub_token', '', 'huggingface_hub_token')
+flags.DEFINE_string('huggingface_hub_token', './huggingface_hub_token', 'huggingface_hub_token')
 flags.DEFINE_string('unet_height', '512', 'unet_height')
 flags.DEFINE_string('unet_width', '512', 'unet_width')
 flags.DEFINE_string('unet_num_inference_steps', '50', 'unet_num_inference_steps')
@@ -78,7 +79,13 @@ print(FLAGS)
 if FLAGS.help:
   exit()
 
-huggingface_hub_token=FLAGS.huggingface_hub_token
+if os.path.isfile(FLAGS.huggingface_hub_token):
+  with open(FLAGS.huggingface_hub_token, 'r') as file:
+    huggingface_hub_token = file.read().replace('\n', '')
+else:
+  huggingface_hub_token=FLAGS.huggingface_hub_token
+
+print(huggingface_hub_token)
   
 print_freq_once = FLAGS.print_freq_once
 print_freq_once_printed = False
@@ -248,7 +255,6 @@ if True:
 
   if show_stable_diffusion_cons:
    if True:
-    import os
 
     import requests
     import torch
