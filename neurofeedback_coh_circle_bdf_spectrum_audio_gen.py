@@ -1,6 +1,5 @@
 #!pip install matplotlib brainflow mne==0.23.3 librosa sounddevice absl-py pyformulas pyedflib
 #!pip install diffusers transformers scipy ftfy "ipywidgets>=7,<8"
-#!pip install keyboard
 
 #%matplotlib inline
 
