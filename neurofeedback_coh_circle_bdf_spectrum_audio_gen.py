@@ -27,22 +27,22 @@ from absl import flags
 FLAGS = flags.FLAGS
 #  bands = [[8.,12.]]
 #  methods = ['coh']
-flags.DEFINE_boolean('help', False, 'show help and exit')
+flags.DEFINE_boolean('help', False, 'help: show help and exit')
 flags.DEFINE_boolean('debug', False, 'debug')
 flags.DEFINE_string('input_name', 'neurofeedback', 'input')
 flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
 #flags.DEFINE_list('prefix', None, 'prefix')
 flags.DEFINE_string('output_path', '', 'output_path')
-flags.DEFINE_string('output', None, 'output, if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
+flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
 flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
 flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2']
 , 'ch_names')
 flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
 flags.DEFINE_list('methods', ['coh'], 'methods')
 flags.DEFINE_string('vmin', '0.7', 'vmin')
-flags.DEFINE_string('duration', None, 'duration, if None, used: 5*1/bands[0]')
+flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
 flags.DEFINE_string('fps', '10', 'fps')
-flags.DEFINE_string('overlap', None, 'overlap, if None, used: duration-1/fps')
+flags.DEFINE_string('overlap', None, 'overlap: if None, used: duration-1/fps')
 flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
 flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
 flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
@@ -51,12 +51,14 @@ flags.DEFINE_boolean('sound_cons_swap', True, 'sound_cons_swap')
 flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
 flags.DEFINE_boolean('rotate', True, 'rotate')
 flags.DEFINE_boolean('show_stable_diffusion_cons', True, 'show_stable_diffusion_cons')
-flags.DEFINE_string('huggingface_hub_token', './huggingface_hub_token', 'huggingface_hub_token')
+flags.DEFINE_string('huggingface_hub_token', './huggingface_hub_token', 'huggingface_hub_token: token or file with token')
 flags.DEFINE_string('unet_height', '512', 'unet_height')
 flags.DEFINE_string('unet_width', '512', 'unet_width')
 flags.DEFINE_string('unet_num_inference_steps', '50', 'unet_num_inference_steps')
-flags.DEFINE_string('unet_latents', None, 'unet_latents')
+flags.DEFINE_string('unet_latents', None, 'unet_latents: if None, load random')
 flags.DEFINE_string('unet_guidance_scale', '7.5', 'unet_guidance_scale')
+flags.DEFINE_string('apply_to_latents', '0.5', 'apply_to_latents')
+flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.mark_flag_as_required('input')
@@ -78,6 +80,9 @@ print(FLAGS)
 
 if FLAGS.help:
   exit()
+
+apply_to_latents=float(FLAGS.apply_to_latents)
+apply_to_embeds=float(FLAGS.apply_to_embeds)
 
 if os.path.isfile(FLAGS.huggingface_hub_token):
   with open(FLAGS.huggingface_hub_token, 'r') as file:
@@ -1182,6 +1187,17 @@ if True:
 #            car_latent.shape
 
 #            base_latents = test_latents.detach().clone()
+            base_latents = unet_latents.detach().clone()
+#            cons_latents = base_latents
+            cons_latents_flatten = base_latents.reshape(len(base_latents)*len(base_latents[0])*len(base_latents[0][0])*len(base_latents[0][0][0]))
+            for cons_index in range(int(len(cons_latents_flatten)/len(cons[0]))+1):
+              for con_index in range(len(cons[0])):
+               if con_index + cons_index*len(cons[0]) < len(cons_latents_flatten):
+#                cons_latents_flatten[con_index + cons_index*len(cons[0])] = 1
+#                cons_latents_flatten[con_index + cons_index*len(cons[0])] = 1-random.randint(0, 10)/200
+                cons_latents_flatten[con_index + cons_index*len(cons[0])] = ((cons[cons_index%len(cons)][con_index]+apply_to_latents)/1+0.0001)/((1+apply_to_latents)/1+0.0001)
+            cons_latents = cons_latents_flatten.reshape(len(base_latents),len(base_latents[0]),len(base_latents[0][0]),len(base_latents[0][0][0]))
+
 
 #            base_embeds = torch.randn(2, 77, 768).to(device)
             base_embeds = test_embeds.detach().clone()
@@ -1195,7 +1211,7 @@ if True:
 #                cons_embeds_flatten[con_index + cons_index*len(cons[0])] = 1-random.randint(0, 10)/20
 #                cons_embeds_flatten[con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index])/1
 #                cons_embeds_flatten[con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index]-0.5)/2.5
-                cons_embeds_flatten[con_index + cons_index*len(cons[0])] = ((cons[cons_index%len(cons)][con_index]+0.1)/1+0.0001)/((1+0.1)/1+0.0001)
+                cons_embeds_flatten[con_index + cons_index*len(cons[0])] = ((cons[cons_index%len(cons)][con_index]+apply_to_embeds)/1+0.0001)/((1+apply_to_embeds)/1+0.0001)
 #                cons_embeds_flatten[con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index]-0.5)/10
 #                cons_latent_flatten[con_index + cons_index*len(cons[0])] = (cons[0][con_index])*100
 #                cons_latent_flatten[con_index + cons_index*len(cons[0])] = (cons[0][con_index]-0.5)*3
@@ -1210,12 +1226,12 @@ if True:
                 #print(car_latent)
 #            print(cons_latent)
             
-                #to_sum_latent = car_latent-cons_latent
+                to_sum_latents = unet_latents/cons_latents
 #                to_sum_embeds = test_embeds-cons_embeds
                 to_sum_embeds = test_embeds/cons_embeds
 #                to_sum_embeds = car_embeds/cons_embeds
             
-            #sum_latent = cons_latent+to_sum_latent
+            sum_latents = cons_latents*to_sum_latents
 #            sum_embeds = cons_embeds+to_sum_embeds
             sum_embeds = cons_embeds*to_sum_embeds
             #sum_embeds = cons_embeds
@@ -1230,7 +1246,9 @@ if True:
                 height=unet_height, 
                 width=unet_width,
                 num_inference_steps=unet_num_inference_steps,
-                latents=unet_latents,
+#                latents=unet_latents,
+#                latents=cons_latents,
+                latents=sum_latents,
                 guidance_scale=unet_guidance_scale)
             images = decode_latents(test_latents.to(device))
             #images = decode_latents(car_latent.to(device))
