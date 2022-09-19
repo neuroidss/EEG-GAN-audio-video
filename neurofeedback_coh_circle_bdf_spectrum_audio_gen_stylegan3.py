@@ -275,10 +275,10 @@ if True:
 
     sg3_models=0
 
-    os.chdir('/content')
+#    os.chdir('/content')
 #    if generate&gen_sg3_nvlabs_pt:
     os.system('git clone https://github.com/NVlabs/stylegan3.git /content/stylegan3-nvlabs-pytorch')
-    os.chdir('/content/stylegan3-nvlabs-pytorch')
+#    os.chdir('/content/stylegan3-nvlabs-pytorch')
 #    if generate&gen_sg3_Expl0dingCat_pt:
 #    os.system('git clone https://github.com/Expl0dingCat/stylegan3-modified.git /content/stylegan3-Expl0dingCat-pytorch')
 #    os.chdir('/content/stylegan3-Expl0dingCat-pytorch')
@@ -293,48 +293,46 @@ if True:
     if False:
 #    if True:
       files_path = [
-                ['1UP200H32RIvVYA_9TduGqIbvqfsFjpkg', '/content/sg3-model/', 'stylegan3-anime-faces-generator_akiyamasho', '.pkl', 'sg3_model'],
-                ['1aMsP1juT3DzZpbEhcNWO_gJVw9lt7Ant', '/content/sg3-model/', 'stylegan3-r-afhqv2-512x512', '.pkl', 'sg3_model'],
-                ['1Buunx_0kHIWdNWqRq6CBG0ILlAlcPVOb', '/content/sg3-model/', 'stylegan3-r-ffhq-1024x1024', '.pkl', 'sg3_model'],
-                ['1YiCvVqosdRwta3qwMQHNAzuSRGKnSRp1', '/content/sg3-model/', 'stylegan3-r-ffhqu-256x256', '.pkl', 'sg3_model'],
-                ['1z42DkzZUFhMpuWFHtMNvD6GApcL1lwG7', '/content/sg3-model/', 'stylegan3-r-ffhqu-1024x1024', '.pkl', 'sg3_model'],
-                ['1BOln2JzcatBT6LTqbsdmrwVb8GJzvhNa', '/content/sg3-model/', 'stylegan3-r-metfaces-1024x1024', '.pkl', 'sg3_model'],
-                ['1lh8nIxnX-xmBuu1QQokfFPBvZQPXEo0e', '/content/sg3-model/', 'stylegan3-r-metfacesu-1024x1024', '.pkl', 'sg3_model'],
-                ['18ZAuZj9fWwbHx07RB8COJsepnOYtyHli', '/content/sg3-model/', 'stylegan3-t-afhqv2-512x512', '.pkl', 'sg3_model'],
-                ['14OyRIEfpvhKkHooMpCKnzM3cDkOTXr6p', '/content/sg3-model/', 'stylegan3-t-ffhq-1024x1024', '.pkl', 'sg3_model'],
-                ['1Yb5Cvf2DQ57-hX37gc4dq_Mo2UFMetnw', '/content/sg3-model/', 'stylegan3-t-ffhqu-256x256', '.pkl', 'sg3_model'],
-                ['1XwObqI_egXDiKXoEaCn83utVEzM7Miln', '/content/sg3-model/', 'stylegan3-t-ffhqu-1024x1024', '.pkl', 'sg3_model'],
-                ['1DH6C87Xr5wSG5mPZ8Y9GZgymsgBMTzMP', '/content/sg3-model/', 'stylegan3-t-metfaces-1024x1024', '.pkl', 'sg3_model'],
-                ['11Mn6U-mcJulhSzUetwX1Q03h7EXrZxS_', '/content/sg3-model/', 'stylegan3-t-metfacesu-1024x1024', '.pkl', 'sg3_model'],
-                ['1Ncs7wUsbfSEPJCcxiTLDOYjLT6UY9wT2', '/content/sg3-model/', 'sg3_alien-sunglases-256_network-snapshot-000074', '.pkl', 'sg3_model'],
-                ['1CtKjqv7Te5X3L0KuZLIbzi7fbmpLakYS', '/content/sg3-model/', 'sg3_Benches-512_network-snapshot-011000', '.pkl', 'sg3_model'],
-                ['15LkW8nCsVRrzjjYTVGlUJSnfGDi1RwyI', '/content/sg3-model/', 'sg3_flowers-256_network-snapshot-000069', '.pkl', 'sg3_model'],
-                ['1RcmJNbWy9As2OMVGiVhMFM0qUKCYB1IK', '/content/sg3-model/', 'sg3_Landscapes_lhq-256-stylegan3-t-25Mimg', '.pkl', 'sg3_model'],
-                ['1iO_T0MvNw59MPAueoqUHKzpoh40vyLrZ', '/content/sg3-model/', 'sg3_mechanical-devices-from-the-future-256_network-snapshot-000029', '.pkl', 'sg3_model'],
-                ['1mMZSFynUd_6AIuC8PkDWdeHWY4VyIqYm', '/content/sg3-model/', 'sg3_scifi-city-256_network-snapshot-000210', '.pkl', 'sg3_model'],
-                ['14DpmYfsX3K9JhkS0BV5YtgZ71wJOInsd', '/content/sg3-model/', 'sg3_scifi-spaceship-256_network-snapshot-000162', '.pkl', 'sg3_model'],
-                ['13Q5bDnng7VfqYq6g-t8jVybR-E_Df_q3', '/content/sg3-model/', 'sg3_wikiart-1024-stylegan3-t-17.2Mimg', '.pkl', 'sg3_model'],
-                ['10Q6npsBKdRWMb0LxZUzN6FBSNeB4KTA6', '/content/sg3-model/', 'sg3_yellow-alien-512_network-snapshot-000236', '.pkl', 'sg3_model'],
-                ['10l7ADbHmZgjSrrpNzOD8r5grJqwxfRd3', '/content/sg3-model/', 'stylegan3_sneaksnap', '.pkl', 'sg3_model']
+                ['1UP200H32RIvVYA_9TduGqIbvqfsFjpkg', 'sg3-model/', 'stylegan3-anime-faces-generator_akiyamasho', '.pkl', 'sg3_model'],
+                ['1aMsP1juT3DzZpbEhcNWO_gJVw9lt7Ant', 'sg3-model/', 'stylegan3-r-afhqv2-512x512', '.pkl', 'sg3_model'],
+                ['1Buunx_0kHIWdNWqRq6CBG0ILlAlcPVOb', 'sg3-model/', 'stylegan3-r-ffhq-1024x1024', '.pkl', 'sg3_model'],
+                ['1YiCvVqosdRwta3qwMQHNAzuSRGKnSRp1', 'sg3-model/', 'stylegan3-r-ffhqu-256x256', '.pkl', 'sg3_model'],
+                ['1z42DkzZUFhMpuWFHtMNvD6GApcL1lwG7', 'sg3-model/', 'stylegan3-r-ffhqu-1024x1024', '.pkl', 'sg3_model'],
+                ['1BOln2JzcatBT6LTqbsdmrwVb8GJzvhNa', 'sg3-model/', 'stylegan3-r-metfaces-1024x1024', '.pkl', 'sg3_model'],
+                ['1lh8nIxnX-xmBuu1QQokfFPBvZQPXEo0e', 'sg3-model/', 'stylegan3-r-metfacesu-1024x1024', '.pkl', 'sg3_model'],
+                ['18ZAuZj9fWwbHx07RB8COJsepnOYtyHli', 'sg3-model/', 'stylegan3-t-afhqv2-512x512', '.pkl', 'sg3_model'],
+                ['14OyRIEfpvhKkHooMpCKnzM3cDkOTXr6p', 'sg3-model/', 'stylegan3-t-ffhq-1024x1024', '.pkl', 'sg3_model'],
+                ['1Yb5Cvf2DQ57-hX37gc4dq_Mo2UFMetnw', 'sg3-model/', 'stylegan3-t-ffhqu-256x256', '.pkl', 'sg3_model'],
+                ['1XwObqI_egXDiKXoEaCn83utVEzM7Miln', 'sg3-model/', 'stylegan3-t-ffhqu-1024x1024', '.pkl', 'sg3_model'],
+                ['1DH6C87Xr5wSG5mPZ8Y9GZgymsgBMTzMP', 'sg3-model/', 'stylegan3-t-metfaces-1024x1024', '.pkl', 'sg3_model'],
+                ['11Mn6U-mcJulhSzUetwX1Q03h7EXrZxS_', 'sg3-model/', 'stylegan3-t-metfacesu-1024x1024', '.pkl', 'sg3_model'],
+                ['1Ncs7wUsbfSEPJCcxiTLDOYjLT6UY9wT2', 'sg3-model/', 'sg3_alien-sunglases-256_network-snapshot-000074', '.pkl', 'sg3_model'],
+                ['1CtKjqv7Te5X3L0KuZLIbzi7fbmpLakYS', 'sg3-model/', 'sg3_Benches-512_network-snapshot-011000', '.pkl', 'sg3_model'],
+                ['15LkW8nCsVRrzjjYTVGlUJSnfGDi1RwyI', 'sg3-model/', 'sg3_flowers-256_network-snapshot-000069', '.pkl', 'sg3_model'],
+                ['1RcmJNbWy9As2OMVGiVhMFM0qUKCYB1IK', 'sg3-model/', 'sg3_Landscapes_lhq-256-stylegan3-t-25Mimg', '.pkl', 'sg3_model'],
+                ['1iO_T0MvNw59MPAueoqUHKzpoh40vyLrZ', 'sg3-model/', 'sg3_mechanical-devices-from-the-future-256_network-snapshot-000029', '.pkl', 'sg3_model'],
+                ['1mMZSFynUd_6AIuC8PkDWdeHWY4VyIqYm', 'sg3-model/', 'sg3_scifi-city-256_network-snapshot-000210', '.pkl', 'sg3_model'],
+                ['14DpmYfsX3K9JhkS0BV5YtgZ71wJOInsd', 'sg3-model/', 'sg3_scifi-spaceship-256_network-snapshot-000162', '.pkl', 'sg3_model'],
+                ['13Q5bDnng7VfqYq6g-t8jVybR-E_Df_q3', 'sg3-model/', 'sg3_wikiart-1024-stylegan3-t-17.2Mimg', '.pkl', 'sg3_model'],
+                ['10Q6npsBKdRWMb0LxZUzN6FBSNeB4KTA6', 'sg3-model/', 'sg3_yellow-alien-512_network-snapshot-000236', '.pkl', 'sg3_model'],
+                ['10l7ADbHmZgjSrrpNzOD8r5grJqwxfRd3', 'sg3-model/', 'stylegan3_sneaksnap', '.pkl', 'sg3_model']
                  ]
       download_file_from_google_drive(file_id=files_path[sg3_models][0], dest_path=files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3])
       files_path[0][1]=files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3]
 
     if True:
 #    if False:
-      files_path = [['1ie1vWw1JNsfrZWRtMvhteqzVz4mt4KGa', '/content/model/sg2-ada_abstract_network-snapshot-000188.pkl',
+      files_path = [['1ie1vWw1JNsfrZWRtMvhteqzVz4mt4KGa', 'model/sg2-ada_abstract_network-snapshot-000188.pkl',
                  'sg2-ada_abstract_network-snapshot-000188','stylegan2-ada']]
       for i in range(len(files_path)):
         download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
 #    if True:
     if False:
-      files_path = [['1aUrChOhq5jDEddZK1v_Dp1vYNlHSBL9o', '/content/model/sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664.pkl', 
+      files_path = [['1aUrChOhq5jDEddZK1v_Dp1vYNlHSBL9o', 'model/sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664.pkl', 
                  'sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664','stylegan2-ada']]
       for i in range(len(files_path)):
         download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
-
-    os.chdir('/content')
 
 #    os.system('pip install scipy')
 #    !pip install click requests tqdm pyspng ninja imageio-ffmpeg==0.4.3
@@ -353,7 +351,7 @@ if True:
     import torch
     import torch.nn.functional as F
 
-    sys.path.insert(0, '/content/stylegan3-nvlabs-pytorch')
+    sys.path.insert(0, 'stylegan3-nvlabs-pytorch')
 #    sys.path.insert(0, '/content/stylegan3-Expl0dingCat-pytorch')
     
     import dnnlib
