@@ -92,7 +92,7 @@ if os.path.isfile(FLAGS.huggingface_hub_token):
 else:
   huggingface_hub_token=FLAGS.huggingface_hub_token
 
-print(huggingface_hub_token)
+#print(huggingface_hub_token)
   
 print_freq_once = FLAGS.print_freq_once
 print_freq_once_printed = False
@@ -491,13 +491,13 @@ if True:
                 unet_height // 8,
                 unet_width // 8
             ))    
-      with open('unet_latents', 'w') as file:
-        file.write(unet_latents)
+#      with open('unet_latents', 'w') as file:
+#        file.write(unet_latents)
     else:
       if os.path.isfile(FLAGS.unet_latents):
         with open(FLAGS.unet_latents, 'r') as file:
           unet_latents = file.read().replace('\n', '')
-     else:
+      else:
        unet_latents=FLAGS.unet_latents
        
     unet_guidance_scale=float(FLAGS.unet_guidance_scale)
@@ -638,7 +638,7 @@ if True:
   bdf = pyedflib.EdfWriter(dst, n_channels=n_channels, file_type=file_type)
 
   headers = []
-  for channel in ch_names_pick:
+  for channel in ch_names:
         headers.append(
             {
                 "label": str(channel),
@@ -802,9 +802,9 @@ if True:
 #          cons[1:,:] = cons[:len(cons),:]
           cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
           
-#           if print_freq_once and not print_freq_once_printed:
-#             print(freqs)
-#             print_freq_once_printed = True
+           if print_freq_once and not print_freq_once_printed:
+             print(freqs)
+             print_freq_once_printed = True
           #con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
           #  epochs[band][ji,ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
           #  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=1)
