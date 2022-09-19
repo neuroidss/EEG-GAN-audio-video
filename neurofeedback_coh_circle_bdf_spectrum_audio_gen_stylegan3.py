@@ -35,18 +35,23 @@ flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
 flags.DEFINE_string('output_path', '', 'output_path')
 flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
 flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
-flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2']
-, 'ch_names')
-flags.DEFINE_list('bands', [8.,10.], 'bands')
+flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
+#flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
+flags.DEFINE_list('bands', [8.,12.], 'bands')
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
+#flags.DEFINE_list('methods', ['ciplv'], 'methods')
+#flags.DEFINE_list('methods', ['wpli'], 'methods')
 flags.DEFINE_list('methods', ['coh'], 'methods')
 flags.DEFINE_string('vmin', '0.7', 'vmin')
-flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
-#flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
+#flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
+flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
+#flags.DEFINE_string('fps', '10', 'fps')
 flags.DEFINE_string('fps', '20', 'fps')
 flags.DEFINE_string('overlap', None, 'overlap: if None, used: duration-1/fps')
 flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
+#flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
 flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
+#flags.DEFINE_boolean('show_spectrum_cons', True, 'show_spectrum_cons')
 flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
 flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
 flags.DEFINE_boolean('sound_cons_swap', True, 'sound_cons_swap')
@@ -62,6 +67,7 @@ flags.DEFINE_string('unet_guidance_scale', '7.5', 'unet_guidance_scale')
 flags.DEFINE_string('apply_to_latents', '0.5', 'apply_to_latents: closer to zero means apply more')
 flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds: closer to zero means apply more')
 flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day', 'clip_prompt')
+#flags.DEFINE_boolean('show_stylegan3_cons', False, 'show_stylegan3_cons')
 flags.DEFINE_boolean('show_stylegan3_cons', True, 'show_stylegan3_cons')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
@@ -321,6 +327,7 @@ if True:
       for i in range(len(files_path)):
         download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
+#    if True:
     if False:
       files_path = [['1aUrChOhq5jDEddZK1v_Dp1vYNlHSBL9o', '/content/model/sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664.pkl', 
                  'sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664','stylegan2-ada']]
@@ -919,9 +926,9 @@ if True:
 #          cons[1:,:] = cons[:len(cons),:]
           cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
           
-#           if print_freq_once and not print_freq_once_printed:
-#             print(freqs)
-#             print_freq_once_printed = True
+          if print_freq_once and not print_freq_once_printed:
+             print(freqs)
+             print_freq_once_printed = True
           #con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
           #  epochs[band][ji,ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
           #  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=1)
@@ -931,6 +938,7 @@ if True:
 #            for i1 in range(0,j1): # display separate audio for each break
 #              psds[ji1+psds_shift1]=(con[j1][i1][0]-0.5)*1
 #              ji1 = ji1+1
+        cons = cons[-int(len(cons[0])):]
         #psds, freqs = mne.time_frequency.psd_welch(raw, picks=picks,
         #                 tmin=tmin, tmax=tmax, fmin=fmin, fmax=fmax,
         #                 n_fft=n_fft)
@@ -1444,7 +1452,7 @@ if True:
                     if con_index + cons_index*len(cons[0]) < len(cons_latents_flatten):
 #                cons_latents_flatten[con_index + cons_index*len(cons[0])] = 1
 #                cons_latents_flatten[con_index + cons_index*len(cons[0])] = 1-random.randint(0, 10)/200
-                      cons_latents_flatten[con_index + cons_index*len(cons[0])] = cons[cons_index%len(cons)][con_index]-0.5
+                      cons_latents_flatten[con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index]-0.5)
 #                      cons_latents_flatten[con_index + cons_index*len(cons[0])] = ((cons[cons_index%len(cons)][con_index]+apply_to_latents)/1+0.0001)/((1+apply_to_latents)/1+0.0001)
                 cons_latents = cons_latents_flatten.reshape(1,len(base_latents[0]))
 
@@ -1460,10 +1468,13 @@ if True:
                 z = torch.from_numpy(cons_latents).to(device)
 #                z = torch.from_numpy(np.random.RandomState(seed).randn(1, G3m.z_dim)).to(device)
                 truncation_psi=1
-                noise_mode='const'
+#                truncation_psi=0.5
+#                noise_mode='const'
+#                noise_mode='random'
+                noise_mode='none'
                 label = torch.zeros([1, G3m.c_dim], device=device)
-                if G3m.c_dim != 0:
-                    label[:, class_idx] = 1
+                #if G3m.c_dim != 0:
+                #    label[:, class_idx] = 1
                 
                 img = G3m(z, label, truncation_psi=truncation_psi, noise_mode=noise_mode)
                 img = (img.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
