@@ -277,7 +277,9 @@ if True:
 
 #    os.chdir('/content')
 #    if generate&gen_sg3_nvlabs_pt:
-    os.system('git clone https://github.com/NVlabs/stylegan3.git /content/stylegan3-nvlabs-pytorch')
+    import os.path
+    if not os.path.isdir(stylegan3-nvlabs-pytorch):
+      os.system('git clone https://github.com/NVlabs/stylegan3.git stylegan3-nvlabs-pytorch')
 #    os.chdir('/content/stylegan3-nvlabs-pytorch')
 #    if generate&gen_sg3_Expl0dingCat_pt:
 #    os.system('git clone https://github.com/Expl0dingCat/stylegan3-modified.git /content/stylegan3-Expl0dingCat-pytorch')
