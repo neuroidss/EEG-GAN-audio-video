@@ -57,8 +57,9 @@ flags.DEFINE_string('unet_width', '512', 'unet_width')
 flags.DEFINE_string('unet_num_inference_steps', '50', 'unet_num_inference_steps')
 flags.DEFINE_string('unet_latents', None, 'unet_latents: if None, load random')
 flags.DEFINE_string('unet_guidance_scale', '7.5', 'unet_guidance_scale')
-flags.DEFINE_string('apply_to_latents', '0.5', 'apply_to_latents')
-flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds')
+flags.DEFINE_string('apply_to_latents', '0.5', 'apply_to_latents: closer to zero means apply more')
+flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds: closer to zero means apply more')
+flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day', 'clip_prompt')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.mark_flag_as_required('input')
@@ -83,6 +84,7 @@ if FLAGS.help:
 
 apply_to_latents=float(FLAGS.apply_to_latents)
 apply_to_embeds=float(FLAGS.apply_to_embeds)
+clip_prompt=FLAGS.clip_prompt
 
 if os.path.isfile(FLAGS.huggingface_hub_token):
   with open(FLAGS.huggingface_hub_token, 'r') as file:
@@ -296,7 +298,7 @@ if True:
 
    if False:
 
-    prompt = 'villa by the sea in florence on a sunny day'
+    prompt = clip_prompt
     with autocast(device):
         image = pipe(prompt)['images'][0]
     image
@@ -317,7 +319,7 @@ if True:
    if False:
     
     nrows, ncols = 1, 3
-    prompts = ['villa by the sea in florence on a sunny day'] * nrows * ncols
+    prompts = [clip_prompt] * nrows * ncols
     with autocast(device):
         images = pipe(prompts)['sample']
     image_grid(images, rows=nrows, cols=ncols)
@@ -339,7 +341,7 @@ if True:
     )
     unet = unet.to(device)  # 4.8 GB with VAE and CLIP text
     
-   if True:
+   if False:
     
     ## VAE
     car_img = Image.open('/content/villa.png')
@@ -409,7 +411,7 @@ if True:
     #image = Image.open(requests.get(url, stream=True).raw)
 
     description_candidates = [
-        'villa by the sea in florence on a sunny day', 
+        clip_prompt, 
         'villa',
         'anime',
     ]
@@ -454,7 +456,7 @@ if True:
         text_embeddings = torch.cat([uncond_embeddings, text_embeddings])
         return text_embeddings
 
-    prompt = 'villa by the sea in florence on a sunny day'
+    prompt = clip_prompt
     test_embeds = get_text_embeds([prompt])
     print(test_embeds)
     print(test_embeds.shape)
@@ -489,8 +491,15 @@ if True:
                 unet_height // 8,
                 unet_width // 8
             ))    
+      with open('unet_latents', 'w') as file:
+        file.write(unet_latents)
     else:
-      unet_latents=FLAGS.unet_latents
+      if os.path.isfile(FLAGS.unet_latents):
+        with open(FLAGS.unet_latents, 'r') as file:
+          unet_latents = file.read().replace('\n', '')
+     else:
+       unet_latents=FLAGS.unet_latents
+       
     unet_guidance_scale=float(FLAGS.unet_guidance_scale)
           
     def generate_latents(
@@ -1253,6 +1262,7 @@ if True:
             images = decode_latents(test_latents.to(device))
             #images = decode_latents(car_latent.to(device))
             #print(images[0])
+            images[0].save(output_path+'stable-diffusion-'+dt_string+'-'+FLAGS.clip_prompt+'.png', format='png')
             images[0].save('mygraph.png', format='png')
 #            px = 1/plt.rcParams['figure.dpi']  # pixel in inches
 #            fig = plt.figure(figsize=(800*px, 800*px))
