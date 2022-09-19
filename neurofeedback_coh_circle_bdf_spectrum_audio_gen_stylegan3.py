@@ -46,7 +46,8 @@ flags.DEFINE_string('vmin', '0.7', 'vmin')
 #flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
 flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
 #flags.DEFINE_string('fps', '10', 'fps')
-flags.DEFINE_string('fps', '20', 'fps')
+#flags.DEFINE_string('fps', '20', 'fps')
+flags.DEFINE_string('fps', '30', 'fps')
 flags.DEFINE_string('overlap', None, 'overlap: if None, used: duration-1/fps')
 flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
 #flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
@@ -322,15 +323,15 @@ if True:
       download_file_from_google_drive(file_id=files_path[sg3_models][0], dest_path=files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3])
       files_path[0][1]=files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3]
 
-    if True:
-#    if False:
+#    if True:
+    if False:
       files_path = [['1ie1vWw1JNsfrZWRtMvhteqzVz4mt4KGa', 'model/sg2-ada_abstract_network-snapshot-000188.pkl',
                  'sg2-ada_abstract_network-snapshot-000188','stylegan2-ada']]
       for i in range(len(files_path)):
         download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
-#    if True:
-    if False:
+    if True:
+#    if False:
       files_path = [['1aUrChOhq5jDEddZK1v_Dp1vYNlHSBL9o', 'model/sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664.pkl', 
                  'sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664','stylegan2-ada']]
       for i in range(len(files_path)):
@@ -762,7 +763,7 @@ if True:
   bdf = pyedflib.EdfWriter(dst, n_channels=n_channels, file_type=file_type)
 
   headers = []
-  for channel in ch_names_pick:
+  for channel in ch_names:
         headers.append(
             {
                 "label": str(channel),
@@ -903,7 +904,7 @@ if True:
         # epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=0.1, preload=False))
         epochs.append(mne.make_fixed_length_epochs(datas[0], 
-                                            duration=duration, preload=False, overlap=overlap, verbose=50))
+                                            duration=duration, preload=True, overlap=overlap, verbose=50))
 #          epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
 
@@ -919,9 +920,10 @@ if True:
           fmax=bands[band][1]
 #          if band == 0:
           con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
-            epochs[0][ji:ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+#            epochs[0][ji:ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+            epochs[0], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
 #            epochs[band][ji:ji+10], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
-            fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=4, verbose=50)
+            fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=8, verbose=50)
           cons=np.roll(cons,1,axis=0)
 #          cons[1:,:] = cons[:len(cons),:]
           cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
