@@ -39,9 +39,9 @@ flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5',
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
 flags.DEFINE_list('bands', [8.,12.], 'bands')
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
-#flags.DEFINE_list('methods', ['ciplv'], 'methods')
+flags.DEFINE_list('methods', ['ciplv'], 'methods')
 #flags.DEFINE_list('methods', ['wpli'], 'methods')
-flags.DEFINE_list('methods', ['coh'], 'methods')
+#flags.DEFINE_list('methods', ['coh'], 'methods')
 flags.DEFINE_string('vmin', '0.7', 'vmin')
 #flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
 flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
@@ -70,6 +70,7 @@ flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds: closer to zero mea
 flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day', 'clip_prompt')
 #flags.DEFINE_boolean('show_stylegan3_cons', False, 'show_stylegan3_cons')
 flags.DEFINE_boolean('show_stylegan3_cons', True, 'show_stylegan3_cons')
+flags.DEFINE_string('n_jobs', '8', 'n_jobs')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.mark_flag_as_required('input')
@@ -92,6 +93,7 @@ print(FLAGS)
 if FLAGS.help:
   exit()
 
+n_jobs=int(FLAGS.n_jobs)
 apply_to_latents=float(FLAGS.apply_to_latents)
 apply_to_embeds=float(FLAGS.apply_to_embeds)
 clip_prompt=FLAGS.clip_prompt
@@ -923,7 +925,7 @@ if True:
 #            epochs[0][ji:ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
             epochs[0], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
 #            epochs[band][ji:ji+10], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
-            fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=8, verbose=50)
+            fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=50)
           cons=np.roll(cons,1,axis=0)
 #          cons[1:,:] = cons[:len(cons),:]
           cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
