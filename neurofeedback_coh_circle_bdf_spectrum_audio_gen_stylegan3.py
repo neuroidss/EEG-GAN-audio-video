@@ -325,15 +325,15 @@ if True:
       download_file_from_google_drive(file_id=files_path[sg3_models][0], dest_path=files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3])
       files_path[0][1]=files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3]
 
-#    if True:
-    if False:
+    if True:
+#    if False:
       files_path = [['1ie1vWw1JNsfrZWRtMvhteqzVz4mt4KGa', 'model/sg2-ada_abstract_network-snapshot-000188.pkl',
                  'sg2-ada_abstract_network-snapshot-000188','stylegan2-ada']]
       for i in range(len(files_path)):
         download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
-    if True:
-#    if False:
+#    if True:
+    if False:
       files_path = [['1aUrChOhq5jDEddZK1v_Dp1vYNlHSBL9o', 'model/sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664.pkl', 
                  'sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664','stylegan2-ada']]
       for i in range(len(files_path)):
@@ -910,9 +910,10 @@ if True:
 #          epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
 
-        ji=0 
-        eeg_step=ji
-        tmin, tmax = 0+(eeg_step/fps), 2+(eeg_step/fps)  # use the first 120s of data
+        #ji=0 
+        #eeg_step=ji
+        tmin, tmax = 0, duration  # use the first 120s of data
+#        tmin, tmax = 0+(eeg_step/fps), 2+(eeg_step/fps)  # use the first 120s of data
         sfreq = raw.info['sfreq']  # the sampling frequency
         for band in range(len(bands)):
          for method in range(len(methods)):
