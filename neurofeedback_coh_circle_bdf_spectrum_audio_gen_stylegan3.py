@@ -1212,7 +1212,7 @@ if True:
 #            screen.update(image)
             image = image_crop
             image = image[:,:,::-1]
-            screen2.update(image_crop)
+            screen2.update(image)
 #            screen.update(image_rot90)
 
             plt.close(fig)
