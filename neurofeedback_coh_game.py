@@ -39,9 +39,9 @@ flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5',
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
 flags.DEFINE_list('bands', [8.,12.], 'bands')
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
-#flags.DEFINE_list('methods', ['ciplv'], 'methods')
+flags.DEFINE_list('methods', ['ciplv'], 'methods')
 #flags.DEFINE_list('methods', ['wpli'], 'methods')
-flags.DEFINE_list('methods', ['coh'], 'methods')
+#flags.DEFINE_list('methods', ['coh'], 'methods')
 flags.DEFINE_string('vmin', '0.7', 'vmin')
 #flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
 flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
@@ -56,6 +56,7 @@ flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
 #flags.DEFINE_boolean('show_spectrum_cons', True, 'show_spectrum_cons')
 flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
 flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
+#flags.DEFINE_boolean('sound_cons', True, 'sound_cons')
 flags.DEFINE_boolean('sound_cons_swap', True, 'sound_cons_swap')
 flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
 flags.DEFINE_boolean('rotate', True, 'rotate')
@@ -81,6 +82,8 @@ flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day'
 flags.DEFINE_boolean('show_stylegan3_cons', True, 'show_stylegan3_cons')
 #flags.DEFINE_boolean('show_game_cons', True, 'show_game_cons')
 flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
+#flags.DEFINE_string('game_mode', '1', 'game_mode: 1 or 3')
+flags.DEFINE_string('game_mode', '3', 'game_mode: 1 or 3')
 flags.DEFINE_string('n_jobs', '32', 'n_jobs')
 flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
@@ -237,10 +240,6 @@ if True:
     canvas4 = np.zeros((1024,1024))
 #    canvas4 = np.zeros((800,800))
     screen4 = pf.screen(canvas4, 'stylegan3_cons')
-  if show_game_cons:
-    canvas5 = np.zeros((1024,1024))
-#    canvas5 = np.zeros((800,800))
-    screen5 = pf.screen(canvas5, 'game_cons')
   
 
   to_sum_embeds = None
@@ -310,6 +309,7 @@ if True:
     from time import perf_counter
     time000=perf_counter()
     time001=perf_counter()
+    
 
   if show_game_cons:
   
@@ -452,18 +452,51 @@ if True:
           ['1ie1vWw1JNsfrZWRtMvhteqzVz4mt4KGa', 'model/sg2-ada_abstract_network-snapshot-000188.pkl',
                  'sg2-ada_abstract_network-snapshot-000188','stylegan2-ada'],
           ['1aUrChOhq5jDEddZK1v_Dp1vYNlHSBL9o', 'model/sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664.pkl', 
-                 'sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664','stylegan2-ada']       
+                 'sg2-ada_2020-01-11-skylion-stylegan2-animeportraits-networksnapshot-024664','stylegan2-ada'],
                    ]
+      if show_game_cons:
+        if FLAGS.game_mode=='1':
+          files_path=[files_path[0],files_path[1]]
+        if FLAGS.game_mode=='3':
+          files_path=[files_path[0],files_path[1],files_path[1],files_path[1],files_path[1]]
+      
       for i in range(len(files_path)):
         download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
     G3ms=[{}]*len(files_path)
+    time001a=[{}]*len(files_path)
+    time111a=[{}]*len(files_path)
     for i in range(len(files_path)):
       network_pkl=files_path[i][1]
       device = torch.device('cuda')
       with dnnlib.util.open_url(network_pkl) as fp:
 #      G3m = legacy.load_network_pkl(fp)['G_ema'].requires_grad_(False).to(device) # type: ignore
         G3ms[i] = legacy.load_network_pkl(fp)['G_ema'].to(device) # type: ignore
+      time001a[i]=perf_counter()
+
+    if show_game_cons:
+
+                dim_sg2=G3ms[1].z_dim
+#                sg3_latents=np.random.rand((1), G3ms[1].z_dim) 
+                vol=1
+
+
+#               base_latents = sg3_latents#.detach().clone()
+#            cons_latents = base_latents
+#                cons_latents_flatten = base_latents.reshape(len(base_latents[0]))
+                if FLAGS.game_mode=='1':
+                  cons_latentsa = [
+                    np.random.rand((1), G3ms[1].z_dim),
+                    np.random.rand((1), G3ms[1].z_dim),
+                  ]
+                if FLAGS.game_mode=='3':
+                  cons_latentsa = [
+                    np.random.rand((1), G3ms[1].z_dim),
+                    np.random.rand((1), G3ms[1].z_dim),
+                    np.random.rand((1), G3ms[1].z_dim),
+                    np.random.rand((1), G3ms[1].z_dim),
+                    np.random.rand((1), G3ms[1].z_dim),
+                  ]
     
     
     import mne
@@ -496,8 +529,15 @@ if True:
 #        beta_start=0.00085, beta_end=0.012,
 #        beta_schedule='scaled_linear', num_train_timesteps=1000
 #    )
-    
-    
+  
+  if show_game_cons:
+    canvas5a=[{}]*len(files_path)
+    screen5a=[{}]*len(files_path)
+    for i in range(len(files_path)):
+#      canvas5a[i] = np.zeros((128,128))
+      canvas5a[i] = np.zeros((512,512))
+#      canvas5a = np.zeros((1024,1024))
+      screen5a[i] = pf.screen(canvas5a[i], 'game_cons'+str(i))
       
   #import os
   #import logging
@@ -1599,8 +1639,8 @@ if True:
 #  i_tqdm1=i_tqdm
 #  t_tqdm1=t_tqdm
 
-#          if True:    
-          if False:    
+          if True:    
+#          if False:    
 ##            cons=np.roll(cons,1,axis=0)
 #            cons[1:,:] = cons[:len(cons),:]
 ##            cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
@@ -1611,7 +1651,8 @@ if True:
 #            base_latents = test_latents.detach().clone()
 #            base_latents = latents.detach().clone()
 
-            if True:    
+#            if True:    
+            if False:    
 #              text_embeddings1=test_embeds.detach().clone()
 #              height1=512
 #              width1=512
@@ -1627,7 +1668,8 @@ if True:
 #              if not (latentsa[i_tqdm] is empty):
               base_latents=latentsa[i_tqdm].detach().clone()
               #base_latents.to('cpu')
-#            base_latents = unet_latents.detach().clone()
+            if True:    
+             base_latents = unet_latents.detach().clone()
 #            base_latents = unet_and_test_draw_latents.detach().clone()
             
 #            cons_latents = base_latents
@@ -1640,8 +1682,8 @@ if True:
                 cons_latents_flatten[con_index + cons_index*len(cons[0])] = ((cons[cons_index%len(cons)][con_index]+apply_to_latents)/1+0.0001)/((1+apply_to_latents)/1+0.0001)
             cons_latents = cons_latents_flatten.reshape(len(base_latents),len(base_latents[0]),len(base_latents[0][0]),len(base_latents[0][0][0]))
 
-#          if True:    
-          if False:    
+          if True:    
+#          if False:    
 
 #            base_embeds = torch.randn(2, 77, 768).to(device)
             base_embeds = test_embeds.detach().clone()
@@ -1661,8 +1703,8 @@ if True:
 #                cons_latent_flatten[con_index + cons_index*len(cons[0])] = (cons[0][con_index]-0.5)*3
             cons_embeds = cons_embeds_flatten.reshape(2, 77, 768)
             
-#          if True:    
-          if False:    
+          if True:    
+#          if False:    
 
             if to_sum_latents is None:
 #            if to_sum_embeds is None:
@@ -1681,7 +1723,8 @@ if True:
                 to_sum_latents = unet_latents/cons_latents
 #                to_sum_latents = unet_latents.to(device)/cons_latents.to(device)
 #                to_sum_embeds = test_embeds-cons_embeds
-                if False:    
+#                if False:    
+                if True:    
                   to_sum_embeds = test_embeds/cons_embeds
 #                to_sum_embeds = car_embeds/cons_embeds
             
@@ -1691,7 +1734,8 @@ if True:
             sum_latents = cons_latents*to_sum_latents
 #            sum_latents = latents.to(device)
 #            sum_embeds = cons_embeds+to_sum_embeds
-            if False:    
+#            if False:    
+            if True:    
               sum_embeds = cons_embeds*to_sum_embeds
 #            sum_embeds = test_embeds
             #sum_embeds = cons_embeds
@@ -1705,8 +1749,8 @@ if True:
 
           if True:    
 
-            if True:    
-#            if False:
+#            if True:    
+            if False:
 
 #              text_embeddings1=sum_embeds.detach().clone()
               text_embeddings=test_embeds
@@ -1814,8 +1858,8 @@ if True:
 #            sum_embeds = test_embeds
 #            sum_latents = unet_latents
 
-#            if True:    
-            if False:
+            if True:    
+#            if False:
 
               test_latents = generate_latents(
                   sum_embeds,
@@ -1988,22 +2032,29 @@ if True:
 
         if show_game_cons:
 
-
-                dim_sg2=G3ms[1].z_dim
-                sg3_latents=np.random.rand((1), G3ms[1].z_dim) 
-                vol=1
-
-                base_latents = sg3_latents#.detach().clone()
-#            cons_latents = base_latents
-                cons_latents_flatten = base_latents.reshape(len(base_latents[0]))
-                for cons_index in range(int(len(cons_latents_flatten)/len(cons[0]))+1):
+            if True:
+                for cons_index in range(int(len(cons_latentsa[0][0])/len(cons[0]))+1):
                   for con_index in range(len(cons[0])):
-                    if con_index + cons_index*len(cons[0]) < len(cons_latents_flatten):
+                    if con_index + cons_index*len(cons[0]) < len(cons_latentsa[0][0]):
 #                cons_latents_flatten[con_index + cons_index*len(cons[0])] = 1
 #                cons_latents_flatten[con_index + cons_index*len(cons[0])] = 1-random.randint(0, 10)/200
-                      cons_latents_flatten[con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index]-0.5)
+#                      if FLAGS.game_mode=='1':
+                      cons_latentsa[0][0][con_index + cons_index*len(cons[0])] = -(cons[cons_index%len(cons)][con_index]-0.5)
+                      cons_latentsa[1][0][con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index]-0.5)
+                      if FLAGS.game_mode=='3':
+                        if con_index<len(cons[0])/3:
+                          cons_latentsa[2][0][con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index]-0.5)
+                          cons_latentsa[3][0][con_index + cons_index*len(cons[0])] = 0.
+                          cons_latentsa[4][0][con_index + cons_index*len(cons[0])] = 0.
+                        elif con_index<len(cons[0])*2/3:
+                          cons_latentsa[2][0][con_index + cons_index*len(cons[0])] = 0.
+                          cons_latentsa[3][0][con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index]-0.5)
+                          cons_latentsa[4][0][con_index + cons_index*len(cons[0])] = 0.
+                        else:
+                          cons_latentsa[2][0][con_index + cons_index*len(cons[0])] = 0.
+                          cons_latentsa[3][0][con_index + cons_index*len(cons[0])] = 0.
+                          cons_latentsa[4][0][con_index + cons_index*len(cons[0])] = (cons[cons_index%len(cons)][con_index]-0.5)
 #                      cons_latents_flatten[con_index + cons_index*len(cons[0])] = ((cons[cons_index%len(cons)][con_index]+apply_to_latents)/1+0.0001)/((1+apply_to_latents)/1+0.0001)
-                cons_latents = cons_latents_flatten.reshape(1,len(base_latents[0]))
 
 
 
@@ -2013,7 +2064,7 @@ if True:
                 #print('game_last_possible_cards:',game_last_possible_cards)
                 for j1 in range(0,dim_sg2):  
                   #print('j1:',j1)
-                  game_last_possible_cards[game_cur_possible_cards][j1]=cons_latents[0][j1]+0.5
+                  game_last_possible_cards[game_cur_possible_cards][j1]=cons_latentsa[1][0][j1]+0.5
                 game_cur_possible_cards=game_cur_possible_cards+1
                 
                 if game_cur_possible_cards>0:
@@ -2216,9 +2267,12 @@ if True:
 #            m = np.linalg.inv(m)
 #            G.synthesis.input.transform.copy_(torch.from_numpy(m))
 
+            if True:
+              for G3m_index in range(len(G3ms)):
+
 #                z = psd_array_sg2 * vol  
 #                seed=1
-                z = torch.from_numpy(cons_latents).to(device)
+                z = torch.from_numpy(cons_latentsa[G3m_index]).to(device)
 #                z = torch.from_numpy(np.random.RandomState(seed).randn(1, G3m.z_dim)).to(device)
                 truncation_psi=1
 #                truncation_psi=0.5
@@ -2229,7 +2283,7 @@ if True:
                 #if G3m.c_dim != 0:
                 #    label[:, class_idx] = 1
                 
-                img = G3ms[1](z, label, truncation_psi=truncation_psi, noise_mode=noise_mode)
+                img = G3ms[G3m_index](z, label, truncation_psi=truncation_psi, noise_mode=noise_mode)
                 img = (img.permute(0, 2, 3, 1) * 127.5 + 128).clamp(0, 255).to(torch.uint8)
 #                PIL.Image.fromarray(img[0].cpu().numpy(), 'RGB').save(f'{outdir}/seed{seed:04d}.png')
                 
@@ -2250,10 +2304,12 @@ if True:
                 
                 if True:
                 
-                  xsize=1024
-                  ysize=1024
-#                  xsize=512
-#                  ysize=512
+#                  xsize=128
+#                  ysize=128
+#                  xsize=1024
+#                  ysize=1024
+                  xsize=512
+                  ysize=512
 
                   image_pil=PIL.Image.fromarray(images[0], 'RGB')
                   #if generate&gen_sg2_shawwn:
@@ -2284,20 +2340,20 @@ if True:
 
                   if draw_fps:
 
-                    time111=perf_counter()
-                    draw_fps=f'fps: {1/(time111-time001):3.2f}'
+                    time111a[G3m_index]=perf_counter()
+                    draw_fps=f'fps: {1/(time111a[G3m_index]-time001a[G3m_index]):3.2f}'
                     #print (f'fps: {1/(time111-time001):.1f}s')
                     #print (f'111-001: {(time111-time001):.1f}s')
                   
                     draw = ImageDraw.Draw(img)
                     draw.text((0, 0), draw_fps, font=font, fill='rgb(0, 0, 0)', stroke_fill='rgb(255, 255, 255)', stroke_width=1)
                     img = draw._image
-                    time001=time111
+                    time001a[G3m_index]=time111a[G3m_index]
 
 
                   image = np.asarray(img)
                   image = image[:,:,::-1]
-                  screen5.update(image)
+                  screen5a[G3m_index].update(image)
 
 
 
