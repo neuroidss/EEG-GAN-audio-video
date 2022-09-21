@@ -39,9 +39,9 @@ flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5',
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
 flags.DEFINE_list('bands', [8.,12.], 'bands')
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
-flags.DEFINE_list('methods', ['ciplv'], 'methods')
+#flags.DEFINE_list('methods', ['ciplv'], 'methods')
 #flags.DEFINE_list('methods', ['wpli'], 'methods')
-#flags.DEFINE_list('methods', ['coh'], 'methods')
+flags.DEFINE_list('methods', ['coh'], 'methods')
 flags.DEFINE_string('vmin', '0.7', 'vmin')
 #flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
 flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
@@ -59,15 +59,23 @@ flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
 flags.DEFINE_boolean('sound_cons_swap', True, 'sound_cons_swap')
 flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
 flags.DEFINE_boolean('rotate', True, 'rotate')
+#flags.DEFINE_boolean('show_stable_diffusion_cons', True, 'show_stable_diffusion_cons')
 flags.DEFINE_boolean('show_stable_diffusion_cons', False, 'show_stable_diffusion_cons')
 flags.DEFINE_string('huggingface_hub_token', './huggingface_hub_token', 'huggingface_hub_token: token or file with token')
+#flags.DEFINE_string('unet_height', '256', 'unet_height')
+#flags.DEFINE_string('unet_width', '256', 'unet_width')
 flags.DEFINE_string('unet_height', '512', 'unet_height')
 flags.DEFINE_string('unet_width', '512', 'unet_width')
-flags.DEFINE_string('unet_num_inference_steps', '5', 'unet_num_inference_steps')
+flags.DEFINE_string('num_inference_steps', '10', 'num_inference_steps')
+#flags.DEFINE_string('num_inference_steps', '50', 'num_inference_steps')
+flags.DEFINE_string('unet_num_inference_steps', '10', 'unet_num_inference_steps')
+#flags.DEFINE_string('unet_num_inference_steps', '5', 'unet_num_inference_steps')
 flags.DEFINE_string('unet_latents', None, 'unet_latents: if None, load random')
 flags.DEFINE_string('unet_guidance_scale', '7.5', 'unet_guidance_scale')
-flags.DEFINE_string('apply_to_latents', '0.5', 'apply_to_latents: closer to zero means apply more')
-flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds: closer to zero means apply more')
+flags.DEFINE_string('apply_to_latents', '10', 'apply_to_latents: closer to zero means apply more')
+#flags.DEFINE_string('apply_to_latents', '0.5', 'apply_to_latents: closer to zero means apply more')
+flags.DEFINE_string('apply_to_embeds', '10', 'apply_to_embeds: closer to zero means apply more')
+#flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds: closer to zero means apply more')
 flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day', 'clip_prompt')
 #flags.DEFINE_boolean('show_stylegan3_cons', False, 'show_stylegan3_cons')
 flags.DEFINE_boolean('show_stylegan3_cons', True, 'show_stylegan3_cons')
@@ -75,6 +83,8 @@ flags.DEFINE_boolean('show_stylegan3_cons', True, 'show_stylegan3_cons')
 flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
 flags.DEFINE_string('n_jobs', '32', 'n_jobs')
 flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
+#flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
+flags.DEFINE_string('from_bdf_file', None, 'from_bdf_file')
 #flags.DEFINE_string('n_jobs', '8', 'n_jobs')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
@@ -151,7 +161,7 @@ else:
 #n_parts_one_time=int(FLAGS.n_parts_one_time)
 #part_len=int(FLAGS.part_len)
 
-if True:
+if FLAGS.from_bdf_file is None:
   params = BrainFlowInputParams()
   if debug:
     board_id = -1 # synthetic
@@ -173,6 +183,7 @@ if True:
   board.prepare_session()
   board.start_stream()
 
+if True:
 
   import matplotlib.pyplot as plt
   import numpy as np
@@ -233,6 +244,7 @@ if True:
   
 
   to_sum_embeds = None
+  to_sum_latents = None
 
   buf = None
   raw = None
@@ -464,7 +476,26 @@ if True:
     import pandas as pd
     import numpy as np      
     
+
+    from tqdm.auto import tqdm
+    from torch import autocast
+    from diffusers import (
+        StableDiffusionPipeline, AutoencoderKL,
+        UNet2DConditionModel, PNDMScheduler, LMSDiscreteScheduler
+    )
+    from diffusers.schedulers.scheduling_ddim import DDIMScheduler
     
+    
+    # Pipeline
+    scheduler = LMSDiscreteScheduler(
+        beta_start=0.00085, beta_end=0.012,
+        beta_schedule='scaled_linear', num_train_timesteps=1000
+    )
+
+#    scheduler1 = LMSDiscreteScheduler(
+#        beta_start=0.00085, beta_end=0.012,
+#        beta_schedule='scaled_linear', num_train_timesteps=1000
+#    )
     
     
       
@@ -473,6 +504,41 @@ if True:
   #import pandas as pd
 
   if show_stable_diffusion_cons:
+  
+   if False:
+     import cv2
+     import numpy as np 
+     import imageio
+     import PIL.Image     
+
+     drawing = False # true if mouse is pressed
+     pt1_x , pt1_y = None , None
+  
+     def line_drawing(event,x,y,flags,param):
+       global pt1_x,pt1_y,drawing
+
+       if event==cv2.EVENT_LBUTTONDOWN:
+           drawing=True
+           pt1_x,pt1_y=x,y
+
+       elif event==cv2.EVENT_MOUSEMOVE:
+           if drawing==True:
+#               cv2.line(img,(pt1_x,pt1_y),(x,y),color=(0,0,0),thickness=30)
+#               cv2.line(img,(pt1_x,pt1_y),(x,y),color=(127,127,127),thickness=30)
+               cv2.line(img,(pt1_x,pt1_y),(x,y),color=(255,255,255),thickness=30)
+               pt1_x,pt1_y=x,y
+       elif event==cv2.EVENT_LBUTTONUP:
+           drawing=False
+#           cv2.line(img,(pt1_x,pt1_y),(x,y),color=(0,0,0),thickness=30)        
+#           cv2.line(img,(pt1_x,pt1_y),(x,y),color=(127,127,127),thickness=30)        
+           cv2.line(img,(pt1_x,pt1_y),(x,y),color=(255,255,255),thickness=30)        
+
+     img = np.zeros((512,512,3), np.uint8)
+#     img = np.ones((512,512,3), np.uint8)
+     img=img*255
+     cv2.namedWindow('test draw')
+     cv2.setMouseCallback('test draw',line_drawing)
+
    if True:
 
     import requests
@@ -647,6 +713,11 @@ if True:
         beta_start=0.00085, beta_end=0.012,
         beta_schedule='scaled_linear', num_train_timesteps=1000
     )
+
+    scheduler1 = LMSDiscreteScheduler(
+        beta_start=0.00085, beta_end=0.012,
+        beta_schedule='scaled_linear', num_train_timesteps=1000
+    )
     
    if True:
     
@@ -713,6 +784,9 @@ if True:
        unet_latents=FLAGS.unet_latents
        
     unet_guidance_scale=float(FLAGS.unet_guidance_scale)
+    
+    print(unet_latents)
+    print(unet_latents.shape)
           
     def generate_latents(
         text_embeddings,
@@ -738,6 +812,7 @@ if True:
                 height // 8,
                 width // 8
             ))
+            
         latents = latents.to(device)
 
         scheduler.set_timesteps(num_inference_steps)
@@ -818,39 +893,49 @@ if True:
     res[0]
     
 
-  import pyedflib
+  if not (FLAGS.from_bdf_file is None):
 
-  from datetime import datetime
+    raw = io.read_raw_bdf(FLAGS.from_bdf_file, eog=None, misc=None, stim_channel='auto', 
+                          exclude=(), preload=False, verbose=True)
 
-  now = datetime.now()
+    sfreq = raw.info['sfreq']  # the sampling frequency
+    sample_rate=sfreq
 
-  dt_string = now.strftime("%Y.%m.%d-%H.%M.%S")
+    raw_pick = raw.pick(ch_names_pick)
+    
+    eeg_channels=ch_names
 
-  output_path=FLAGS.output_path
+  if FLAGS.from_bdf_file is None:
+
+    import pyedflib
+    from datetime import datetime
+    now = datetime.now()
+    dt_string = now.strftime("%Y.%m.%d-%H.%M.%S")
+    output_path=FLAGS.output_path
   
-  if FLAGS.output==None:
-    dst=output_path+input_name+"-"+dt_string+".bdf"
-  else:
-    dst=FLAGS.output
+    if FLAGS.output==None:
+      dst=output_path+input_name+"-"+dt_string+".bdf"
+    else:
+      dst=FLAGS.output
   
   
-  pmax=300000
-  dmax = 8388607
-  dmin = -8388608
+    pmax=300000
+    dmax = 8388607
+    dmin = -8388608
 #  if not pmax:
 #      pmax = max(abs(signals.min()), signals.max())
-  pmin = -pmax
+    pmin = -pmax
   
-  dimension="uV"
-  data_key="eeg"
-  rate=512
+    dimension="uV"
+    data_key="eeg"
+    rate=512
 
-  n_channels = len(eeg_channels)
-  file_type = 3  # BDF+
-  bdf = pyedflib.EdfWriter(dst, n_channels=n_channels, file_type=file_type)
+    n_channels = len(eeg_channels)
+    file_type = 3  # BDF+
+    bdf = pyedflib.EdfWriter(dst, n_channels=n_channels, file_type=file_type)
 
-  headers = []
-  for channel in ch_names_pick:
+    headers = []
+    for channel in ch_names:
         headers.append(
             {
                 "label": str(channel),
@@ -864,8 +949,8 @@ if True:
                 "prefilter": "",
             }
         )
-  bdf.setSignalHeaders(headers)
-  bdf.setStartdatetime(now)
+    bdf.setSignalHeaders(headers)
+    bdf.setStartdatetime(now)
   #try:
   #      events = store.select(events_key)
   #except:
@@ -879,9 +964,35 @@ if True:
   #          bdf.writeAnnotation(onset, duration, description)  # meta is lost
 #  bdf.close()
 
-  while True:
+  if show_stable_diffusion_cons:
+   latents = unet_latents.detach().clone()
+   latents = latents.to(device)
+   num_inference_steps=int(FLAGS.num_inference_steps)
+   scheduler.set_timesteps(num_inference_steps)
+   latents = latents * scheduler.sigmas[0]
+   latentsa=[{}]*num_inference_steps
+#for i in range(len(latentsa)):
+#  latentsa[i]=empty
+#print(scheduler.timesteps)
+#print(tqdm(enumerate(scheduler.timesteps)))
+   unet_latents=unet_latents.to(device) 
+   i_tqdm=0
+   latentsa[i_tqdm]=latents.detach().clone()
 
-    while board.get_board_data_count() > int((sample_rate)/fps): 
+  raw_buf = None
+
+
+#with autocast('cuda'):
+  while True:
+   if FLAGS.from_bdf_file is None:
+
+    if raw is None:
+      len_raw=0
+    else:
+      len_raw=len(raw)
+    while len_raw<int(sample_rate*duration*2):
+
+     while board.get_board_data_count() > int((sample_rate)/fps): 
 #    while board.get_board_data_count() > int((sample_rate*5*1/bands[0][0])/fps): 
 #    while board.get_board_data_count() > 0: 
 # because stream.read_available seems to max out, leading us to not read enough with one read
@@ -890,6 +1001,7 @@ if True:
       eeg_data = data[eeg_channels, :]
 
       signals = eeg_data
+#      print(signals.shape)
 
       eeg_data = eeg_data / 1000000 # BrainFlow returns uV, convert to V for MNE
 #      eeg_data.append(data[eeg_channels,:])#.T)
@@ -928,8 +1040,10 @@ if True:
 
 #      if len(bufs_hstack_cut[0])>=int(sample_rate):
 
-#      print(raws_hstack_cut)
-     
+#        print(bufs_hstack_cut)
+#        print(bufs_hstack_cut.shape)
+#        print(bdf)
+ 
         bdf.writeSamples(bufs_hstack_cut)
 #      bdf.blockWriteDigitalSamples(signals)
 #      bdf.blockWritePhysicalSamples(signals)
@@ -942,9 +1056,9 @@ if True:
       sfreq = BoardShim.get_sampling_rate(BoardIds.FREEEEG32_BOARD.value)
       info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
       #eeg = np.concatenate(eeg_data, 0)
-      if raw is not None:
+      if raw_buf is not None:
         raws=[{}]*2
-        raws[0] = raw
+        raws[0] = raw_buf
         raws[1] = mne.io.RawArray(eeg_data, info, verbose=50)
         raw_picks=[{}]*2
         raw_picks[0] = raws[0].pick(ch_names_pick)
@@ -966,24 +1080,32 @@ if True:
 #      raws_hstack_cut = raws_hstack[:,:]
       raws_hstack_cut = raws_hstack[:,-int(sample_rate*duration*2):]
 #      print(raws_hstack_cut)
+#      print(len(raws_hstack_cut))
 
       ch_types_pick = ['eeg'] * len(ch_names_pick)
       info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
       raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose=50)
-
-
-    if raw is not None:
-     if len(raws_hstack_cut[0])>=int(sample_rate*duration*2):
+      raw_buf = raw
+      len_raw=len(raw)
 
   # its time to plot something!
 
-
-      if True:
+#   if True:
+#    if True:
+	   
+   if raw is not None:
+    if len(raw)>=int(sample_rate*duration*2):
+    
+#
+     if True:
 
         datas=[]
  #       for band in range(len(bands)):
 # datas.append(raw)
         datas.append(raw.pick(ch_names_pick))
+
+#        if not (FLAGS.from_bdf_file is None):
+        raw = None
  
         epochs = []
 #        for method in range(len(methods)):
@@ -994,12 +1116,39 @@ if True:
                                             duration=duration, preload=True, overlap=overlap, verbose=50))
 #          epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
+     if True:
+
+      part_len=1
+      n_generate=len(epochs[0].events)-2
+      n_parts = n_generate//part_len
+      if n_generate%part_len>0:
+          n_parts=n_parts+1
+      n_parts_now = 0
+      
+      if len(datas[0])==int(sample_rate*duration*2):
+        n_parts=1
+        part_len=1
+
+      for j in range(n_parts): # display separate audio for each break
+       n_parts_now = n_parts_now + 1
+       if n_parts_now > 100:#n_parts_one_time:
+        break
+       for i in range(part_len): # display separate audio for each break
+        ji = j * part_len + i
+        
+#        if (i==0) and (n_generate-ji<part_len):
+#            psd_array=np.random.rand((n_generate-ji), dim) 
+
+
+        eeg_step=ji
+        #print (f'EEG step: {(eeg_step/3):.1f} s')
+        tmin, tmax = 0+(eeg_step/fps), duration+(eeg_step/fps)  # use the first 120s of data
 
         #ji=0 
         #eeg_step=ji
 #        tmin, tmax = 0+(eeg_step/fps), 2+(eeg_step/fps)  # use the first 120s of data
-        tmin, tmax = 0, duration
-        sfreq = raw.info['sfreq']  # the sampling frequency
+        #tmin, tmax = 0, duration
+#        sfreq = raw.info['sfreq']  # the sampling frequency
         for band in range(len(bands)):
          for method in range(len(methods)):
           #fmin=8.
@@ -1008,9 +1157,9 @@ if True:
           fmax=bands[band][1]
 #          if band == 0:
           con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
-            epochs[0], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+#            epochs[0], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
 #            epochs[0][ji:ji+4], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
-#            epochs[band][ji:ji+10], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+            epochs[band][ji:ji+10], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
             fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=50)
           cons=np.roll(cons,1,axis=0)
 #          cons[1:,:] = cons[:len(cons),:]
@@ -1409,7 +1558,49 @@ if True:
 #print 'continuing computation'
 #            show()
 
+        if False:    
+         if show_stable_diffusion_cons:
+          cv2.imshow('test draw',img)
+          if cv2.waitKey(1) & 0xFF == 27:
+              break
+          
+          if False:    
+#          print(img)
+#          print(img.shape)
+          #img.reshape(64, 64, 4)
+            image_pil=PIL.Image.fromarray(img, 'RGB')
+            image_pil_resize=image_pil.resize((64,64),PIL.Image.Resampling.LANCZOS)
+            image_asarray=np.asarray(image_pil_resize)
+#          print(image_asarray.shape)
+            image_resize=np.resize(image_asarray,(64, 64, 4))
+            image_resize_rearranged = np.transpose(image_resize, axes=[2, 0, 1])
+#          print(image_resize_rearranged.shape)
+            image_resize_rearranged.reshape(1, 4, 64, 64)
+#          print(image_resize_rearranged.shape)
+#          image_resize_rearranged=image_resize_rearranged/255
+            img_latents=torch.from_numpy(image_resize_rearranged)
+
+            test_draw_latents=img_latents
+          
+          if False:    
+            test_draw_latents=encode_vae(Image.fromarray(img))
+#            unet_img=decode_latents(unet_latents)
+#            unet_draw_latents=encode_vae(Image.fromarray(unet_img))
+          #unet_img=decode_latents(unet_latents)
+          #unet_img=decode_latents(unet_latents)
+          
+#          unet_and_test_draw_latents=test_draw_latents*unet_draw_latents
+          if False:    
+            unet_and_test_draw_latents=test_draw_latents*unet_latents
+
+
         if show_stable_diffusion_cons:
+          t_tqdm=scheduler.timesteps[i_tqdm]
+#  i_tqdm1=i_tqdm
+#  t_tqdm1=t_tqdm
+
+#          if True:    
+          if False:    
 ##            cons=np.roll(cons,1,axis=0)
 #            cons[1:,:] = cons[:len(cons),:]
 ##            cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
@@ -1418,7 +1609,27 @@ if True:
 #            car_latent.shape
 
 #            base_latents = test_latents.detach().clone()
-            base_latents = unet_latents.detach().clone()
+#            base_latents = latents.detach().clone()
+
+            if True:    
+#              text_embeddings1=test_embeds.detach().clone()
+#              height1=512
+#              width1=512
+#              num_inference_steps1=50
+#              guidance_scale1=7.5
+#              if i_tqdm==0:
+#                latents1=latents.detach().clone()
+#              if i_tqdm<num_inference_steps-1:
+#                i_tqdm1=-1
+#              if i_tqdm==num_inference_steps-1:
+#              print((latentsa[i_tqdm]))
+#              print((latentsa[i_tqdm] is None))
+#              if not (latentsa[i_tqdm] is empty):
+              base_latents=latentsa[i_tqdm].detach().clone()
+              #base_latents.to('cpu')
+#            base_latents = unet_latents.detach().clone()
+#            base_latents = unet_and_test_draw_latents.detach().clone()
+            
 #            cons_latents = base_latents
             cons_latents_flatten = base_latents.reshape(len(base_latents)*len(base_latents[0])*len(base_latents[0][0])*len(base_latents[0][0][0]))
             for cons_index in range(int(len(cons_latents_flatten)/len(cons[0]))+1):
@@ -1429,6 +1640,8 @@ if True:
                 cons_latents_flatten[con_index + cons_index*len(cons[0])] = ((cons[cons_index%len(cons)][con_index]+apply_to_latents)/1+0.0001)/((1+apply_to_latents)/1+0.0001)
             cons_latents = cons_latents_flatten.reshape(len(base_latents),len(base_latents[0]),len(base_latents[0][0]),len(base_latents[0][0][0]))
 
+#          if True:    
+          if False:    
 
 #            base_embeds = torch.randn(2, 77, 768).to(device)
             base_embeds = test_embeds.detach().clone()
@@ -1448,8 +1661,11 @@ if True:
 #                cons_latent_flatten[con_index + cons_index*len(cons[0])] = (cons[0][con_index]-0.5)*3
             cons_embeds = cons_embeds_flatten.reshape(2, 77, 768)
             
+#          if True:    
+          if False:    
 
-            if to_sum_embeds is None:
+            if to_sum_latents is None:
+#            if to_sum_embeds is None:
 #                base_latents = test_latents.detach().clone()
 #            cons_img=Image.fromarray(cons)
 #            cons_img_resize=cons_img.resize((400, 416))
@@ -1457,30 +1673,161 @@ if True:
                 #print(car_latent)
 #            print(cons_latent)
             
+#                unet_latents
+#                cons_latents
+#                unet_latents.to(device)
+#                cons_latents.to(device)
+                
                 to_sum_latents = unet_latents/cons_latents
+#                to_sum_latents = unet_latents.to(device)/cons_latents.to(device)
 #                to_sum_embeds = test_embeds-cons_embeds
-                to_sum_embeds = test_embeds/cons_embeds
+                if False:    
+                  to_sum_embeds = test_embeds/cons_embeds
 #                to_sum_embeds = car_embeds/cons_embeds
             
+#            cons_latents.to(device)
+#            cons_latents
+#            sum_latents = cons_latents.to(device)*to_sum_latents.to(device)
             sum_latents = cons_latents*to_sum_latents
+#            sum_latents = latents.to(device)
 #            sum_embeds = cons_embeds+to_sum_embeds
-            sum_embeds = cons_embeds*to_sum_embeds
+            if False:    
+              sum_embeds = cons_embeds*to_sum_embeds
+#            sum_embeds = test_embeds
             #sum_embeds = cons_embeds
 ##            sum_embeds = test_embeds
 #            sum_latent = car_latent
 ##            test_latents = generate_latents(sum_embeds)
 #            test_latents = generate_latents(test_embeds)
 
-            test_latents = generate_latents(
-                sum_embeds,
-#                test_embeds,
-                height=unet_height, 
-                width=unet_width,
-                num_inference_steps=unet_num_inference_steps,
-#                latents=unet_latents,
-#                latents=cons_latents,
-                latents=sum_latents,
-                guidance_scale=unet_guidance_scale)
+           
+#            latents = sum_latents
+
+          if True:    
+
+            if True:    
+#            if False:
+
+#              text_embeddings1=sum_embeds.detach().clone()
+              text_embeddings=test_embeds
+#              text_embeddings1=test_embeds.detach().clone()
+#              latents1=sum_latents
+#              latents1=latentsa[i_tqdm].detach().clone()
+              latents=latentsa[i_tqdm].detach().clone()
+#              height1=512
+#              width1=512
+#              num_inference_steps1=50
+              guidance_scale1=unet_guidance_scale
+#              if i_tqdm==0:
+#                latents1=latents.detach().clone()
+#              if i_tqdm<num_inference_steps-1:
+#                i_tqdm1=-1
+#              if i_tqdm==num_inference_steps-1:
+#              print((latentsa[i_tqdm]))
+#              print((latentsa[i_tqdm] is None))
+#              if not (latentsa[i_tqdm] is empty):
+#              latents1=latentsa[i_tqdm].detach().clone()
+#              latents1=unet_latents.detach().clone()
+#              latents1=None
+#              if latents1 is None:
+#                  latents1 = torch.randn((
+#                      text_embeddings1.shape[0] // 2,
+#                      unet.in_channels,
+#                      height1 // 8,
+#                      width1 // 8
+#                  ))
+            
+#              latents1 = latents1.to(device)
+
+#              scheduler1.set_timesteps(num_inference_steps1)
+#              latents1 = latents1 * scheduler1.sigmas[0]
+
+              if True:    
+               with autocast('cuda'):
+#                  for i1, t1 in tqdm(enumerate(scheduler1.timesteps)):
+                      i1=i_tqdm
+                      t1=t_tqdm
+#                      scheduler1=scheduler
+                      latent_model_input = torch.cat([latents] * 2)
+                      sigma = scheduler.sigmas[i1]
+                      latent_model_input = latent_model_input / ((sigma ** 2 + 1) ** 0.5)
+#                      print(i1,t1,sigma1)
+
+                      with torch.no_grad():
+                          noise_pred = unet(latent_model_input, t1, encoder_hidden_states=text_embeddings)['sample']
+            
+                      noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
+                      noise_pred = noise_pred_uncond + guidance_scale1 * (noise_pred_text - noise_pred_uncond)
+
+                      latents = scheduler.step(noise_pred, i1, latents)['prev_sample']
+                      
+#                      latents=latents1.detach().clone()
+#                      scheduler=scheduler1
+
+                      if True:    
+
+                        i_tqdm=i_tqdm+1
+                        if i_tqdm<num_inference_steps:
+#                          if (latentsa[i_tqdm] is empty):
+#                            latentsa[i_tqdm]=latents.detach().clone()
+                            latentsa[i_tqdm]=latents.detach().clone()
+                        if i_tqdm==num_inference_steps:
+#                          i_tqdm=random.randint(0,num_inference_steps-1)
+                          i_tqdm=1
+#                          i_tqdm=0
+#                          for i in range(i_tqdm+1,len(latentsa)):
+#                            latentsa[i]=empty
+                          
+
+                        test_latents = latents
+#                        test_latents = latents.detach().clone()
+#                       test_latents = latents1.detach().clone()
+
+                      if False:    
+
+                        images = decode_latents(test_latents.to(device))
+                        images[0].save(output_path+'stable-diffusion-'+dt_string+'-'+FLAGS.clip_prompt+'.png', format='png')
+                        images[0].save('mygraph.png', format='png')
+                        image = np.asarray(images[0])
+                        image = image[:,:,::-1]
+                        screen3.update(image)
+
+#              test_latents = latents1.detach().clone()
+#              test_latents = latents.detach().clone()
+
+#            if True:    
+            if False:
+            
+              latent_model_input = torch.cat([latents] * 2)
+              sigma = scheduler.sigmas[i_tqdm]
+              latent_model_input = latent_model_input / ((sigma ** 2 + 1) ** 0.5)
+
+              with torch.no_grad():
+                  noise_pred = unet(latent_model_input, t_tqdm, encoder_hidden_states=test_embeds.clone())['sample']
+            
+              noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
+              noise_pred = noise_pred_uncond + unet_guidance_scale * (noise_pred_text - noise_pred_uncond)
+
+              latents = scheduler.step(noise_pred, i_tqdm, latents)['prev_sample']
+              test_latents = latents.clone()
+
+#            sum_embeds = test_embeds
+#            sum_latents = unet_latents
+
+#            if True:    
+            if False:
+
+              test_latents = generate_latents(
+                  sum_embeds,
+#                  test_embeds,
+                  height=unet_height, 
+                  width=unet_width,
+                  num_inference_steps=unet_num_inference_steps,
+#                  latents=unet_latents,
+#                  latents=cons_latents,
+                  latents=sum_latents,
+                  guidance_scale=unet_guidance_scale)
+
             images = decode_latents(test_latents.to(device))
             #images = decode_latents(car_latent.to(device))
             #print(images[0])
@@ -1562,7 +1909,7 @@ if True:
 #                noise_mode='const'
 #                noise_mode='random'
                 noise_mode='none'
-                label = torch.zeros([1, G3ms[1].c_dim], device=device)
+                label = torch.zeros([1, G3ms[0].c_dim], device=device)
                 #if G3m.c_dim != 0:
                 #    label[:, class_idx] = 1
                 
@@ -1954,5 +2301,8 @@ if True:
 
 
 
+
   bdf.close()
 
+if False:    
+  cv2.destroyAllWindows()
