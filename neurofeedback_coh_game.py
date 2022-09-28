@@ -62,7 +62,7 @@ flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
 flags.DEFINE_boolean('rotate', True, 'rotate')
 #flags.DEFINE_boolean('show_stable_diffusion_cons', True, 'show_stable_diffusion_cons')
 flags.DEFINE_boolean('show_stable_diffusion_cons', False, 'show_stable_diffusion_cons')
-flags.DEFINE_string('huggingface_hub_token', './huggingface_hub_token', 'huggingface_hub_token: token or file with token')
+flags.DEFINE_string('huggingface_hub_token', 'huggingface_hub_token', 'huggingface_hub_token: token or file with token')
 #flags.DEFINE_string('unet_height', '256', 'unet_height')
 #flags.DEFINE_string('unet_width', '256', 'unet_width')
 flags.DEFINE_string('unet_height', '512', 'unet_height')
@@ -88,6 +88,8 @@ flags.DEFINE_string('n_jobs', '32', 'n_jobs')
 flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
 flags.DEFINE_string('from_bdf_file', None, 'from_bdf_file')
+#flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
+flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
 #flags.DEFINE_string('n_jobs', '8', 'n_jobs')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
@@ -302,7 +304,8 @@ if True:
     import PIL.ImageDraw as ImageDraw
     import PIL.ImageFont as ImageFont
 
-    font_fname = '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf'
+    font_fname = FLAGS.font_fname
+    
     font_size = 10
     font = ImageFont.truetype(font_fname, font_size)
   
@@ -464,15 +467,18 @@ if True:
         download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1])
 
     G3ms=[{}]*len(files_path)
-    time001a=[{}]*len(files_path)
-    time111a=[{}]*len(files_path)
     for i in range(len(files_path)):
       network_pkl=files_path[i][1]
       device = torch.device('cuda')
       with dnnlib.util.open_url(network_pkl) as fp:
 #      G3m = legacy.load_network_pkl(fp)['G_ema'].requires_grad_(False).to(device) # type: ignore
         G3ms[i] = legacy.load_network_pkl(fp)['G_ema'].to(device) # type: ignore
-      time001a[i]=perf_counter()
+
+    if draw_fps:
+      time001a=[{}]*len(files_path)
+      time111a=[{}]*len(files_path)
+      for i in range(len(files_path)):
+        time001a[i]=perf_counter()
 
     if show_game_cons:
 
@@ -510,20 +516,20 @@ if True:
     import numpy as np      
     
 
-    from tqdm.auto import tqdm
-    from torch import autocast
-    from diffusers import (
-        StableDiffusionPipeline, AutoencoderKL,
-        UNet2DConditionModel, PNDMScheduler, LMSDiscreteScheduler
-    )
-    from diffusers.schedulers.scheduling_ddim import DDIMScheduler
+#    from tqdm.auto import tqdm
+#    from torch import autocast
+#    from diffusers import (
+#        StableDiffusionPipeline, AutoencoderKL,
+#        UNet2DConditionModel, PNDMScheduler, LMSDiscreteScheduler
+#    )
+#    from diffusers.schedulers.scheduling_ddim import DDIMScheduler
     
     
     # Pipeline
-    scheduler = LMSDiscreteScheduler(
-        beta_start=0.00085, beta_end=0.012,
-        beta_schedule='scaled_linear', num_train_timesteps=1000
-    )
+#    scheduler = LMSDiscreteScheduler(
+#        beta_start=0.00085, beta_end=0.012,
+#        beta_schedule='scaled_linear', num_train_timesteps=1000
+#    )
 
 #    scheduler1 = LMSDiscreteScheduler(
 #        beta_start=0.00085, beta_end=0.012,
