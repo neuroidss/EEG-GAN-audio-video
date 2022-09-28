@@ -2232,9 +2232,16 @@ if True:
                   enemy_life_array=(np.sum(game_enemy_cards[:game_num_enemy_cards],axis=0)+np.abs(np.sum(game_enemy_cards[:game_num_enemy_cards],axis=0)))/2
                   sum_user_pos_life=np.sum(user_life_array)/dim_sg2
                   sum_enemy_pos_life=np.sum(enemy_life_array)/dim_sg2
-                out_text_game=f'{(np.max(np.std(game_last_possible_cards, axis=0))):7.2f}'+' max_std_possible, '
-                out_text_game=out_text_game+f'{(np.average(game_user_cards_life[:game_num_user_cards])):7.2f}'+" average_user, "
-                out_text_game=out_text_game+f'{(np.average(game_enemy_cards_life[:game_num_enemy_cards])):7.2f}'+' average_enemy, '
+                max_std_possible_s = f'{(np.max(np.std(game_last_possible_cards, axis=0))):7.2f}'
+                out_text_game=max_std_possible_s+' max_std_possible, '
+                average_user_s='nan'
+                if game_num_user_cards>0:
+                  average_user = f'{(np.average(game_user_cards_life[:game_num_user_cards])):7.2f}'
+                out_text_game=out_text_game+average_user_s+" average_user, "
+                average_enemy_s='nan'
+                if game_num_enemy_cards>0:
+                  average_enemy_s = f'{(np.average(game_enemy_cards_life[:game_num_enemy_cards])):7.2f}'
+                out_text_game=out_text_game+average_enemy_s+' average_enemy, '
                 out_text_game=out_text_game+f'{sum_user_pos_life:7.2f}'+" sum_pos_user, "
                 out_text_game=out_text_game+f'{sum_enemy_pos_life:7.2f}'+' sum_pos_enemy, '
                 #out_text_game=out_text_game+f'{(np.sum(np.sum(game_user_cards_life[:game_num_user_cards],axis=0)+np.abs(np.sum(game_user_cards_life[:game_num_user_cards],axis=0)))/2)/dim_sg2:7.2f}'+" sum_pos_user, "
