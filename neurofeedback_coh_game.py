@@ -1,6 +1,10 @@
 #!pip install matplotlib brainflow mne==0.23.3 librosa sounddevice absl-py pyformulas pyedflib
 #!pip install diffusers transformers scipy ftfy "ipywidgets>=7,<8"
 
+import mne
+mne.utils.set_config('MNE_USE_CUDA', 'true')
+mne.cuda.init_cuda(verbose=True)
+
 #%matplotlib inline
 
 import matplotlib.pyplot as plt
@@ -14,8 +18,11 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 
 import mne
-from mne.connectivity import spectral_connectivity, seed_target_indices
-from mne.viz import circular_layout, plot_connectivity_circle
+#from mne.connectivity import spectral_connectivity, seed_target_indices
+from mne_connectivity import SpectralConnectivity
+from mne_connectivity import spectral_connectivity_epochs
+#from mne.viz import circular_layout, plot_connectivity_circle
+from mne_connectivity.viz import plot_connectivity_circle
 
 #import keyboard  # using module keyboard
 #from pynput.mouse import Listener
@@ -85,6 +92,9 @@ flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
 #flags.DEFINE_string('game_mode', '1', 'game_mode: 1 or 3')
 flags.DEFINE_string('game_mode', '3', 'game_mode: 1 or 3')
 flags.DEFINE_string('n_jobs', '32', 'n_jobs')
+#flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
+flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
+#flags.DEFINE_string('n_jobs', '32', "n_jobs: number of cpu jobs or 'cuda'")
 flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
 flags.DEFINE_string('from_bdf_file', None, 'from_bdf_file')
@@ -114,6 +124,13 @@ if FLAGS.help:
   exit()
 
 draw_fps=FLAGS.draw_fps
+if FLAGS.cuda_jobs:
+  cuda_jobs='cuda'
+else:
+  cuda_jobs=int(FLAGS.n_jobs)
+#if FLAGS.n_jobs=='cuda':
+#  n_jobs=FLAGS.n_jobs
+#else:
 n_jobs=int(FLAGS.n_jobs)
 apply_to_latents=float(FLAGS.apply_to_latents)
 apply_to_embeds=float(FLAGS.apply_to_embeds)
@@ -510,7 +527,7 @@ if True:
     from mne.datasets import sample
     from mne.minimum_norm import read_inverse_operator, compute_source_psd
 
-    from mne.connectivity import spectral_connectivity, seed_target_indices
+#    from mne.connectivity import spectral_connectivity, seed_target_indices
 
     import pandas as pd
     import numpy as np      
@@ -1105,7 +1122,7 @@ if True:
       if raw_buf is not None:
         raws=[{}]*2
         raws[0] = raw_buf
-        raws[1] = mne.io.RawArray(eeg_data, info, verbose=50)
+        raws[1] = mne.io.RawArray(eeg_data, info, verbose='ERROR')
         raw_picks=[{}]*2
         raw_picks[0] = raws[0].pick(ch_names_pick)
         raw_picks[1] = raws[1].pick(ch_names_pick)
@@ -1130,7 +1147,7 @@ if True:
 
       ch_types_pick = ['eeg'] * len(ch_names_pick)
       info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
-      raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose=50)
+      raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose='ERROR')
       raw_buf = raw
       len_raw=len(raw)
 
@@ -1159,7 +1176,7 @@ if True:
         # epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=0.1, preload=False))
         epochs.append(mne.make_fixed_length_epochs(datas[0], 
-                                            duration=duration, preload=True, overlap=overlap, verbose=50))
+                                            duration=duration, preload=True, overlap=overlap, verbose='ERROR'))
 #          epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
      if True:
@@ -1201,19 +1218,38 @@ if True:
           #fmax=13.
           fmin=bands[band][0]
           fmax=bands[band][1]
+
+          #print(epochs[band][ji:ji+10])
+#          print(epochs[band][ji:ji+10].get_data().shape)
+
+#          np_array=np.asarray(epochs[band][ji:ji+10])
+#          np_array=epochs[band][ji:ji+10].get_data()
+#          freqs=int((bands[band][1]-bands[band][0])/2)
+          
+#          print(np_array.shape)
+
+          
 #          if band == 0:
-          con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
+          mne.set_log_level('CRITICAL')
+          con = spectral_connectivity_epochs(
+#          con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
 #            epochs[0], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
 #            epochs[0][ji:ji+4], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+#            np_array, method=methods[method], n_epochs_used=len(np_array), mode='multitaper', sfreq=sfreq, freqs=freqs,
+#            n_nodes=len(epochs[band][0].get_data()), faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=50)
             epochs[band][ji:ji+10], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
-            fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=50)
+            fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=cuda_jobs, verbose='CRITICAL')
+#          cons=np.roll(cons,1,axis=0)
           cons=np.roll(cons,1,axis=0)
+          conmat = con.get_data(output='dense')[:, :, 0]
+#          print(conmat.shape)
 #          cons[1:,:] = cons[:len(cons),:]
-          cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+          cons[0]=conmat[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+#          cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
           
-          if print_freq_once and not print_freq_once_printed:
-             print(freqs)
-             print_freq_once_printed = True
+#          if print_freq_once and not print_freq_once_printed:
+#             print(freqs)
+#             print_freq_once_printed = True
           #con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
           #  epochs[band][ji,ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
           #  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=1)
@@ -1270,11 +1306,13 @@ if True:
 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
 #                                             title=method, show = False, vmin=0, vmax=1)#, fig=fig)
-            con_sort=np.sort(np.abs(con).ravel())[::-1]
+            con_sort=np.sort(np.abs(conmat).ravel())[::-1]
+#            con_sort=np.sort(np.abs(con).ravel())[::-1]
             n_lines=np.argmax(con_sort<vmin)
                
 #            print(freqs)
-            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=n_lines, 
+            fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, 
+#            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=n_lines, 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names,# n_lines=300, 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2), 
                 title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
