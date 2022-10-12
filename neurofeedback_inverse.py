@@ -324,7 +324,7 @@ if True:
 #  print(cohs_tril_indices)
 
 
-  if draw_fps:
+  if draw_fps and (show_stylegan3_cons or show_game_cons):
 
     import PIL.ImageDraw as ImageDraw
     import PIL.ImageFont as ImageFont
