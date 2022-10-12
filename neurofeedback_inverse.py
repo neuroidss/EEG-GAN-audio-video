@@ -1981,13 +1981,14 @@ if True:
 #            toggle_interface
             if (brain is None):
 
-#              brain = stc.plot(
-#                  hemi='both', src=inv['src'], views='coronal',
-#                  initial_time=0, subjects_dir=subjects_dir,
-#                  brain_kwargs=dict(silhouette=True), smoothing_steps=7)
+              brain = stc.plot(
+                  hemi='both', src=inv['src'], views='coronal',
+                  initial_time=0, subjects_dir=subjects_dir,
+                  brain_kwargs=dict(silhouette=True), smoothing_steps=7,
+                  show_traces=False)
             
-              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1,
-                 show_traces=False)#, 
+#              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1,
+#                 show_traces=False)#, 
 
               #brain.add_data(array=stc, initial_time=0.0, time=brain._times)
               #brain.apply_auto_scaling()        
@@ -2002,11 +2003,15 @@ if True:
 #                  array=stc.rh_data, hemi='rh', vertices=stc.rh_vertno, fmin=stc.data.min(),
 #                  fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
               kwargs = dict(
-                  array=stc, fmin=stc.data.min(),
+#                  array=stc, 
+                  colormap='plasma', 
+                  fmin=stc.data.min(),
                   fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
 
               # name: works
-              brain.add_data(colormap='plasma', **kwargs)
+              brain.add_data(stc.lh_data, hemi='lh', vertices=stc.lh_vertno, **kwargs)
+              brain.add_data(stc.rh_data, hemi='rh', vertices=stc.rh_vertno, **kwargs)
+#              brain.add_data(colormap='plasma', **kwargs)
 
               # object: works (not documented)
 #              list_of_colors = ['cyan', 'red', 'green']
