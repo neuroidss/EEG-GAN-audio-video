@@ -502,7 +502,7 @@ if True:
          #epochs = mne.Epochs(raw, events)
          epochs = mne.make_fixed_length_epochs(raw, 
                           duration=duration, preload=True, overlap=overlap)#, verbose='ERROR')
-         cov = mne.compute_covariance(epochs, tmax=0., n_jobs='cuda')
+         cov = mne.compute_covariance(epochs, tmax=0., n_jobs=10)
   #     cov = mne.compute_covariance(epochs, tmax=0.)
          evoked = epochs['1'].average()  # trigger 1 in auditory/left
          evoked.plot_joint()
@@ -719,7 +719,7 @@ if True:
       raw.set_eeg_reference(projection=True)
       events = mne.find_events(raw)
       epochs = mne.Epochs(raw, events)
-      cov = mne.compute_covariance(epochs, tmax=0., n_jobs='cuda')
+      cov = mne.compute_covariance(epochs, tmax=0., n_jobs=10)
 #    cov = mne.compute_covariance(epochs, tmax=0.)
       evoked = epochs['1'].average()  # trigger 1 in auditory/left
       evoked.plot_joint()
@@ -738,7 +738,7 @@ if True:
     # Now we can actually compute the forward:
 
 #    fwd = mne.make_forward_solution(
-#        evoked.info, trans=trans, src=fname_src, bem=fname_bem, verbose=True, n_jobs='cuda')
+#        evoked.info, trans=trans, src=fname_src, bem=fname_bem, verbose=True, n_jobs=10)
 
       fwd = mne.make_forward_solution(
         evoked.info, trans=trans, src=fname_src, bem=fname_bem, verbose=True)
@@ -1869,7 +1869,7 @@ if True:
        #epochs = mne.Epochs(raw, events)
        epochs = mne.make_fixed_length_epochs(raw1, 
                           duration=duration, preload=True, overlap=overlap)#, verbose='ERROR')
-       cov = mne.compute_covariance(epochs, tmax=0., n_jobs='cuda')
+       cov = mne.compute_covariance(epochs, tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
        evoked = epochs['1'].average()  # trigger 1 in auditory/left
        evoked.plot_joint()
@@ -1960,9 +1960,9 @@ if True:
 
         if show_inverse:
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
-            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs='cuda')
-#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs='cuda')
-#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs='cuda')
+            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
+#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
+#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
             evoked = epochs[0][ji].average()  # trigger 1 in auditory/left
             evoked.plot_joint()
@@ -2005,11 +2005,16 @@ if True:
 #              kwargs = dict(
 #                  array=stc.rh_data, hemi='rh', vertices=stc.rh_vertno, fmin=stc.data.min(),
 #                  fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
+
+#              brain_camera_position=brain._renderer.camera_position
+
               kwargs = dict(
 #                  array=stc, 
                   colormap='plasma', 
                   fmin=stc.data.min(),
                   alpha=0.25,
+#                  align=False,
+#                  focalpoint=brain_camera_position,
 #                  fmax=stc.data.max(), smoothing_steps=7, time=brain._times)
                   fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
 
@@ -2029,6 +2034,7 @@ if True:
               #print(brain_data_frame)
               #brain_data_frame = stc.to_data_frame()
               #print(brain_data_frame)
+
 
 #              brain.show_view(view='coronal')
               
