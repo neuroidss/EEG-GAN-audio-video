@@ -1,10 +1,13 @@
 #!pip install matplotlib brainflow mne librosa sounddevice absl-py pyformulas pyedflib
 #!pip install diffusers transformers scipy ftfy "ipywidgets>=7,<8"
-#!pip install darkdetect
+#!pip install mne mne_connectivity -U
+#!pip install pyvistaqt PyQt5 darkdetect qdarkstyle
 
 import mne
 mne.utils.set_config('MNE_USE_CUDA', 'true')
 mne.cuda.init_cuda(verbose=True)
+
+mne.viz.set_3d_backend('pyvistaqt')
 
 #%matplotlib inline
 
