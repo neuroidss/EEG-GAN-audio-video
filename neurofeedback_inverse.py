@@ -1958,7 +1958,10 @@ if True:
 
 
         if show_inverse:
+#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
             cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs='cuda')
+#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs='cuda')
+#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs='cuda')
 #     cov = mne.compute_covariance(epochs, tmax=0.)
             evoked = epochs[0][ji].average()  # trigger 1 in auditory/left
             evoked.plot_joint()
@@ -1976,17 +1979,34 @@ if True:
 #                brain.toggle_interface(False)
 #            toggle_interface
             if (brain is None):
-              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.1, figure=1)#, 
+              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1)#, 
 
-              brain.add_data(array=stc, initial_time=0.1, time=brain._times)
-              brain.apply_auto_scaling()        
+              #brain.add_data(array=stc, initial_time=0.0, time=brain._times)
+              #brain.apply_auto_scaling()        
 
 #                  time_viewer=(brain is None))
               #brain_data_frame = stc.to_data_frame()
 #              time = np.arange(stc.shape[-1])
 #              print('time: ',time)
             else:
-              brain.add_data(array=stc, initial_time=0.1, time=brain._times)
+              
+#              kwargs = dict(
+#                  array=stc.rh_data, hemi='rh', vertices=stc.rh_vertno, fmin=stc.data.min(),
+#                  fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
+              kwargs = dict(
+                  array=stc, fmin=stc.data.min(),
+                  fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
+
+              # name: works
+              brain.add_data(colormap='plasma', **kwargs)
+
+              # object: works (not documented)
+#              list_of_colors = ['cyan', 'red', 'green']
+#              my_cmap = LinearSegmentedColormap.from_list('foo', list_of_colors, N=12)
+              #brain.add_data(colormap=my_cmap, **kwargs)            
+              #brain.add_data(array=stc, initial_time=0.0, time=brain._times)
+              
+              #brain.add_data(array=stc, initial_time=0.0, time=brain._times)
               brain.apply_auto_scaling()        
               #print(brain_data_frame)
               #brain_data_frame = stc.to_data_frame()
