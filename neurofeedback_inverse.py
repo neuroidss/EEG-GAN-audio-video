@@ -1,5 +1,6 @@
-#!pip install matplotlib brainflow mne==0.23.3 librosa sounddevice absl-py pyformulas pyedflib
+#!pip install matplotlib brainflow mne librosa sounddevice absl-py pyformulas pyedflib
 #!pip install diffusers transformers scipy ftfy "ipywidgets>=7,<8"
+#!pip install darkdetect
 
 import mne
 mne.utils.set_config('MNE_USE_CUDA', 'true')
