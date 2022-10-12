@@ -1980,7 +1980,14 @@ if True:
 #                brain.toggle_interface(False)
 #            toggle_interface
             if (brain is None):
-              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1)#, 
+
+#              brain = stc.plot(
+#                  hemi='both', src=inv['src'], views='coronal',
+#                  initial_time=0, subjects_dir=subjects_dir,
+#                  brain_kwargs=dict(silhouette=True), smoothing_steps=7)
+            
+              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1,
+                 show_traces=False)#, 
 
               #brain.add_data(array=stc, initial_time=0.0, time=brain._times)
               #brain.apply_auto_scaling()        
