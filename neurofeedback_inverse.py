@@ -2030,7 +2030,7 @@ if True:
               #brain_data_frame = stc.to_data_frame()
               #print(brain_data_frame)
 
-              brain.show_view(view='coronal')
+#              brain.show_view(view='coronal')
               
               #    kwargs = {
               #        "array": stc,
