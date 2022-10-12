@@ -1984,7 +1984,10 @@ if True:
               brain = stc.plot(
                   hemi='both', src=inv['src'], views='coronal',
                   initial_time=0, subjects_dir=subjects_dir,
-                  brain_kwargs=dict(silhouette=True), smoothing_steps=7,
+                  brain_kwargs=dict(silhouette=True), 
+                  alpha=0.25,
+                  smoothing_steps='nearest',
+#                  smoothing_steps=7,
                   show_traces=False)
             
 #              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1,
@@ -2006,6 +2009,8 @@ if True:
 #                  array=stc, 
                   colormap='plasma', 
                   fmin=stc.data.min(),
+                  alpha=0.25,
+#                  fmax=stc.data.max(), smoothing_steps=7, time=brain._times)
                   fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
 
               # name: works
@@ -2024,6 +2029,8 @@ if True:
               #print(brain_data_frame)
               #brain_data_frame = stc.to_data_frame()
               #print(brain_data_frame)
+
+              brain.show_view(view='coronal')
               
               #    kwargs = {
               #        "array": stc,
@@ -2068,7 +2075,7 @@ if True:
 #              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.1, figure=1)#, 
 
 #            brain=brain1
-              brain.show_view()
+              #brain.show_view()
 
 
         if show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
