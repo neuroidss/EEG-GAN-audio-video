@@ -28,6 +28,20 @@ from mne_connectivity import spectral_connectivity_epochs
 #from mne.viz import circular_layout, plot_connectivity_circle
 from mne_connectivity.viz import plot_connectivity_circle
 
+from mne_connectivity import spectral_connectivity_epochs
+from mne.datasets import sample
+from mne_connectivity.viz import plot_sensors_connectivity
+
+import mne
+from mne.datasets import sample
+from mne import setup_volume_source_space, setup_source_space
+from mne import make_forward_solution
+from mne.io import read_raw_fif
+from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
+from mne.viz import circular_layout
+from mne_connectivity import spectral_connectivity_epochs
+from mne_connectivity.viz import plot_connectivity_circle
+
 #import keyboard  # using module keyboard
 #from pynput.mouse import Listener
 
@@ -113,6 +127,8 @@ flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBo
 #flags.DEFINE_string('part_len', None, 'part_len')
 flags.DEFINE_boolean('show_inverse', True, 'show_inverse')
 #flags.DEFINE_boolean('show_inverse', False, 'show_inverse')
+flags.DEFINE_boolean('show_inverse_cons', True, 'show_inverse_cons')
+#flags.DEFINE_boolean('show_inverse_cons', False, 'show_inverse_cons')
 #flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
 flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
 #flags.mark_flag_as_required('input')
@@ -2592,6 +2608,8 @@ if True:
 #                brain.toggle_interface(False)
 #            toggle_interface
             if (brain is None):
+#             px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#             fig = plt.figure(figsize=(576*px, 576*px))
 
              if True:
              
@@ -2830,7 +2848,124 @@ if True:
 
 #            brain=brain1
               #brain.show_view()
+            if FLAGS.show_inverse_cons:
+              # Compute inverse solution and for each epoch
+              snr = 1.0           # use smaller SNR for raw data
+              inv_method = 'dSPM'
+              parc = 'aparc'      # the parcellation to use, e.g., 'aparc' 'aparc.a2009s'
 
+              lambda2 = 1.0 / snr ** 2
+
+              # Compute inverse operator
+#              inverse_operator = make_inverse_operator(
+#                  epochs[0].info, fwd, noise_cov, depth=None, fixed=False)
+#              del fwd
+
+              stcs = apply_inverse_epochs(epochs[0][ji:ji+10], inv, lambda2, inv_method,
+                                          pick_ori=None, return_generator=True)
+
+              # Get labels for FreeSurfer 'aparc' cortical parcellation with 34 labels/hemi
+              print('subject:',subject)
+              subject = 'fsaverage'
+              labels_parc = mne.read_labels_from_annot(subject, parc=parc,
+                                                       subjects_dir=subjects_dir)
+
+              # Average the source estimates within each label of the cortical parcellation
+              # and each sub-structure contained in the source space.
+              # When mode = 'mean_flip', this option is used only for the cortical labels.
+              src = inv['src']
+              label_ts = mne.extract_label_time_course(
+                  stcs, labels_parc, src, mode='mean_flip', allow_empty=True,
+                  return_generator=True)
+
+              # We compute the connectivity in the alpha band and plot it using a circular
+              # graph layout
+              fmin = 8.
+#              fmin = 10.
+              fmax = 13.
+              sfreq = epochs[0].info['sfreq']  # the sampling frequency
+              print('label_ts:',label_ts)
+              con = spectral_connectivity_epochs(
+                  label_ts, method='pli', mode='multitaper', sfreq=sfreq, fmin=fmin,
+                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=10)
+
+              # We create a list of Label containing also the sub structures
+              labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
+              labels = labels_parc + labels_aseg
+
+              # read colors
+              node_colors = [label.color for label in labels]
+
+              # We reorder the labels based on their location in the left hemi
+              label_names = [label.name for label in labels]
+              lh_labels = [name for name in label_names if name.endswith('lh')]
+              rh_labels = [name for name in label_names if name.endswith('rh')]
+
+              # Get the y-location of the label
+              label_ypos_lh = list()
+              for name in lh_labels:
+                  idx = label_names.index(name)
+                  ypos = np.mean(labels[idx].pos[:, 1])
+                  label_ypos_lh.append(ypos)
+              try:
+                  idx = label_names.index('Brain-Stem')
+              except ValueError:
+                  pass
+              else:
+                  ypos = np.mean(labels[idx].pos[:, 1])
+                  lh_labels.append('Brain-Stem')
+                  label_ypos_lh.append(ypos)
+
+              # Reorder the labels based on their location
+              lh_labels = [label for (yp, label) in sorted(zip(label_ypos_lh, lh_labels))]
+
+              # For the right hemi
+              rh_labels = [label[:-2] + 'rh' for label in lh_labels
+                           if label != 'Brain-Stem' and label[:-2] + 'rh' in rh_labels]
+
+              # Save the plot order
+              node_order = lh_labels[::-1] + rh_labels
+
+              node_angles = circular_layout(label_names, node_order, start_pos=90,
+                                            group_boundaries=[0, len(label_names) // 2])
+
+              # Plot the graph using node colors from the FreeSurfer parcellation. We only
+              # show the 300 strongest connections.
+              conmat = con.get_data(output='dense')[:, :, 0]
+#              fig, ax = plt.subplots(figsize=(8, 8), facecolor='black',
+#                                     subplot_kw=dict(polar=True))
+              plot_connectivity_circle(conmat, label_names, n_lines=300,
+                                       node_angles=node_angles, node_colors=node_colors,
+                                       title='All-to-All Connectivity left-Auditory '
+                                       'Condition (PLI)')#, ax=ax)#, fig=fig)
+#              fig.tight_layout()            
+              plt.savefig('inverse_coh.png', facecolor='black', format='png')
+              
+            if False:
+              eeg_step=ji
+              #print (f'EEG step: {(eeg_step/3):.1f} s')
+              tmin, tmax = 0+(eeg_step/fps), duration+(eeg_step/fps)  # use the first 120s of data
+
+              #ji=0 
+              #eeg_step=ji
+      #        tmin, tmax = 0+(eeg_step/fps), 2+(eeg_step/fps)  # use the first 120s of data
+         #tmin, tmax = 0, duration
+#        sfreq = raw.info['sfreq']  # the sampling frequency
+              for band in range(len(bands)):
+               for method in range(len(methods)):
+          #fmin=8.
+          #fmax=13.
+                fmin=bands[band][0]
+                fmax=bands[band][1]
+                
+                con = spectral_connectivity_epochs(
+                    epochs[0][ji:ji+10], method='pli', mode='multitaper', sfreq=sfreq, fmin=fmin, fmax=fmax,
+                    faverage=True, tmin=tmin, mt_adaptive=False, n_jobs=1)
+
+                # Now, visualize the connectivity in 3D:
+                plot_sensors_connectivity(
+                    epochs[0][ji:ji+10].info,
+                    con.get_data(output='dense')[:, :, 0])                
 
         if show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
 #        if not show_inverse:
