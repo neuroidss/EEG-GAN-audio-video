@@ -2379,7 +2379,7 @@ if True:
                   fmin=stc.data.min(),
                   alpha=0.25,
                   src=inv['src'], 
-                  initial_time=0.1, 
+#                  initial_time=0.1, 
 #                  align=False,
 #                  focalpoint=brain_camera_position,
 #                  fmax=stc.data.max(), smoothing_steps=7, time=brain._times)
@@ -2448,14 +2448,16 @@ if True:
 #            if not (brain is None):
 #                brain.close()
 #              brain.remove_data()
+              brain.plot_time_line()
 #              brain.toggle_interface(False)
+#              brain.time_viewer=False
 #              brain.setup_time_viewer(time_viewer=False, show_traces=False)
-              #brain.time_viewer=False
-              #brain.setup_time_viewer()
+#              brain.setup_time_viewer()
               #brain.toggle_interface()
 #              print(brain.time_viewer)
-              print(brain.mpl_canvas)
-              brain.mpl_canvas.show()
+#              print(brain.mpl_canvas)
+#              brain.mpl_canvas.show()
+#              brain.mpl_canvas.hide()
 #              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.1, figure=1)#, 
 
 #            brain=brain1
