@@ -1,13 +1,10 @@
 #!pip install matplotlib brainflow mne librosa sounddevice absl-py pyformulas pyedflib
 #!pip install diffusers transformers scipy ftfy "ipywidgets>=7,<8"
-#!pip install mne mne_connectivity -U
-#!pip install pyvistaqt PyQt5 darkdetect qdarkstyle
+#!pip install darkdetect
 
 import mne
 mne.utils.set_config('MNE_USE_CUDA', 'true')
 mne.cuda.init_cuda(verbose=True)
-
-mne.viz.set_3d_backend('pyvistaqt')
 
 #%matplotlib inline
 
@@ -1992,7 +1989,8 @@ if True:
                   alpha=0.25,
                   smoothing_steps='nearest',
 #                  smoothing_steps=7,
-                  show_traces=False)
+                  show_traces=True)
+#                  show_traces=False)
             
 #              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1,
 #                 show_traces=False)#, 
