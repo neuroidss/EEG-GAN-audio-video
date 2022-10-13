@@ -1726,6 +1726,8 @@ if True:
 
   raw_buf = None
 
+  brain_vertices = None
+
   if True:
     def add_data(brain, array, fmin=None, fmid=None, fmax=None,
                  thresh=None, center=None, transparent=False, colormap="auto",
@@ -1966,10 +1968,16 @@ if True:
         # 4) update the scalar bar and opacity
         brain.update_lut(alpha=alpha)
 
+
     def clear_glyphs(brain):
         """Clear the picking glyphs."""
         if not brain.time_viewer:
             return
+#        listOfGlobals = globals()
+#        listOfGlobals['brain_picked_points_values'] = list(brain.picked_points.values())
+        global brain_picked_points_values
+        brain_picked_points_values=list(brain.picked_points.values())
+        print('brain_picked_points_values:',brain_picked_points_values)
         for sphere in list(brain._spheres):  # will remove itself, so copy
             brain._remove_vertex_glyph(sphere, render=False)
         assert sum(len(v) for v in brain.picked_points.values()) == 0
@@ -1987,9 +1995,18 @@ if True:
     def _configure_vertex_time_course(brain):
 #        if not brain.show_traces:
 #            return
+        brain_picked_points_values=list(brain.picked_points.values())
+        print('brain_picked_points_values:',brain_picked_points_values)
+        brain_picked_points=[{}]*len(brain_picked_points_values)
+        for idx1 in range(len(brain_picked_points_values)):
+            brain_picked_points[idx1]=[{}]*len(brain_picked_points_values[idx1])
+            for idx2 in range(len(brain_picked_points_values[idx1])):
+                brain_picked_points[idx1][idx2]=brain_picked_points_values[idx1][idx2]
+                
         if brain.mpl_canvas is None:
             brain._configure_mplcanvas()
         else:
+#            brain.rms.remove()
             clear_glyphs(brain)
 #            brain.clear_glyphs()
 
@@ -2008,12 +2025,25 @@ if True:
         brain.plot_time_line(update=False)
 
         # then the picked points
+#        global brain_picked_points_values
+#        print('brain_picked_points_values:',brain_picked_points_values)
+#        global brain_vertices
+#        if brain_vertices is None:
+#            brain_vertices=[{}]*3
+#            idx1=0
+#            for idx, hemi in enumerate(['lh', 'rh', 'vol']):
+#                brain_vertices[idx1]=None
+#                idx1=idx1+1
+        
+        idx1=0
         for idx, hemi in enumerate(['lh', 'rh', 'vol']):
             act_data = brain.act_data_smooth.get(hemi, [None])[0]
             if act_data is None:
                 continue
             hemi_data = brain._data[hemi]
+#            print('hemi:',hemi)
             vertices = hemi_data['vertices']
+#            print('vertices:',vertices)
 
             # simulate a picked renderer
             if brain._hemi in ('both', 'rh') or hemi == 'vol':
@@ -2034,7 +2064,30 @@ if True:
             else:
                 mesh = brain._layered_meshes[hemi]._polydata
             vertex_id = vertices[ind[0]]
-            brain._add_vertex_glyph(hemi, mesh, vertex_id, update=False)
+#            print('ind:',ind)
+#            print('idx:',idx)
+#            if not(brain_vertices[idx1] is None):
+#                for vertex_id1 in brain_vertices[idx1]:
+#                    print('vertex_id1:',vertex_id1)
+#                    brain._add_vertex_glyph(hemi, mesh, vertex_id1, update=False)
+##                    ok=1
+#            else:
+#                brain_vertices[idx1]=[{}]*1
+#                brain_vertices[idx1][0]=vertex_id
+#                print('vertex_id:',vertex_id)
+#                brain._add_vertex_glyph(hemi, mesh, vertex_id, update=False)
+#            listOfGlobals = globals()
+            print('brain_picked_points:',brain_picked_points)
+            print('brain_picked_points[idx1]:',brain_picked_points[idx1])
+            for vertex_id1 in brain_picked_points[idx1]:
+#            for vertex_id1 in listOfGlobals['brain_picked_points_values'][idx1]:
+#                print('idx1,vertex_id1:',idx1,vertex_id1)
+                brain._add_vertex_glyph(hemi, mesh, vertex_id1, update=False)
+
+
+#            vertex_id = vertices[ind[1]]
+#            brain._add_vertex_glyph(hemi, mesh, vertex_id, update=False)
+            idx1=idx1+1
 
 
     def _configure_dock_trace_widget(brain, name):
