@@ -113,6 +113,8 @@ flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBo
 #flags.DEFINE_string('part_len', None, 'part_len')
 flags.DEFINE_boolean('show_inverse', True, 'show_inverse')
 #flags.DEFINE_boolean('show_inverse', False, 'show_inverse')
+#flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
+flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
 #flags.mark_flag_as_required('input')
 #flags.mark_flag_as_required('prefix')
 #flags.mark_flag_as_required('output')
@@ -398,6 +400,7 @@ if True:
        src = op.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
        bem = op.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
 
+
        ##############################################################################
        # Load the data
        # ^^^^^^^^^^^^^
@@ -424,15 +427,23 @@ if True:
        raw.set_eeg_reference(projection=True)  # needed for inverse modeling
 
        # Check that the locations of EEG electrodes is correct with respect to MRI
-       mne.viz.plot_alignment(
-           raw.info, src=src, eeg=['original', 'projected'], trans=trans,
-           show_axes=True, mri_fiducials=True, dig='fiducials')
+#       mne.viz.plot_alignment(
+#           raw.info, src=src, eeg=['original', 'projected'], trans=trans,
+#           show_axes=True, mri_fiducials=True, dig='fiducials')
 
        ##############################################################################
        # Setup source space and compute forward
        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-       fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
+       if not (FLAGS.fname_fwd is None):
+         if os.path.isfile(FLAGS.fname_fwd):
+           fwd = mne.read_forward_solution(FLAGS.fname_fwd)
+         else:
+           fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
+                                       bem=bem, eeg=True, mindist=5.0, n_jobs=None)
+           mne.write_forward_solution(FLAGS.fname_fwd, fwd)
+       else:
+         fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
                                        bem=bem, eeg=True, mindist=5.0, n_jobs=None)
        print(fwd)
 
@@ -477,16 +488,16 @@ if True:
        fname_src = op.join(bem_dir, f'{subject}-oct-6-src.fif')
        src = mne.read_source_spaces(fname_src)
        print(src)
-       fname_bem = op.join(bem_dir, f'{subject}-5120-5120-5120-bem-sol.fif')
-       bem = mne.read_bem_solution(fname_bem)
+ #      fname_bem = op.join(bem_dir, f'{subject}-5120-5120-5120-bem-sol.fif')
+ #      bem = mne.read_bem_solution(fname_bem)
 
        ##############################################################################
        # You can ensure everything is as expected by plotting the result:
-       fig = mne.viz.plot_alignment(
-           raw.info, subject=subject, subjects_dir=subjects_dir, trans=trans,
-           src=src, bem=bem, coord_frame='mri', mri_fiducials=True, show_axes=True,
-           surfaces=('white', 'outer_skin', 'inner_skull', 'outer_skull'))
-       mne.viz.set_3d_view(fig, 25, 70, focalpoint=[0, -0.005, 0.01])
+#       fig = mne.viz.plot_alignment(
+#           raw.info, subject=subject, subjects_dir=subjects_dir, trans=trans,
+#           src=src, bem=bem, coord_frame='mri', mri_fiducials=True, show_axes=True,
+#           surfaces=('white', 'outer_skin', 'inner_skull', 'outer_skull'))
+#       mne.viz.set_3d_view(fig, 25, 70, focalpoint=[0, -0.005, 0.01])
 
        ##############################################################################
        # From here, standard forward and inverse operators can be computed
@@ -1955,6 +1966,310 @@ if True:
         # 4) update the scalar bar and opacity
         brain.update_lut(alpha=alpha)
 
+    def clear_glyphs(brain):
+        """Clear the picking glyphs."""
+        if not brain.time_viewer:
+            return
+        for sphere in list(brain._spheres):  # will remove itself, so copy
+            brain._remove_vertex_glyph(sphere, render=False)
+        assert sum(len(v) for v in brain.picked_points.values()) == 0
+        assert len(brain.pick_table) == 0
+        assert len(brain._spheres) == 0
+        for hemi in brain._hemis:
+            for label_id in list(brain.picked_patches[hemi]):
+                brain._remove_label_glyph(hemi, label_id)
+        assert sum(len(v) for v in brain.picked_patches.values()) == 0
+        if brain.rms is not None:
+            brain.rms.remove()
+            brain.rms = None
+        brain._renderer._update()
+
+    def _configure_vertex_time_course(brain):
+#        if not brain.show_traces:
+#            return
+        if brain.mpl_canvas is None:
+            brain._configure_mplcanvas()
+        else:
+            clear_glyphs(brain)
+#            brain.clear_glyphs()
+
+        # plot RMS of the activation
+        y = np.concatenate(list(v[0] for v in brain.act_data_smooth.values()
+                                if v[0] is not None))
+        rms = np.linalg.norm(y, axis=0) / np.sqrt(len(y))
+        del y
+
+        brain.rms, = brain.mpl_canvas.axes.plot(
+            brain._data['time'], rms,
+            lw=3, label='RMS', zorder=3, color=brain._fg_color,
+            alpha=0.5, ls=':')
+
+        # now plot the time line
+        brain.plot_time_line(update=False)
+
+        # then the picked points
+        for idx, hemi in enumerate(['lh', 'rh', 'vol']):
+            act_data = brain.act_data_smooth.get(hemi, [None])[0]
+            if act_data is None:
+                continue
+            hemi_data = brain._data[hemi]
+            vertices = hemi_data['vertices']
+
+            # simulate a picked renderer
+            if brain._hemi in ('both', 'rh') or hemi == 'vol':
+                idx = 0
+            brain.picked_renderer = brain._renderer._all_renderers[idx]
+
+            # initialize the default point
+            if brain._data['initial_time'] is not None:
+                # pick at that time
+                use_data = act_data[
+                    :, [np.round(brain._data['time_idx']).astype(int)]]
+            else:
+                use_data = act_data
+            ind = np.unravel_index(np.argmax(np.abs(use_data), axis=None),
+                                   use_data.shape)
+            if hemi == 'vol':
+                mesh = hemi_data['grid']
+            else:
+                mesh = brain._layered_meshes[hemi]._polydata
+            vertex_id = vertices[ind[0]]
+            brain._add_vertex_glyph(hemi, mesh, vertex_id, update=False)
+
+
+    def _configure_dock_trace_widget(brain, name):
+        if not brain.show_traces:
+            return
+        # do not show trace mode for volumes
+#        if (brain._data.get('src', None) is not None and
+#                brain._data['src'].kind == 'volume'):
+#            brain._configure_vertex_time_course()
+#            return
+
+#        layout = brain._renderer._dock_add_group_box(name)
+#        weakself = weakref.ref(brain)
+
+        # setup candidate annots
+#        def _set_annot(annot, weakself=weakself):
+#            brain = weakself()
+#            if brain is None:
+#                return
+        if True:
+#            brain.clear_glyphs()
+#            brain.remove_labels()
+#            brain.remove_annotations()
+#            brain.annot = annot
+
+#            if annot == 'None':
+            if True:
+                brain.traces_mode = 'vertex'
+                _configure_vertex_time_course(brain)
+#                brain._configure_vertex_time_course()
+            else:
+                brain.traces_mode = 'label'
+                brain._configure_label_time_course()
+            brain._renderer._update()
+
+        # setup label extraction parameters
+#        def _set_label_mode(mode, weakself=weakself):
+#            brain = weakself()
+#            if brain is None:
+#                return
+#            if brain.traces_mode != 'label':
+#                return
+        if True:
+#            glyphs = copy.deepcopy(brain.picked_patches)
+#            brain.label_extract_mode = mode
+#            brain.clear_glyphs()
+#            for hemi in brain._hemis:
+#                for label_id in glyphs[hemi]:
+#                    label = brain._annotation_labels[hemi][label_id]
+#                    vertex_id = label.vertices[0]
+#                    brain._add_label_glyph(hemi, None, vertex_id)
+            brain.mpl_canvas.axes.relim()
+            brain.mpl_canvas.axes.autoscale_view()
+            brain.mpl_canvas.update_plot()
+            brain._renderer._update()
+
+#        from ...source_estimate import _get_allowed_label_modes
+#        from ...label import _read_annot_cands
+        dir_name = op.join(brain._subjects_dir, brain._subject, 'label')
+#        cands = _read_annot_cands(dir_name, raise_error=False)
+#        cands = cands + ['None']
+#        brain.annot = cands[0]
+        stc = brain._data["stc"]
+#        modes = _get_allowed_label_modes(stc)
+#        if brain._data["src"] is None:
+#            modes = [m for m in modes if m not in
+#                     brain.default_label_extract_modes["src"]]
+#        brain.label_extract_mode = modes[-1]
+#        if brain.traces_mode == 'vertex':
+#            _set_annot('None')
+#        else:
+#            _set_annot(brain.annot)
+#        brain.widgets["annotation"] = brain._renderer._dock_add_combo_box(
+#            name="Annotation",
+#            value=brain.annot,
+#            rng=cands,
+#            callback=_set_annot,
+#            layout=layout,
+#        )
+#        brain.widgets["extract_mode"] = brain._renderer._dock_add_combo_box(
+#            name="Extract mode",
+#            value=brain.label_extract_mode,
+#            rng=modes,
+#            callback=_set_label_mode,
+#            layout=layout,
+#        )
+
+
+    def _configure_dock(brain):
+#        brain._renderer._dock_initialize()
+ #       brain._configure_dock_playback_widget(name="Playback")
+ #       brain._configure_dock_orientation_widget(name="Orientation")
+ #       brain._configure_dock_colormap_widget(name="Color Limits")
+        _configure_dock_trace_widget(brain,name="Trace")
+#        brain._configure_dock_trace_widget(name="Trace")
+
+        # Smoothing widget
+#        brain.callbacks["smoothing"] = SmartCallBack(
+#            callback=brain.set_data_smoothing,
+#        )
+#        brain.widgets["smoothing"] = brain._renderer._dock_add_spin_box(
+#            name="Smoothing",
+#            value=brain._data['smoothing_steps'],
+#            rng=brain.default_smoothing_range,
+#            callback=brain.callbacks["smoothing"],
+#            double=False
+#        )
+#        brain.callbacks["smoothing"].widget = \
+#            brain.widgets["smoothing"]
+
+#        brain._renderer._dock_finalize()
+
+    def setup_time_viewer(brain, time_viewer=True, show_traces=True):
+        """Configure the time viewer parameters.
+        Parameters
+        ----------
+        time_viewer : bool
+            If True, enable widgets interaction. Defaults to True.
+        show_traces : bool
+            If True, enable visualization of time traces. Defaults to True.
+        Notes
+        -----
+        The keyboard shortcuts are the following:
+        '?': Display help window
+        'i': Toggle interface
+        's': Apply auto-scaling
+        'r': Restore original clim
+        'c': Clear all traces
+        'n': Shift the time forward by the playback speed
+        'b': Shift the time backward by the playback speed
+        'Space': Start/Pause playback
+        'Up': Decrease camera elevation angle
+        'Down': Increase camera elevation angle
+        'Left': Decrease camera azimuth angle
+        'Right': Increase camera azimuth angle
+        """
+#        from ..backends._utils import _qt_app_exec
+#        if brain.time_viewer:
+#            return
+        if not brain._data:
+            raise ValueError("No data to visualize. See ``add_data``.")
+#        brain.time_viewer = time_viewer
+#        brain.orientation = list(_lh_views_dict.keys())
+        brain.default_smoothing_range = [-1, 15]
+
+        # Default configuration
+#        brain.playback = False
+#        brain.visibility = False
+        brain.refresh_rate_ms = max(int(round(1000. / 60.)), 1)
+        brain.default_scaling_range = [0.2, 2.0]
+        brain.default_playback_speed_range = [0.01, 1]
+        brain.default_playback_speed_value = 0.01
+        brain.default_status_bar_msg = "Press ? for help"
+        brain.default_label_extract_modes = {
+            "stc": ["mean", "max"],
+            "src": ["mean_flip", "pca_flip", "auto"],
+        }
+        brain.default_trace_modes = ('vertex', 'label')
+#        brain.annot = None
+#        brain.label_extract_mode = None
+#        all_keys = ('lh', 'rh', 'vol')
+#        brain.act_data_smooth = {key: (None, None) for key in all_keys}
+#        brain.color_list = _get_color_list()
+        # remove grey for better contrast on the brain
+#        brain.color_list.remove("#7f7f7f")
+#        brain.color_cycle = _ReuseCycle(brain.color_list)
+#        brain.mpl_canvas = None
+#        brain.help_canvas = None
+#        brain.rms = None
+#        brain.picked_patches = {key: list() for key in all_keys}
+#        brain.picked_points = {key: list() for key in all_keys}
+#        brain.pick_table = dict()
+#        brain._spheres = list()
+#        brain._mouse_no_mvt = -1
+#        brain.callbacks = dict()
+#        brain.widgets = dict()
+#        brain.keys = ('fmin', 'fmid', 'fmax')
+
+        # Derived parameters:
+#        brain.playback_speed = brain.default_playback_speed_value
+#        _validate_type(show_traces, (bool, str, 'numeric'), 'show_traces')
+#        brain.interactor_fraction = 0.25
+        if isinstance(show_traces, str):
+            brain.show_traces = True
+            brain.separate_canvas = False
+            brain.traces_mode = 'vertex'
+            if show_traces == 'separate':
+                brain.separate_canvas = True
+            elif show_traces == 'label':
+                brain.traces_mode = 'label'
+            else:
+                assert show_traces == 'vertex'  # guaranteed above
+        else:
+            if isinstance(show_traces, bool):
+                brain.show_traces = show_traces
+            else:
+                show_traces = float(show_traces)
+                if not 0 < show_traces < 1:
+                    raise ValueError(
+                        'show traces, if numeric, must be between 0 and 1, '
+                        f'got {show_traces}')
+                brain.show_traces = True
+                brain.interactor_fraction = show_traces
+            brain.traces_mode = 'vertex'
+            brain.separate_canvas = False
+        del show_traces
+
+        brain._configure_time_label()
+        brain._configure_scalar_bar()
+#        brain._configure_shortcuts()
+        brain._configure_picking()
+#        brain._configure_tool_bar()
+        _configure_dock(brain)
+#        brain._configure_dock()
+#        brain._configure_menu()
+#        brain._configure_status_bar()
+        brain._configure_playback()
+#        brain._configure_help()
+        # show everything at the end
+#        brain.toggle_interface()
+#        brain._renderer.show()
+
+        # sizes could change, update views
+#        for hemi in ('lh', 'rh'):
+#            for ri, ci, v in brain._iter_views(hemi):
+#                brain.show_view(view=v, row=ri, col=ci)
+#        brain._renderer._process_events()
+
+#        brain._renderer._update()
+        # finally, show the MplCanvas
+#        if brain.show_traces:
+#            brain.mpl_canvas.show()
+#        if brain._block:
+#            _qt_app_exec(brain._renderer.figure.store["app"])
+
 
 #with autocast('cuda'):
   while True:
@@ -2452,7 +2767,7 @@ if True:
 #              brain.toggle_interface(False)
 #              brain.time_viewer=False
 #              brain.setup_time_viewer(time_viewer=False, show_traces=False)
-#              brain.setup_time_viewer()
+              setup_time_viewer(brain)
               #brain.toggle_interface()
 #              print(brain.time_viewer)
 #              print(brain.mpl_canvas)
