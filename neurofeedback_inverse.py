@@ -1,10 +1,13 @@
 #!pip install matplotlib brainflow mne librosa sounddevice absl-py pyformulas pyedflib
 #!pip install diffusers transformers scipy ftfy "ipywidgets>=7,<8"
-#!pip install darkdetect
+#!pip install mne mne_connectivity -U
+#!pip install pyvistaqt PyQt5 darkdetect qdarkstyle
 
 import mne
 mne.utils.set_config('MNE_USE_CUDA', 'true')
 mne.cuda.init_cuda(verbose=True)
+
+mne.viz.set_3d_backend('pyvistaqt')
 
 #%matplotlib inline
 
@@ -1712,6 +1715,246 @@ if True:
 
   raw_buf = None
 
+  if True:
+    def add_data(brain, array, fmin=None, fmid=None, fmax=None,
+                 thresh=None, center=None, transparent=False, colormap="auto",
+                 alpha=1, vertices=None, smoothing_steps=None, time=None,
+                 time_label="auto", colorbar=True,
+                 hemi=None, remove_existing=None, time_label_size=None,
+                 initial_time=None, scale_factor=None, vector_alpha=None,
+                 clim=None, src=None, volume_options=0.4, colorbar_kwargs=None,
+                 verbose=None):
+        """Display data from a numpy array on the surface or volume.
+        This provides a similar interface to
+        :meth:`surfer.Brain.add_overlay`, but it displays
+        it with a single colormap. It offers more flexibility over the
+        colormap, and provides a way to display four-dimensional data
+        (i.e., a timecourse) or five-dimensional data (i.e., a
+        vector-valued timecourse).
+        .. note:: ``fmin`` sets the low end of the colormap, and is separate
+                  from thresh (this is a different convention from
+                  :meth:`surfer.Brain.add_overlay`).
+        Parameters
+        ----------
+        array : numpy array, shape (n_vertices[, 3][, n_times])
+            Data array. For the data to be understood as vector-valued
+            (3 values per vertex corresponding to X/Y/Z surface RAS),
+            then ``array`` must be have all 3 dimensions.
+            If vectors with no time dimension are desired, consider using a
+            singleton (e.g., ``np.newaxis``) to create a "time" dimension
+            and pass ``time_label=None`` (vector values are not supported).
+        %(fmin_fmid_fmax)s
+        %(thresh)s
+        %(center)s
+        %(transparent)s
+        colormap : str, list of color, or array
+            Name of matplotlib colormap to use, a list of matplotlib colors,
+            or a custom look up table (an n x 4 array coded with RBGA values
+            between 0 and 255), the default "auto" chooses a default divergent
+            colormap, if "center" is given (currently "icefire"), otherwise a
+            default sequential colormap (currently "rocket").
+        alpha : float in [0, 1]
+            Alpha level to control opacity of the overlay.
+        vertices : numpy array
+            Vertices for which the data is defined (needed if
+            ``len(data) < nvtx``).
+        smoothing_steps : int or None
+            Number of smoothing steps (smoothing is used if len(data) < nvtx)
+            The value 'nearest' can be used too. None (default) will use as
+            many as necessary to fill the surface.
+        time : numpy array
+            Time points in the data array (if data is 2D or 3D).
+        %(time_label)s
+        colorbar : bool
+            Whether to add a colorbar to the figure. Can also be a tuple
+            to give the (row, col) index of where to put the colorbar.
+        hemi : str | None
+            If None, it is assumed to belong to the hemisphere being
+            shown. If two hemispheres are being shown, an error will
+            be thrown.
+        remove_existing : bool
+            Not supported yet.
+            Remove surface added by previous "add_data" call. Useful for
+            conserving memory when displaying different data in a loop.
+        time_label_size : int
+            Font size of the time label (default 14).
+        initial_time : float | None
+            Time initially shown in the plot. ``None`` to use the first time
+            sample (default).
+        scale_factor : float | None (default)
+            The scale factor to use when displaying glyphs for vector-valued
+            data.
+        vector_alpha : float | None
+            Alpha level to control opacity of the arrows. Only used for
+            vector-valued data. If None (default), ``alpha`` is used.
+        clim : dict
+            Original clim arguments.
+        %(src_volume_options)s
+        colorbar_kwargs : dict | None
+            Options to pass to :meth:`pyvista.Plotter.add_scalar_bar`
+            (e.g., ``dict(title_font_size=10)``).
+        %(verbose)s
+        Notes
+        -----
+        If the data is defined for a subset of vertices (specified
+        by the "vertices" parameter), a smoothing method is used to interpolate
+        the data onto the high resolution surface. If the data is defined for
+        subsampled version of the surface, smoothing_steps can be set to None,
+        in which case only as many smoothing steps are applied until the whole
+        surface is filled with non-zeros.
+        Due to a VTK alpha rendering bug, ``vector_alpha`` is
+        clamped to be strictly < 1.
+        """
+#        _validate_type(transparent, bool, 'transparent')
+#        _validate_type(vector_alpha, ('numeric', None), 'vector_alpha')
+#        _validate_type(scale_factor, ('numeric', None), 'scale_factor')
+
+        # those parameters are not supported yet, only None is allowed
+#        _check_option('thresh', thresh, [None])
+#        _check_option('remove_existing', remove_existing, [None])
+#        _validate_type(time_label_size, (None, 'numeric'), 'time_label_size')
+        if time_label_size is not None:
+            time_label_size = float(time_label_size)
+            if time_label_size < 0:
+                raise ValueError('time_label_size must be positive, got '
+                                 f'{time_label_size}')
+
+        hemi = brain._check_hemi(hemi, extras=['vol'])
+        stc, array, vertices = brain._check_stc(hemi, array, vertices)
+        array = np.asarray(array)
+        vector_alpha = alpha if vector_alpha is None else vector_alpha
+        brain._data['vector_alpha'] = vector_alpha
+        brain._data['scale_factor'] = scale_factor
+
+        # Create time array and add label if > 1D
+        if array.ndim <= 1:
+            time_idx = 0
+        else:
+            # check time array
+            if time is None:
+                time = np.arange(array.shape[-1])
+            else:
+                time = np.asarray(time)
+                if time.shape != (array.shape[-1],):
+                    raise ValueError('time has shape %s, but need shape %s '
+                                     '(array.shape[-1])' %
+                                     (time.shape, (array.shape[-1],)))
+            brain._data["time"] = time
+
+            if brain._n_times is None:
+                brain._times = time
+            elif len(time) != brain._n_times:
+                raise ValueError("New n_times is different from previous "
+                                 "n_times")
+            elif not np.array_equal(time, brain._times):
+                raise ValueError("Not all time values are consistent with "
+                                 "previously set times.")
+
+            # initial time
+            if initial_time is None:
+                time_idx = 0
+            else:
+                time_idx = brain._to_time_index(initial_time)
+
+        # time label
+        time_label = None
+#        time_label, _ = _handle_time(time_label, 's', time)
+        y_txt = 0.05 + 0.1 * bool(colorbar)
+
+        if array.ndim == 3:
+            if array.shape[1] != 3:
+                raise ValueError('If array has 3 dimensions, array.shape[1] '
+                                 'must equal 3, got %s' % (array.shape[1],))
+#        fmin, fmid, fmax = _update_limits(
+#            fmin, fmid, fmax, center, array
+#        )
+        if colormap == 'auto':
+            colormap = 'mne' if center is not None else 'hot'
+
+        if smoothing_steps is None:
+            smoothing_steps = 7
+        elif smoothing_steps == 'nearest':
+            smoothing_steps = -1
+        elif isinstance(smoothing_steps, int):
+            if smoothing_steps < 0:
+                raise ValueError('Expected value of `smoothing_steps` is'
+                                 ' positive but {} was given.'.format(
+                                     smoothing_steps))
+        else:
+            raise TypeError('Expected type of `smoothing_steps` is int or'
+                            ' NoneType but {} was given.'.format(
+                                type(smoothing_steps)))
+
+        brain._data['stc'] = stc
+        brain._data['src'] = src
+        brain._data['smoothing_steps'] = smoothing_steps
+        brain._data['clim'] = clim
+        brain._data['time'] = time
+        brain._data['initial_time'] = initial_time
+        brain._data['time_label'] = time_label
+        brain._data['initial_time_idx'] = time_idx
+        brain._data['time_idx'] = time_idx
+        brain._data['transparent'] = transparent
+        # data specific for a hemi
+        brain._data[hemi] = dict()
+        brain._data[hemi]['glyph_dataset'] = None
+        brain._data[hemi]['glyph_mapper'] = None
+        brain._data[hemi]['glyph_actor'] = None
+        brain._data[hemi]['array'] = array
+        brain._data[hemi]['vertices'] = vertices
+        brain._data['alpha'] = alpha
+        brain._data['colormap'] = colormap
+        brain._data['center'] = center
+        brain._data['fmin'] = fmin
+        brain._data['fmid'] = fmid
+        brain._data['fmax'] = fmax
+        brain.update_lut()
+
+        # 1) add the surfaces first
+        actor = None
+        for _ in brain._iter_views(hemi):
+            if hemi in ('lh', 'rh'):
+                actor = brain._layered_meshes[hemi]._actor
+            else:
+                src_vol = src[2:] if src.kind == 'mixed' else src
+                actor, _ = brain._add_volume_data(hemi, src_vol, volume_options)
+        assert actor is not None  # should have added one
+        brain._add_actor('data', actor)
+
+        # 2) update time and smoothing properties
+        # set_data_smoothing calls "set_time_point" for us, which will set
+        # _current_time
+        brain.set_time_interpolation(brain.time_interpolation)
+        brain.set_data_smoothing(brain._data['smoothing_steps'])
+
+        # 3) add the other actors
+        if colorbar is True:
+            # bottom left by default
+            colorbar = (brain._subplot_shape[0] - 1, 0)
+        for ri, ci, v in brain._iter_views(hemi):
+            # Add the time label to the bottommost view
+            do = (ri, ci) == colorbar
+            if not brain._time_label_added and time_label is not None and do:
+                time_actor = brain._renderer.text2d(
+                    x_window=0.95, y_window=y_txt,
+                    color=brain._fg_color,
+                    size=time_label_size,
+                    text=time_label(brain._current_time),
+                    justification='right'
+                )
+                brain._data['time_actor'] = time_actor
+                brain._time_label_added = True
+            if colorbar and brain._scalar_bar is None and do:
+                kwargs = dict(source=actor, n_labels=8, color=brain._fg_color,
+                              bgcolor=brain._brain_color[:3])
+                kwargs.update(colorbar_kwargs or {})
+                brain._scalar_bar = brain._renderer.scalarbar(**kwargs)
+#            brain._renderer.set_camera(
+#                update=False, reset_camera=False, **views_dicts[hemi][v])
+
+        # 4) update the scalar bar and opacity
+        brain.update_lut(alpha=alpha)
+
 
 #with autocast('cuda'):
   while True:
@@ -1961,7 +2204,7 @@ if True:
 
         if show_inverse:
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
-            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
+            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10, verbose=False)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
@@ -1982,14 +2225,57 @@ if True:
 #            toggle_interface
             if (brain is None):
 
+             if True:
+             
+             
+#    def plot(self, subject=None, surface='inflated', hemi='lh',
+#             colormap='auto', time_label='auto', smoothing_steps=10,
+#             transparent=True, alpha=1.0, time_viewer='auto',
+#             subjects_dir=None,
+#             figure=None, views='auto', colorbar=True, clim='auto',
+#             cortex="classic", size=800, background="black",
+#             foreground=None, initial_time=None, time_unit='s',
+#             backend='auto', spacing='oct6', title=None, show_traces='auto',
+#             src=None, volume_options=1., view_layout='vertical',
+#             add_data_kwargs=None, brain_kwargs=None, verbose=None):
+#        brain = plot_source_estimates(
+#            self, subject, surface=surface, hemi=hemi, colormap=colormap,
+#            time_label=time_label, smoothing_steps=smoothing_steps,
+#            transparent=transparent, alpha=alpha, time_viewer=time_viewer,
+#            subjects_dir=subjects_dir, figure=figure, views=views,
+#            colorbar=colorbar, clim=clim, cortex=cortex, size=size,
+#            background=background, foreground=foreground,
+#            initial_time=initial_time, time_unit=time_unit, backend=backend,
+#            spacing=spacing, title=title, show_traces=show_traces,
+#            src=src, volume_options=volume_options, view_layout=view_layout,
+#            add_data_kwargs=add_data_kwargs, brain_kwargs=brain_kwargs,
+#            verbose=verbose)
+#        return brain             
+             
+#def plot_source_estimates(stc, subject=None, surface='inflated', hemi='lh',
+#                          colormap='auto', time_label='auto',
+#                          smoothing_steps=10, transparent=True, alpha=1.0,
+#                          time_viewer='auto', subjects_dir=None, figure=None,
+#                          views='auto', colorbar=True, clim='auto',
+#                          cortex="classic", size=800, background="black",
+#                          foreground=None, initial_time=None,
+#                          time_unit='s', backend='auto', spacing='oct6',
+#                          title=None, show_traces='auto',
+#                          src=None, volume_options=1., view_layout='vertical',
+#                          add_data_kwargs=None, brain_kwargs=None,
+#                          verbose=None):             
+
               brain = stc.plot(
-                  hemi='both', src=inv['src'], views='coronal',
-                  initial_time=0, subjects_dir=subjects_dir,
+                  hemi='both', 
+                  src=inv['src'], 
+                  views='coronal',
+                  initial_time=0.1, 
+                  subjects_dir=subjects_dir,
                   brain_kwargs=dict(silhouette=True), 
                   alpha=0.25,
                   smoothing_steps='nearest',
 #                  smoothing_steps=7,
-                  show_traces=True)
+                  show_traces=True, verbose=False)
 #                  show_traces=False)
             
 #              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1,
@@ -2002,7 +2288,84 @@ if True:
               #brain_data_frame = stc.to_data_frame()
 #              time = np.arange(stc.shape[-1])
 #              print('time: ',time)
+             if False:
+              import os
+              import numpy as np
+
+              from surfer import Brain
+              from surfer.io import read_stc
+
+              print(__doc__)
+              
+              # define subject, surface and hemisphere(s) to plot:
+
+              subject_id, surf = 'fsaverage', 'inflated'
+              hemi = 'lh'
+
+              # create Brain object for visualization
+              brain = Brain(subject_id, hemi, surf, size=(400, 400), background='w',
+                            interaction='terrain', cortex='bone', units='m')
+
+              # label for time annotation in milliseconds
+
+
+              def time_label(t):
+                  return 'time=%0.2f ms' % (t * 1e3)
+
+
+              # Read MNE dSPM inverse solution and plot
+
+              for hemi in ['lh']:  # , 'rh']:
+#                  stc_fname = os.path.join('example_data', 'meg_source_estimate-' +
+#                                           hemi + '.stc')
+#                  stc = read_stc(stc_fname)
+              
+                  # data and vertices for which the data is defined
+                  data = stc['data']
+                  vertices = stc['vertices']
+
+                  # time points (in seconds)
+                  time = np.linspace(stc['tmin'], stc['tmin'] + data.shape[1] * stc['tstep'],
+                                     data.shape[1], endpoint=False)
+
+                  # colormap to use
+                  colormap = 'hot'
+
+                  # add data and set the initial time displayed to 100 ms,
+                  # plotted using the nearest relevant colors
+                  brain.add_data(data, colormap=colormap, vertices=vertices,
+                                 smoothing_steps='nearest', time=time, time_label=time_label,
+                                 hemi=hemi, initial_time=0.1, verbose=False)
+
+              # scale colormap
+              brain.scale_data_colormap(fmin=13, fmid=18, fmax=22, transparent=True,
+                                        verbose=False)
+              
             else:
+             if False:
+              for hemi in ['lh']:  # , 'rh']:
+#                  stc_fname = os.path.join('example_data', 'meg_source_estimate-' +
+#                                           hemi + '.stc')
+#                  stc = read_stc(stc_fname)
+              
+                  # data and vertices for which the data is defined
+                  data = stc['data']
+                  vertices = stc['vertices']
+
+                  # time points (in seconds)
+                  time = np.linspace(stc['tmin'], stc['tmin'] + data.shape[1] * stc['tstep'],
+                                     data.shape[1], endpoint=False)
+
+                  # colormap to use
+                  colormap = 'hot'
+
+                  # add data and set the initial time displayed to 100 ms,
+                  # plotted using the nearest relevant colors
+                  brain.add_data(data, colormap=colormap, vertices=vertices,
+                                 smoothing_steps='nearest', time=time, time_label=time_label,
+                                 hemi=hemi, initial_time=0.1, verbose=False)
+              
+             if True:
               
 #              kwargs = dict(
 #                  array=stc.rh_data, hemi='rh', vertices=stc.rh_vertno, fmin=stc.data.min(),
@@ -2015,14 +2378,21 @@ if True:
                   colormap='plasma', 
                   fmin=stc.data.min(),
                   alpha=0.25,
+                  src=inv['src'], 
+                  initial_time=0.1, 
 #                  align=False,
 #                  focalpoint=brain_camera_position,
 #                  fmax=stc.data.max(), smoothing_steps=7, time=brain._times)
-                  fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
+                  fmax=stc.data.max(), 
+                  fmid=stc.data.min()+(stc.data.max()-stc.data.min())/2, 
+                  smoothing_steps='nearest', 
+                  time=brain._times, verbose=False)
 
               # name: works
-              brain.add_data(stc.lh_data, hemi='lh', vertices=stc.lh_vertno, **kwargs)
-              brain.add_data(stc.rh_data, hemi='rh', vertices=stc.rh_vertno, **kwargs)
+              add_data(brain, stc.lh_data, hemi='lh', vertices=stc.lh_vertno, **kwargs)
+              add_data(brain, stc.rh_data, hemi='rh', vertices=stc.rh_vertno, **kwargs)
+#              brain.add_data(stc.lh_data, hemi='lh', vertices=stc.lh_vertno, **kwargs)
+#              brain.add_data(stc.rh_data, hemi='rh', vertices=stc.rh_vertno, **kwargs)
 #              brain.add_data(colormap='plasma', **kwargs)
 
               # object: works (not documented)
@@ -2080,6 +2450,12 @@ if True:
 #              brain.remove_data()
 #              brain.toggle_interface(False)
 #              brain.setup_time_viewer(time_viewer=False, show_traces=False)
+              #brain.time_viewer=False
+              #brain.setup_time_viewer()
+              #brain.toggle_interface()
+#              print(brain.time_viewer)
+              print(brain.mpl_canvas)
+              brain.mpl_canvas.show()
 #              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.1, figure=1)#, 
 
 #            brain=brain1
