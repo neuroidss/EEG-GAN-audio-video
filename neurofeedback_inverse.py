@@ -4,10 +4,6 @@
 #!pip install pyvistaqt PyQt5 darkdetect qdarkstyle
 
 import mne
-mne.utils.set_config('MNE_USE_CUDA', 'true')
-mne.cuda.init_cuda(verbose=True)
-
-mne.viz.set_3d_backend('pyvistaqt')
 
 #%matplotlib inline
 
@@ -125,10 +121,10 @@ flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBo
 #flags.DEFINE_string('n_jobs', '8', 'n_jobs')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
-flags.DEFINE_boolean('show_inverse', True, 'show_inverse')
-#flags.DEFINE_boolean('show_inverse', False, 'show_inverse')
-flags.DEFINE_boolean('show_inverse_cons', True, 'show_inverse_cons')
-#flags.DEFINE_boolean('show_inverse_cons', False, 'show_inverse_cons')
+#flags.DEFINE_boolean('show_inverse_3d', True, 'show_inverse_3d')
+flags.DEFINE_boolean('show_inverse_3d', False, 'show_inverse_3d')
+flags.DEFINE_boolean('show_inverse_circle_cons', True, 'show_inverse_circle_cons')
+#flags.DEFINE_boolean('show_inverse_circle_cons', False, 'show_inverse_circle_cons')
 #flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
 flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
 #flags.mark_flag_as_required('input')
@@ -151,8 +147,14 @@ print(FLAGS)
 if FLAGS.help:
   exit()
 
+if FLAGS.show_inverse_3d:
+  mne.viz.set_3d_backend('pyvistaqt')
+
 draw_fps=FLAGS.draw_fps
 if FLAGS.cuda_jobs:
+  mne.utils.set_config('MNE_USE_CUDA', 'true')
+  mne.cuda.init_cuda(verbose=True)
+  
   cuda_jobs='cuda'
 else:
   cuda_jobs=int(FLAGS.n_jobs)
@@ -241,7 +243,8 @@ if True:
  
         #fig = plt.figure()
 
-  show_inverse=FLAGS.show_inverse
+  show_inverse_3d=FLAGS.show_inverse_3d
+  show_inverse_circle_cons=FLAGS.show_inverse_circle_cons
 
   show_circle_cons=FLAGS.show_circle_cons
 #  show_circle_cons=False
@@ -289,6 +292,11 @@ if True:
     canvas4 = np.zeros((1024,1024))
 #    canvas4 = np.zeros((800,800))
     screen4 = pf.screen(canvas4, 'stylegan3_cons')
+
+  if show_inverse_circle_cons:
+    canvas5 = np.zeros((800,800))
+#  canvas = np.zeros((480,640))
+    screen5 = pf.screen(canvas5, 'inverse_circle_cons')
   
 
   to_sum_embeds = None
@@ -361,7 +369,7 @@ if True:
     time001=perf_counter()
     
     
-  if show_inverse:
+  if show_inverse_3d or show_inverse_circle_cons:
 
   
 
@@ -2352,7 +2360,7 @@ if True:
 
      while board.get_board_data_count() > int((sample_rate)/fps): 
      
-      if show_inverse:
+      if show_inverse_3d:
        if not (brain is None):
         brain.show_view()
      
@@ -2475,7 +2483,7 @@ if True:
 #         for band in range(len(bands)):
         # epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=0.1, preload=False))
-        if show_inverse:
+        if show_inverse_3d or show_inverse_circle_cons:
           datas[0].set_montage(mon)
           datas[0].set_eeg_reference(projection=True)
           
@@ -2484,7 +2492,7 @@ if True:
 #          epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
 
-     if show_inverse:
+     if show_inverse_3d or show_inverse_circle_cons:
       if False:
        
 #       print(raw1)
@@ -2497,7 +2505,7 @@ if True:
        #epochs = mne.Epochs(raw, events)
        epochs = mne.make_fixed_length_epochs(raw1, 
                           duration=duration, preload=True, overlap=overlap)#, verbose='ERROR')
-       cov = mne.compute_covariance(epochs, tmax=0., n_jobs=10)
+       cov = mne.compute_covariance(epochs, tmax=0., n_jobs=cuda_jobs)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
        evoked = epochs['1'].average()  # trigger 1 in auditory/left
        evoked.plot_joint()
@@ -2510,7 +2518,8 @@ if True:
        data_path = mne.datasets.sample.data_path()
        subjects_dir = data_path / 'subjects'
         
-       brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.1, figure=1, 
+       if show_inverse_3d:
+         brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.1, figure=1, 
            time_viewer=(brain is None))
        
        if False:
@@ -2549,7 +2558,8 @@ if True:
            listener.start()
        
 #       while True:
-       brain.show_view()
+       if show_inverse_3d:
+         brain.show_view()
 
 
 
@@ -2586,9 +2596,9 @@ if True:
 #            psd_array=np.random.rand((n_generate-ji), dim) 
 
 
-        if show_inverse:
+        if show_inverse_3d or show_inverse_circle_cons:
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
-            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10, verbose=False)
+            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=cuda_jobs, verbose=False)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
@@ -2611,7 +2621,8 @@ if True:
 #             px = 1/plt.rcParams['figure.dpi']  # pixel in inches
 #             fig = plt.figure(figsize=(576*px, 576*px))
 
-             if True:
+             if show_inverse_3d:
+#             if True:
              
              
 #    def plot(self, subject=None, surface='inflated', hemi='lh',
@@ -2751,7 +2762,8 @@ if True:
                                  smoothing_steps='nearest', time=time, time_label=time_label,
                                  hemi=hemi, initial_time=0.1, verbose=False)
               
-             if True:
+             if show_inverse_3d:
+           #  if True:
               
 #              kwargs = dict(
 #                  array=stc.rh_data, hemi='rh', vertices=stc.rh_vertno, fmin=stc.data.min(),
@@ -2848,7 +2860,7 @@ if True:
 
 #            brain=brain1
               #brain.show_view()
-            if FLAGS.show_inverse_cons:
+            if show_inverse_circle_cons:
               # Compute inverse solution and for each epoch
               snr = 1.0           # use smaller SNR for raw data
               inv_method = 'dSPM'
@@ -2880,14 +2892,16 @@ if True:
 
               # We compute the connectivity in the alpha band and plot it using a circular
               # graph layout
-              fmin = 8.
+#              fmin = 8.
 #              fmin = 10.
-              fmax = 13.
+#              fmax = 13.
+              fmin=bands[0][0]
+              fmax=bands[0][1]
               sfreq = epochs[0].info['sfreq']  # the sampling frequency
               print('label_ts:',label_ts)
               con = spectral_connectivity_epochs(
-                  label_ts, method='pli', mode='multitaper', sfreq=sfreq, fmin=fmin,
-                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=10)
+                  label_ts, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
+                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=cuda_jobs)
 
               # We create a list of Label containing also the sub structures
               labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
@@ -2934,12 +2948,57 @@ if True:
               conmat = con.get_data(output='dense')[:, :, 0]
 #              fig, ax = plt.subplots(figsize=(8, 8), facecolor='black',
 #                                     subplot_kw=dict(polar=True))
-              plot_connectivity_circle(conmat, label_names, n_lines=300,
-                                       node_angles=node_angles, node_colors=node_colors,
-                                       title='All-to-All Connectivity left-Auditory '
-                                       'Condition (PLI)')#, ax=ax)#, fig=fig)
+
+
+
+
+              con_sort=np.sort(np.abs(conmat).ravel())[::-1]
+              n_lines=np.argmax(con_sort<vmin)
+              input_fname_name
+              fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, 
+                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
+                                             show = False, vmin=vmin, vmax=1, fontsize_names=8,
+                                       node_angles=node_angles, node_colors=node_colors)
+#              plot_connectivity_circle(conmat, label_names, n_lines=300,
+#                                       node_angles=node_angles, node_colors=node_colors,
+#                                       title='All-to-All Connectivity left-Auditory '
+#                                       'Condition (PLI)')#, ax=ax)#, fig=fig)
 #              fig.tight_layout()            
               plt.savefig('inverse_coh.png', facecolor='black', format='png')
+
+              fig.canvas.draw()
+
+            #image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+              image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+              image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+              size1=16*4
+              size = 592+size1
+#            size = 608
+            #im3 = im1.resize((576, 576), Image.ANTIALIAS)
+              left=348-int(size/2)+int(size1/2)
+              top=404-int(size/2)+int(size1/16)
+
+              image_crop=image[top:top+size,left:left+size]   
+            #im2 = im1.crop((left, top, left+size, top+size))
+
+#              if FLAGS.rotate:
+#                image_rot90 = np.rot90(image_crop)
+#                image=image_rot90
+#              screen.update(image_rot90)
+#              else:
+#                image=image_crop
+#            image_rot90 = np.rot90(image)
+
+#            screen.update(image)
+#              screen.update(image_crop)
+
+              image = image[:,:,::-1]
+              screen5.update(image)
+
+              plt.close(fig)
+              del fig
+
               
             if False:
               eeg_step=ji
@@ -2960,7 +3019,7 @@ if True:
                 
                 con = spectral_connectivity_epochs(
                     epochs[0][ji:ji+10], method='pli', mode='multitaper', sfreq=sfreq, fmin=fmin, fmax=fmax,
-                    faverage=True, tmin=tmin, mt_adaptive=False, n_jobs=1)
+                    faverage=True, tmin=tmin, mt_adaptive=False, n_jobs=cuda_jobs)
 
                 # Now, visualize the connectivity in 3D:
                 plot_sensors_connectivity(
