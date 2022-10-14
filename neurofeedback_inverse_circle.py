@@ -60,7 +60,8 @@ flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_na
 flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F7','F8','C3','C4','T7','T8','P3','P4','P7','P8','O1','O2'], 'ch_names')
-flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
+#flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
+flags.DEFINE_list('ch_names_pick', ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2'], 'ch_names')
 #flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
@@ -112,8 +113,9 @@ flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
 #flags.DEFINE_string('game_mode', '1', 'game_mode: 1 or 3')
 flags.DEFINE_string('game_mode', '3', 'game_mode: 1 or 3')
 #flags.DEFINE_string('n_jobs', None, 'n_jobs')
-flags.DEFINE_string('n_jobs', '1', 'n_jobs')
+#flags.DEFINE_string('n_jobs', '1', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '4', 'n_jobs')
+flags.DEFINE_string('n_jobs', '10', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '32', 'n_jobs')
 flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
 #flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
@@ -139,7 +141,7 @@ flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
 #flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
 #flags.DEFINE_boolean('write_video', False, 'write_video')
 flags.DEFINE_boolean('write_video', True, 'write_video')
-flags.DEFINE_string('video_output_file', None, 'video_output_file: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.mp4"')
+flags.DEFINE_string('video_output_file', None, 'video_output_file: if None, used: output_path+input_name+method+band+"-%Y.%m.%d-%H.%M.%S.mp4"')
 #flags.DEFINE_string('raw_fname', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'raw_fname')
 flags.DEFINE_string('raw_fname', None, 'raw_fname')
 
@@ -238,7 +240,7 @@ methods=FLAGS.methods
 vmin=float(FLAGS.vmin)
 
 if FLAGS.duration==None:
-  duration=5*1/bands[0][0]
+  duration=2*5*1/bands[0][0]
 else:
   duration=float(FLAGS.duration)
 
@@ -1746,7 +1748,8 @@ if True:
     output_path=FLAGS.output_path
   
     if FLAGS.video_output_file==None:
-      video_output_file=output_path+input_name+"-"+dt_string+".mp4"
+      video_output_file=output_path+input_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
+#      video_output_file=output_path+input_name+"-"+dt_string+".mp4"
     else:
       video_output_file=FLAGS.video_output_file
 
@@ -2976,8 +2979,8 @@ if True:
 #              del fwd
 
               stcs = apply_inverse_epochs(
-                    epochs[0][ji:ji+1], 
-#                    epochs[0][ji:ji+10], 
+#                    epochs[0][ji:ji+1], 
+                    epochs[0][ji:ji+10], 
                     inv, lambda2, inv_method,
                                           pick_ori=None, return_generator=True)
 
@@ -3172,7 +3175,7 @@ if True:
 #            np_array, method=methods[method], n_epochs_used=len(np_array), mode='multitaper', sfreq=sfreq, freqs=freqs,
 #            n_nodes=len(epochs[band][0].get_data()), faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=50)
               epochs[band][ji:ji+10], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
-              fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=cuda_jobs, verbose='CRITICAL')
+              fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose='CRITICAL')
 #          cons=np.roll(cons,1,axis=0)
             cons=np.roll(cons,1,axis=0)
             conmat = con.get_data(output='dense')[:, :, 0]
