@@ -51,7 +51,8 @@ FLAGS = flags.FLAGS
 flags.DEFINE_boolean('help', False, 'help: show help and exit')
 flags.DEFINE_boolean('debug', False, 'debug')
 #flags.DEFINE_string('input_name', '5min_experienced_meditator_unfiltered_signals', 'input')
-flags.DEFINE_string('input_name', 'neurofeedback', 'input')
+#flags.DEFINE_string('input_name', 'neurofeedback', 'input')
+flags.DEFINE_string('input_name', None, 'input: if None, will be neurofeedback or file name')
 flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
 #flags.DEFINE_list('prefix', None, 'prefix')
 flags.DEFINE_string('output_path', '', 'output_path')
@@ -125,7 +126,7 @@ flags.DEFINE_string('from_bdf', None, 'from_bdf')
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
 flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
 #flags.DEFINE_string('n_jobs', '8', 'n_jobs')
-flags.DEFINE_string('n_parts_one_time', '300', 'n_parts_one_time')
+flags.DEFINE_string('n_parts_one_time', '30000', 'n_parts_one_time')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.DEFINE_boolean('show_inverse_3d', True, 'show_inverse_3d')
@@ -166,6 +167,17 @@ if FLAGS.show_inverse_3d:
   mne.viz.set_3d_backend('pyvistaqt')
 
 draw_fps=FLAGS.draw_fps
+
+
+if FLAGS.input_name is None:
+  if FLAGS.from_bdf is None:
+    input_name = 'neurofeedback'
+  else:
+    from pathlib import Path
+    input_name = Path(FLAGS.from_bdf).stem
+else:
+  input_name = FLAGS.input_name
+  
 if not(FLAGS.n_jobs is None):
   n_jobs=int(FLAGS.n_jobs)
 else:
@@ -209,7 +221,7 @@ serial_port=FLAGS.serial_port
 
 #fps=float(FLAGS.fps)
 #files_path=flags.path
-input_name=FLAGS.input_name
+#input_name=FLAGS.input_name
 #if len(FLAGS.prefix)==0:
 #  FLAGS.prefix=['']
 #print('FLAGS.prefix: ',FLAGS.prefix)
@@ -503,8 +515,8 @@ if True:
 #       if not (FLAGS.fname_fwd is None):
        if FLAGS.cache_fwd:
          if (FLAGS.fname_fwd is None):
-           import os
-           fname_fwd = 'inverse_'+os.path.basename(raw_fname)+'_fwd.fif'
+           from pathlib import Path
+           fname_fwd = 'inverse_'+Path(raw_fname).stem+'_fwd.fif'
          else:
            fname_fwd = FLAGS.fname_fwd
          if os.path.isfile(fname_fwd):
@@ -2437,6 +2449,11 @@ if True:
 
 #with autocast('cuda'):
   while True:
+  
+   if not(FLAGS.from_bdf is None):
+     if raw is None:
+       break
+  
    if (FLAGS.from_bdf is None):
 #   if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
 
@@ -2551,7 +2568,7 @@ if True:
 
 #   if True:
 #    if True:
-	   
+
    if raw is not None:
     if len(raw)>=int(sample_rate*duration*2):
     
@@ -3042,7 +3059,7 @@ if True:
               if FLAGS.from_bdf is None:
                 title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)
               else:
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(ji)
+                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(ji/fps)
               fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, title=title, 
                                              show = False, vmin=vmin, vmax=1, 
                                              fontsize_names=6,
@@ -4328,8 +4345,10 @@ if True:
 
 
 
-  bdf.close()
-  video_out.close()
+  if (FLAGS.from_bdf is None):
+    bdf.close()
+  if (FLAGS.write_video is None):
+    video_out.close()
 
 if False:    
   cv2.destroyAllWindows()
