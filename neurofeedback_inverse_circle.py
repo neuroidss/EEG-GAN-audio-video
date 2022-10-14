@@ -63,9 +63,9 @@ flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
 flags.DEFINE_list('bands', [8.,12.], 'bands')
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
-flags.DEFINE_list('methods', ['ciplv'], 'methods')
+#flags.DEFINE_list('methods', ['ciplv'], 'methods')
 #flags.DEFINE_list('methods', ['wpli'], 'methods')
-#flags.DEFINE_list('methods', ['coh'], 'methods')
+flags.DEFINE_list('methods', ['coh'], 'methods')
 flags.DEFINE_string('vmin', '0.7', 'vmin')
 #flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
 flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
@@ -125,8 +125,10 @@ flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBo
 flags.DEFINE_boolean('show_inverse_3d', False, 'show_inverse_3d')
 flags.DEFINE_boolean('show_inverse_circle_cons', True, 'show_inverse_circle_cons')
 #flags.DEFINE_boolean('show_inverse_circle_cons', False, 'show_inverse_circle_cons')
-#flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
-flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
+flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
+#flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
+flags.DEFINE_boolean('write_video', True, 'write_video')
+flags.DEFINE_string('video_output_file', None, 'video_output_file: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.mp4"')
 #flags.mark_flag_as_required('input')
 #flags.mark_flag_as_required('prefix')
 #flags.mark_flag_as_required('output')
@@ -1680,6 +1682,18 @@ if True:
     
     eeg_channels=ch_names
 
+
+  if (FLAGS.write_video):
+    from datetime import datetime
+    now = datetime.now()
+    dt_string = now.strftime("%Y.%m.%d-%H.%M.%S")
+    output_path=FLAGS.output_path
+  
+    if FLAGS.video_output_file==None:
+      video_output_file=output_path+input_name+"-"+dt_string+".mp4"
+    else:
+      video_output_file=FLAGS.video_output_file
+
   if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
 
     import pyedflib
@@ -2354,6 +2368,11 @@ if True:
 #        if brain._block:
 #            _qt_app_exec(brain._renderer.figure.store["app"])
 
+  if FLAGS.write_video:
+    import imageio
+    video_out = imageio.get_writer(video_output_file, fps=fps)
+#  video_out = imageio.get_writer('/content/out/output.mp4', mode='I', fps=fps, codec='libx264', bitrate='16M')
+#out.close()
 
 #with autocast('cuda'):
   while True:
@@ -3001,12 +3020,14 @@ if True:
 #            screen.update(image)
 #              screen.update(image_crop)
 
+              if FLAGS.write_video:
+                video_out.append_data(image)
+#                video_out.close()
               image = image[:,:,::-1]
               screen5.update(image)
 
               plt.close(fig)
               del fig
-
               
             if False:
               eeg_step=ji
@@ -4244,6 +4265,7 @@ if True:
 
 
   bdf.close()
+  video_out.close()
 
 if False:    
   cv2.destroyAllWindows()
