@@ -50,13 +50,15 @@ FLAGS = flags.FLAGS
 #  methods = ['coh']
 flags.DEFINE_boolean('help', False, 'help: show help and exit')
 flags.DEFINE_boolean('debug', False, 'debug')
-flags.DEFINE_string('input_name', 'neurofeedback', 'input')
+flags.DEFINE_string('input_name', 'biosemi', 'input')
+#flags.DEFINE_string('input_name', 'neurofeedback', 'input')
 flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
 #flags.DEFINE_list('prefix', None, 'prefix')
 flags.DEFINE_string('output_path', '', 'output_path')
 flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
 flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
-flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F7','F8','C3','C4','T7','T8','P3','P4','P7','P8','O1','O2'], 'ch_names')
+flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
+#flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F7','F8','C3','C4','T7','T8','P3','P4','P7','P8','O1','O2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
 #flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
@@ -114,7 +116,8 @@ flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
 #flags.DEFINE_string('n_jobs', '32', "n_jobs: number of cpu jobs or 'cuda'")
 flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
-flags.DEFINE_string('from_bdf', None, 'from_bdf')
+flags.DEFINE_string('from_bdf', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'from_bdf')
+#flags.DEFINE_string('from_bdf', None, 'from_bdf')
 flags.DEFINE_string('from_edf', None, 'from_edf')
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
 flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
@@ -129,6 +132,9 @@ flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
 #flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
 flags.DEFINE_boolean('write_video', True, 'write_video')
 flags.DEFINE_string('video_output_file', None, 'video_output_file: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.mp4"')
+flags.DEFINE_string('raw_fname', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'raw_fname')
+#flags.DEFINE_string('raw_fname', None, 'raw_fname')
+
 #flags.mark_flag_as_required('input')
 #flags.mark_flag_as_required('prefix')
 #flags.mark_flag_as_required('output')
@@ -443,8 +449,12 @@ if True:
        # .. note:: See :ref:`plot_montage` to view all the standard EEG montages
        #           available in MNE-Python.
 
-       raw_fname, = eegbci.load_data(subject=1, runs=[6])
-       raw = mne.io.read_raw_edf(raw_fname, preload=True)
+       if FLAGS.raw_fname is None:
+         raw_fname, = eegbci.load_data(subject=1, runs=[6])
+       else:
+         raw_fname = FLAGS.raw_fname
+       raw = mne.io.read_raw_bdf(raw_fname, preload=True)
+#       raw = mne.io.read_raw_edf(raw_fname, preload=True)
 
        # Clean channel names to be able to use a standard 1005 montage
        new_names = dict(
@@ -456,6 +466,8 @@ if True:
        # Read and set the EEG electrode locations, which are already in fsaverage's
        # space (MNI space) for standard_1020:
        montage = mne.channels.make_standard_montage('standard_1005')
+#       montage = mne.channels.make_standard_montage('biosemi32')
+       
        raw.set_montage(montage)
        raw.set_eeg_reference(projection=True)  # needed for inverse modeling
 
@@ -506,8 +518,13 @@ if True:
        # It comes with several helpful built-in files, including a 10-20 montage
        # in the MRI coordinate frame, which can be used to compute the
        # MRI<->head transform ``trans``:
-       fname_1020 = op.join(subjects_dir, subject, 'montages', '10-20-montage.fif')
-       mon = mne.channels.read_dig_fif(fname_1020)
+#       fname_biosemi32 = op.join(subjects_dir, subject, 'montages', '10-10-montage.fif')
+#       mon = mne.channels.read_dig_fif(fname_biosemi32)
+       fname_1005 = op.join(subjects_dir, subject, 'montages', '10-5-montage.fif')
+       mon = mne.channels.read_dig_fif(fname_1005)
+#       fname_1020 = op.join(subjects_dir, subject, 'montages', '10-20-montage.fif')
+#       mon = mne.channels.read_dig_fif(fname_1020)
+       print('mon:',mon)
        mon.rename_channels(
            {f'EEG{ii:03d}': ch_name for ii, ch_name in enumerate(ch_names_, 1)})
        trans = mne.channels.compute_native_head_t(mon)
