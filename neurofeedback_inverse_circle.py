@@ -50,16 +50,16 @@ FLAGS = flags.FLAGS
 #  methods = ['coh']
 flags.DEFINE_boolean('help', False, 'help: show help and exit')
 flags.DEFINE_boolean('debug', False, 'debug')
-flags.DEFINE_string('input_name', 'biosemi', 'input')
-#flags.DEFINE_string('input_name', 'neurofeedback', 'input')
+#flags.DEFINE_string('input_name', '5min_experienced_meditator_unfiltered_signals', 'input')
+flags.DEFINE_string('input_name', 'neurofeedback', 'input')
 flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
 #flags.DEFINE_list('prefix', None, 'prefix')
 flags.DEFINE_string('output_path', '', 'output_path')
 flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
 flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
-flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
+#flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F7','F8','C3','C4','T7','T8','P3','P4','P7','P8','O1','O2'], 'ch_names')
-#flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
+flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
 #flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
@@ -110,30 +110,37 @@ flags.DEFINE_boolean('show_stylegan3_cons', False, 'show_stylegan3_cons')
 flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
 #flags.DEFINE_string('game_mode', '1', 'game_mode: 1 or 3')
 flags.DEFINE_string('game_mode', '3', 'game_mode: 1 or 3')
-flags.DEFINE_string('n_jobs', '32', 'n_jobs')
+#flags.DEFINE_string('n_jobs', None, 'n_jobs')
+flags.DEFINE_string('n_jobs', '1', 'n_jobs')
+#flags.DEFINE_string('n_jobs', '4', 'n_jobs')
+#flags.DEFINE_string('n_jobs', '32', 'n_jobs')
 flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
 #flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
 #flags.DEFINE_string('n_jobs', '32', "n_jobs: number of cpu jobs or 'cuda'")
 flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
-flags.DEFINE_string('from_bdf', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'from_bdf')
-#flags.DEFINE_string('from_bdf', None, 'from_bdf')
-flags.DEFINE_string('from_edf', None, 'from_edf')
+#flags.DEFINE_string('from_bdf', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'from_bdf')
+flags.DEFINE_string('from_bdf', None, 'from_bdf')
+#flags.DEFINE_string('from_edf', None, 'from_edf')
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
 flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
 #flags.DEFINE_string('n_jobs', '8', 'n_jobs')
+flags.DEFINE_string('n_parts_one_time', '300', 'n_parts_one_time')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.DEFINE_boolean('show_inverse_3d', True, 'show_inverse_3d')
 flags.DEFINE_boolean('show_inverse_3d', False, 'show_inverse_3d')
 flags.DEFINE_boolean('show_inverse_circle_cons', True, 'show_inverse_circle_cons')
 #flags.DEFINE_boolean('show_inverse_circle_cons', False, 'show_inverse_circle_cons')
+#flags.DEFINE_boolean('cache_fwd', False, 'cache_fwd')
+flags.DEFINE_boolean('cache_fwd', True, 'cache_fwd')
 flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
 #flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
+#flags.DEFINE_boolean('write_video', False, 'write_video')
 flags.DEFINE_boolean('write_video', True, 'write_video')
 flags.DEFINE_string('video_output_file', None, 'video_output_file: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.mp4"')
-flags.DEFINE_string('raw_fname', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'raw_fname')
-#flags.DEFINE_string('raw_fname', None, 'raw_fname')
+#flags.DEFINE_string('raw_fname', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'raw_fname')
+flags.DEFINE_string('raw_fname', None, 'raw_fname')
 
 #flags.mark_flag_as_required('input')
 #flags.mark_flag_as_required('prefix')
@@ -159,6 +166,11 @@ if FLAGS.show_inverse_3d:
   mne.viz.set_3d_backend('pyvistaqt')
 
 draw_fps=FLAGS.draw_fps
+if not(FLAGS.n_jobs is None):
+  n_jobs=int(FLAGS.n_jobs)
+else:
+  n_jobs=FLAGS.n_jobs
+
 if FLAGS.cuda_jobs:
   mne.utils.set_config('MNE_USE_CUDA', 'true')
   mne.cuda.init_cuda(verbose=True)
@@ -170,13 +182,13 @@ if FLAGS.cuda_jobs:
   if _cuda_capable:
     cuda_jobs='cuda'
   else:
-    cuda_jobs=int(FLAGS.n_jobs)
+    cuda_jobs=n_jobs
 else:
-  cuda_jobs=int(FLAGS.n_jobs)
+  cuda_jobs=n_jobs
 #if FLAGS.n_jobs=='cuda':
 #  n_jobs=FLAGS.n_jobs
 #else:
-n_jobs=int(FLAGS.n_jobs)
+#n_jobs=int(FLAGS.n_jobs)
 apply_to_latents=float(FLAGS.apply_to_latents)
 apply_to_embeds=float(FLAGS.apply_to_embeds)
 clip_prompt=FLAGS.clip_prompt
@@ -225,10 +237,11 @@ if FLAGS.overlap==None:
 else:
   overlap=float(FLAGS.overlap)
 
-#n_parts_one_time=int(FLAGS.n_parts_one_time)
+n_parts_one_time=int(FLAGS.n_parts_one_time)
 #part_len=int(FLAGS.part_len)
 
-if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
+if (FLAGS.from_bdf is None):
+#if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
   params = BrainFlowInputParams()
   if debug:
     board_id = -1 # synthetic
@@ -449,12 +462,19 @@ if True:
        # .. note:: See :ref:`plot_montage` to view all the standard EEG montages
        #           available in MNE-Python.
 
-       if FLAGS.raw_fname is None:
+       if (FLAGS.raw_fname is None) and (FLAGS.from_bdf is None):
          raw_fname, = eegbci.load_data(subject=1, runs=[6])
        else:
-         raw_fname = FLAGS.raw_fname
-       raw = mne.io.read_raw_bdf(raw_fname, preload=True)
-#       raw = mne.io.read_raw_edf(raw_fname, preload=True)
+         if not(FLAGS.raw_fname is None):
+           raw_fname = FLAGS.raw_fname
+         if not(FLAGS.from_bdf is None):
+           raw_fname = FLAGS.from_bdf
+       import pathlib
+
+       if (pathlib.Path(raw_fname).suffix=='.bdf'):
+         raw = mne.io.read_raw_bdf(raw_fname, preload=True)
+       if (pathlib.Path(raw_fname).suffix=='.edf'):
+         raw = mne.io.read_raw_edf(raw_fname, preload=True)
 
        # Clean channel names to be able to use a standard 1005 montage
        new_names = dict(
@@ -480,13 +500,19 @@ if True:
        # Setup source space and compute forward
        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-       if not (FLAGS.fname_fwd is None):
-         if os.path.isfile(FLAGS.fname_fwd):
-           fwd = mne.read_forward_solution(FLAGS.fname_fwd)
+#       if not (FLAGS.fname_fwd is None):
+       if FLAGS.cache_fwd:
+         if (FLAGS.fname_fwd is None):
+           import os
+           fname_fwd = 'inverse_'+os.path.basename(raw_fname)+'_fwd.fif'
+         else:
+           fname_fwd = FLAGS.fname_fwd
+         if os.path.isfile(fname_fwd):
+           fwd = mne.read_forward_solution(fname_fwd)
          else:
            fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
                                        bem=bem, eeg=True, mindist=5.0, n_jobs=None)
-           mne.write_forward_solution(FLAGS.fname_fwd, fwd)
+           mne.write_forward_solution(fname_fwd, fwd)
        else:
          fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
                                        bem=bem, eeg=True, mindist=5.0, n_jobs=None)
@@ -1672,14 +1698,15 @@ if True:
     res[0]
     
 
-  if not ((FLAGS.from_bdf is None) and (FLAGS.from_edf is None)):
+#  if not ((FLAGS.from_bdf is None) and (FLAGS.from_edf is None)):
+  if not ((FLAGS.from_bdf is None)):
 
     if not (FLAGS.from_bdf is None):
       raw = mne.io.read_raw_bdf(FLAGS.from_bdf, eog=None, misc=None, stim_channel='auto', 
                           exclude=(), preload=False, verbose=True)
-    if not (FLAGS.from_edf is None):
-      raw = mne.io.read_raw_edf(FLAGS.from_edf, eog=None, misc=None, stim_channel='auto', 
-                          exclude=(), preload=False, verbose=True)
+#    if not (FLAGS.from_edf is None):
+#      raw = mne.io.read_raw_edf(FLAGS.from_edf, eog=None, misc=None, stim_channel='auto', 
+#                          exclude=(), preload=False, verbose=True)
 
     print(raw.info)
     print(raw.info['ch_names'])
@@ -1711,7 +1738,8 @@ if True:
     else:
       video_output_file=FLAGS.video_output_file
 
-  if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
+  if (FLAGS.from_bdf is None):
+#  if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
 
     import pyedflib
     from datetime import datetime
@@ -1790,7 +1818,23 @@ if True:
 
   brain_vertices = None
 
-  if True:
+  if show_inverse_3d or show_inverse_circle_cons:
+  
+    if True:
+              # Compute inverse solution and for each epoch
+              snr = 1.0           # use smaller SNR for raw data
+              inv_method = 'dSPM'
+              parc = 'aparc.a2009s'      # the parcellation to use, e.g., 'aparc' 'aparc.a2009s'
+#              parc = 'aparc'      # the parcellation to use, e.g., 'aparc' 'aparc.a2009s'
+
+              lambda2 = 1.0 / snr ** 2
+
+              # Get labels for FreeSurfer 'aparc' cortical parcellation with 34 labels/hemi
+              print('subject:',subject)
+              subject = 'fsaverage'
+              labels_parc = mne.read_labels_from_annot(subject, parc=parc,
+                                                       subjects_dir=subjects_dir)
+  
     def add_data(brain, array, fmin=None, fmid=None, fmax=None,
                  thresh=None, center=None, transparent=False, colormap="auto",
                  alpha=1, vertices=None, smoothing_steps=None, time=None,
@@ -2393,7 +2437,8 @@ if True:
 
 #with autocast('cuda'):
   while True:
-   if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
+   if (FLAGS.from_bdf is None):
+#   if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
 
     if raw is None:
       len_raw=0
@@ -2528,7 +2573,8 @@ if True:
 #                                            duration=0.1, preload=False))
         if show_inverse_3d or show_inverse_circle_cons:
           datas[0].set_montage(mon)
-          datas[0].set_eeg_reference(projection=True)
+          datas[0].set_eeg_reference(projection=True).apply_proj()
+#          datas[0].set_eeg_reference().apply_proj()
           
         epochs.append(mne.make_fixed_length_epochs(datas[0], 
                                             duration=duration, preload=True, overlap=overlap, verbose='ERROR'))
@@ -2630,7 +2676,8 @@ if True:
 
       for j in range(n_parts): # display separate audio for each break
        n_parts_now = n_parts_now + 1
-       if n_parts_now > 100:#n_parts_one_time:
+#       if n_parts_now > 100:#n_parts_one_time:
+       if n_parts_now > n_parts_one_time:
         break
        for i in range(part_len): # display separate audio for each break
         ji = j * part_len + i
@@ -2640,9 +2687,9 @@ if True:
 
 
         if show_inverse_3d or show_inverse_circle_cons:
-            mne.set_log_level('CRITICAL')
+#            mne.set_log_level('CRITICAL')
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
-            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=cuda_jobs, verbose=False)
+            cov = mne.compute_covariance(epochs[0][ji:ji+200], tmax=0., n_jobs=cuda_jobs)#, verbose=False)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
@@ -2905,33 +2952,26 @@ if True:
 #            brain=brain1
               #brain.show_view()
             if show_inverse_circle_cons:
-              # Compute inverse solution and for each epoch
-              snr = 1.0           # use smaller SNR for raw data
-              inv_method = 'dSPM'
-              parc = 'aparc'      # the parcellation to use, e.g., 'aparc' 'aparc.a2009s'
-
-              lambda2 = 1.0 / snr ** 2
 
               # Compute inverse operator
 #              inverse_operator = make_inverse_operator(
 #                  epochs[0].info, fwd, noise_cov, depth=None, fixed=False)
 #              del fwd
 
-              stcs = apply_inverse_epochs(epochs[0][ji:ji+10], inv, lambda2, inv_method,
+              stcs = apply_inverse_epochs(
+                    epochs[0][ji:ji+1], 
+#                    epochs[0][ji:ji+10], 
+                    inv, lambda2, inv_method,
                                           pick_ori=None, return_generator=True)
-
-              # Get labels for FreeSurfer 'aparc' cortical parcellation with 34 labels/hemi
-              print('subject:',subject)
-              subject = 'fsaverage'
-              labels_parc = mne.read_labels_from_annot(subject, parc=parc,
-                                                       subjects_dir=subjects_dir)
 
               # Average the source estimates within each label of the cortical parcellation
               # and each sub-structure contained in the source space.
               # When mode = 'mean_flip', this option is used only for the cortical labels.
               src = inv['src']
               label_ts = mne.extract_label_time_course(
-                  stcs, labels_parc, src, mode='mean_flip', allow_empty=True,
+                  stcs, labels_parc, src, mode='mean_flip', 
+                  allow_empty=False,
+#                  allow_empty=True,
                   return_generator=True)
 
               # We compute the connectivity in the alpha band and plot it using a circular
@@ -2993,15 +3033,20 @@ if True:
 #              fig, ax = plt.subplots(figsize=(8, 8), facecolor='black',
 #                                     subplot_kw=dict(polar=True))
 
-
-
-
               con_sort=np.sort(np.abs(conmat).ravel())[::-1]
               n_lines=np.argmax(con_sort<vmin)
-              input_fname_name
-              fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, 
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
-                                             show = False, vmin=vmin, vmax=1, fontsize_names=8,
+#              input_fname_name
+#              title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(n_generate)+'/'+str(ji)
+#              px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#              fig = plt.figure(figsize=(800*px, 800*px))
+              if FLAGS.from_bdf is None:
+                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)
+              else:
+                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(ji)
+              fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, title=title, 
+                                             show = False, vmin=vmin, vmax=1, 
+                                             fontsize_names=6,
+#                                             fontsize_names=8,
                                        node_angles=node_angles, node_colors=node_colors)
 #              plot_connectivity_circle(conmat, label_names, n_lines=300,
 #                                       node_angles=node_angles, node_colors=node_colors,
@@ -3016,14 +3061,14 @@ if True:
               image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
               image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
 
-              size1=16*4
-              size = 592+size1
+##              size1=16*4
+##              size = 592+size1
 #            size = 608
             #im3 = im1.resize((576, 576), Image.ANTIALIAS)
-              left=348-int(size/2)+int(size1/2)
-              top=404-int(size/2)+int(size1/16)
+##              left=348-int(size/2)+int(size1/2)
+##              top=404-int(size/2)+int(size1/16)
 
-              image_crop=image[top:top+size,left:left+size]   
+##              image_crop=image[top:top+size,left:left+size]   
             #im2 = im1.crop((left, top, left+size, top+size))
 
 #              if FLAGS.rotate:
@@ -3172,8 +3217,10 @@ if True:
 
 #            plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
 #                                             title=method, show = False)
-            #px = 1/plt.rcParams['figure.dpi']  # pixel in inches
-            #fig = plt.figure(figsize=(576*px, 576*px))
+#            px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#            fig = plt.figure(figsize=(800*px, 800*px))
+#            px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#            fig = plt.figure(figsize=(576*px, 576*px))
 #            fig,_ = 
 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
