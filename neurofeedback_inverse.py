@@ -109,8 +109,8 @@ flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
 #flags.DEFINE_string('game_mode', '1', 'game_mode: 1 or 3')
 flags.DEFINE_string('game_mode', '3', 'game_mode: 1 or 3')
 flags.DEFINE_string('n_jobs', '32', 'n_jobs')
-#flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
-flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
+flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
+#flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
 #flags.DEFINE_string('n_jobs', '32', "n_jobs: number of cpu jobs or 'cuda'")
 flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
@@ -155,7 +155,14 @@ if FLAGS.cuda_jobs:
   mne.utils.set_config('MNE_USE_CUDA', 'true')
   mne.cuda.init_cuda(verbose=True)
   
-  cuda_jobs='cuda'
+  from mne.cuda import _cuda_capable
+  
+#  print(mne.get_config())
+#  global _cuda_capable
+  if _cuda_capable:
+    cuda_jobs='cuda'
+  else:
+    cuda_jobs=int(FLAGS.n_jobs)
 else:
   cuda_jobs=int(FLAGS.n_jobs)
 #if FLAGS.n_jobs=='cuda':
@@ -2597,6 +2604,7 @@ if True:
 
 
         if show_inverse_3d or show_inverse_circle_cons:
+            mne.set_log_level('CRITICAL')
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
             cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=cuda_jobs, verbose=False)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
@@ -2901,7 +2909,7 @@ if True:
               print('label_ts:',label_ts)
               con = spectral_connectivity_epochs(
                   label_ts, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
-                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=cuda_jobs)
+                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs)
 
               # We create a list of Label containing also the sub structures
               labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
