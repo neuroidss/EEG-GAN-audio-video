@@ -72,12 +72,12 @@ flags.DEFINE_list('bands', [8.,12.], 'bands')
 flags.DEFINE_list('methods', ['coh'], 'methods')
 flags.DEFINE_string('vmin', '0.7', 'vmin')
 #flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
-flags.DEFINE_string('duration', None, 'duration: if None, used: 5*1/bands[0]')
+flags.DEFINE_string('duration', None, 'if None, used: 5*1/bands[0]')
 #flags.DEFINE_string('fps', '3', 'fps')
 flags.DEFINE_string('fps', '10', 'fps')
 #flags.DEFINE_string('fps', '20', 'fps')
 #flags.DEFINE_string('fps', '30', 'fps')
-flags.DEFINE_string('overlap', None, 'overlap: if None, used: duration-1/fps')
+flags.DEFINE_string('overlap', None, 'if None, used: duration-1/fps')
 flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
 #flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
 flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
@@ -90,7 +90,7 @@ flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
 flags.DEFINE_boolean('rotate', True, 'rotate')
 #flags.DEFINE_boolean('show_stable_diffusion_cons', True, 'show_stable_diffusion_cons')
 flags.DEFINE_boolean('show_stable_diffusion_cons', False, 'show_stable_diffusion_cons')
-flags.DEFINE_string('huggingface_hub_token', 'huggingface_hub_token', 'huggingface_hub_token: token or file with token')
+flags.DEFINE_string('huggingface_hub_token', 'huggingface_hub_token', 'token or file with token')
 #flags.DEFINE_string('unet_height', '256', 'unet_height')
 #flags.DEFINE_string('unet_width', '256', 'unet_width')
 flags.DEFINE_string('unet_height', '512', 'unet_height')
@@ -101,9 +101,9 @@ flags.DEFINE_string('unet_num_inference_steps', '10', 'unet_num_inference_steps'
 #flags.DEFINE_string('unet_num_inference_steps', '5', 'unet_num_inference_steps')
 flags.DEFINE_string('unet_latents', None, 'unet_latents: if None, load random')
 flags.DEFINE_string('unet_guidance_scale', '7.5', 'unet_guidance_scale')
-flags.DEFINE_string('apply_to_latents', '10', 'apply_to_latents: closer to zero means apply more')
+flags.DEFINE_string('apply_to_latents', '10', ' closer to zero means apply more')
 #flags.DEFINE_string('apply_to_latents', '0.5', 'apply_to_latents: closer to zero means apply more')
-flags.DEFINE_string('apply_to_embeds', '10', 'apply_to_embeds: closer to zero means apply more')
+flags.DEFINE_string('apply_to_embeds', '10', 'closer to zero means apply more')
 #flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds: closer to zero means apply more')
 flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day', 'clip_prompt')
 flags.DEFINE_boolean('show_stylegan3_cons', False, 'show_stylegan3_cons')
@@ -113,9 +113,10 @@ flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
 #flags.DEFINE_string('game_mode', '1', 'game_mode: 1 or 3')
 flags.DEFINE_string('game_mode', '3', 'game_mode: 1 or 3')
 #flags.DEFINE_string('n_jobs', None, 'n_jobs')
-#flags.DEFINE_string('n_jobs', '1', 'n_jobs')
+flags.DEFINE_string('n_jobs', '1', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '4', 'n_jobs')
-flags.DEFINE_string('n_jobs', '10', 'n_jobs')
+#flags.DEFINE_string('n_jobs', '10', 'n_jobs')
+#flags.DEFINE_string('n_jobs', '20', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '32', 'n_jobs')
 flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
 #flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
@@ -141,9 +142,21 @@ flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
 #flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
 #flags.DEFINE_boolean('write_video', False, 'write_video')
 flags.DEFINE_boolean('write_video', True, 'write_video')
-flags.DEFINE_string('video_output_file', None, 'video_output_file: if None, used: output_path+input_name+method+band+"-%Y.%m.%d-%H.%M.%S.mp4"')
+flags.DEFINE_string('video_output_file', None, 'if None, used: output_path+input_name+method+band+"-%Y.%m.%d-%H.%M.%S.mp4"')
 #flags.DEFINE_string('raw_fname', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'raw_fname')
 flags.DEFINE_string('raw_fname', None, 'raw_fname')
+flags.DEFINE_string('brain_views', 'dorsal', 'lateral, medial, rostral, caudal, dorsal, ventral, frontal, parietal, axial, sagittal, coronal')
+#                  views='lateral', #From the left or right side such that the lateral (outside) surface of the given hemisphere is visible.
+#                  views='medial', #From the left or right side such that the medial (inside) surface of the given hemisphere is visible (at least when in split or single-hemi mode).
+#                  views='rostral', #From the front.
+#                  views='caudal', #From the rear.
+#                  views='dorsal', #From above, with the front of the brain pointing up.
+#                  views='ventral', #From below, with the front of the brain pointing up.
+#                  views='frontal', #From the front and slightly lateral, with the brain slightly tilted forward (yielding a view from slightly above).
+#                  views='parietal', #From the rear and slightly lateral, with the brain slightly tilted backward (yielding a view from slightly above).
+#                  views='axial', #From above with the brain pointing up (same as 'dorsal').
+#                  views='sagittal', #From the right side.
+#                  views='coronal', #From the rear.                  
 
 #flags.mark_flag_as_required('input')
 #flags.mark_flag_as_required('prefix')
@@ -240,7 +253,7 @@ methods=FLAGS.methods
 vmin=float(FLAGS.vmin)
 
 if FLAGS.duration==None:
-  duration=2*5*1/bands[0][0]
+  duration=5*1/bands[0][0]
 else:
   duration=float(FLAGS.duration)
 
@@ -340,6 +353,10 @@ if True:
 #  canvas = np.zeros((480,640))
     screen5 = pf.screen(canvas5, 'inverse_circle_cons')
   
+#  if show_inverse_3d:
+#    canvas6 = np.zeros((800,800))
+##  canvas = np.zeros((480,640))
+#    screen6 = pf.screen(canvas6, 'inverse_3d')
 
   to_sum_embeds = None
   to_sum_latents = None
@@ -396,7 +413,7 @@ if True:
 #  print(cohs_tril_indices)
 
 
-  if draw_fps and (show_stylegan3_cons or show_game_cons):
+  if draw_fps and (show_stylegan3_cons or show_game_cons or show_inverse_3d):
 
     import PIL.ImageDraw as ImageDraw
     import PIL.ImageFont as ImageFont
@@ -1748,7 +1765,10 @@ if True:
     output_path=FLAGS.output_path
   
     if FLAGS.video_output_file==None:
-      video_output_file=output_path+input_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
+      if show_inverse_3d:
+        video_output_file=output_path+input_name+'_inverse_3d_'+"_"+dt_string+".mp4"
+      if show_inverse_circle_cons:
+        video_output_file=output_path+input_name+'_inverse_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
 #      video_output_file=output_path+input_name+"-"+dt_string+".mp4"
     else:
       video_output_file=FLAGS.video_output_file
@@ -2620,7 +2640,7 @@ if True:
        evoked.plot_joint()
    
        inv = mne.minimum_norm.make_inverse_operator(
-           evoked.info, fwd, cov, verbose=True)
+           evoked.info, fwd, cov, verbose=True, depth=None, fixed=False)
        stc = mne.minimum_norm.apply_inverse(evoked, inv)
 #       if not brain is None:
 
@@ -2717,7 +2737,7 @@ if True:
             evoked.plot_joint()
    
             inv = mne.minimum_norm.make_inverse_operator(
-                  evoked.info, fwd, cov, verbose=True)
+                  evoked.info, fwd, cov, verbose=True, depth=None, fixed=False)
             stc = mne.minimum_norm.apply_inverse(evoked, inv)
 #       if not brain is None:
 
@@ -2776,7 +2796,18 @@ if True:
               brain = stc.plot(
                   hemi='both', 
                   src=inv['src'], 
-                  views='coronal',
+                  views=FLAGS.brain_views,
+#                  views='lateral', #From the left or right side such that the lateral (outside) surface of the given hemisphere is visible.
+#                  views='medial', #From the left or right side such that the medial (inside) surface of the given hemisphere is visible (at least when in split or single-hemi mode).
+#                  views='rostral', #From the front.
+#                  views='caudal', #From the rear.
+#                  views='dorsal', #From above, with the front of the brain pointing up.
+#                  views='ventral', #From below, with the front of the brain pointing up.
+#                  views='frontal', #From the front and slightly lateral, with the brain slightly tilted forward (yielding a view from slightly above).
+#                  views='parietal', #From the rear and slightly lateral, with the brain slightly tilted backward (yielding a view from slightly above).
+#                  views='axial', #From above with the brain pointing up (same as 'dorsal').
+#                  views='sagittal', #From the right side.
+#                  views='coronal', #From the rear.                  
                   initial_time=0.1, 
                   subjects_dir=subjects_dir,
                   brain_kwargs=dict(silhouette=True), 
@@ -2812,7 +2843,7 @@ if True:
 
               # create Brain object for visualization
               brain = Brain(subject_id, hemi, surf, size=(400, 400), background='w',
-                            interaction='terrain', cortex='bone', units='m')
+                            interaction='terrain', cortex='bone', units='m', offscreen=True)
 
               # label for time annotation in milliseconds
 
@@ -2971,6 +3002,41 @@ if True:
 
 #            brain=brain1
               #brain.show_view()
+              
+              if True:
+                import io
+                from PIL import Image
+#              img_buf = io.BytesIO()
+                img_buf = 'inverse_brain_buf.png'
+#              brain.save_image(filename='inverse_brain_out.png', mode='rgb')
+                brain.save_image(filename=img_buf, mode='rgb')
+#              img_buf.seek(0)
+                image = Image.open(img_buf)
+
+                if draw_fps:
+
+#                    time111=perf_counter()
+                    draw_time=f'time: {ji/fps:.2f}'
+##                    draw_fps=f'fps: {1/(time111-time001):3.2f}'
+                    #print (f'fps: {1/(time111-time001):.1f}s')
+                    #print (f'111-001: {(time111-time001):.1f}s')
+                  
+                    from PIL import Image, ImageDraw
+                    draw = ImageDraw.Draw(image)
+                    draw.text((0, 0), draw_time, font=font, fill='rgb(0, 0, 0)', stroke_fill='rgb(255, 255, 255)', stroke_width=1)
+#                    draw.text((0, 0), draw_fps, font=font, fill='rgb(0, 0, 0)', stroke_fill='rgb(255, 255, 255)', stroke_width=1)
+                    image = draw._image
+#                    time001=time111
+
+                image_arr = np.array(image)
+              
+              if FLAGS.write_video:
+                video_out.append_data(image_arr)
+              if False:
+                image_arr = image_arr[:,:,::-1]
+                screen6.update(image_arr)
+
+              
             if show_inverse_circle_cons:
 
               # Compute inverse operator
@@ -2980,7 +3046,8 @@ if True:
 
               stcs = apply_inverse_epochs(
 #                    epochs[0][ji:ji+1], 
-                    epochs[0][ji:ji+10], 
+                    epochs[0][ji:ji+n_jobs],
+#                    epochs[0][ji:ji+10],
                     inv, lambda2, inv_method,
                                           pick_ori=None, return_generator=True)
 
