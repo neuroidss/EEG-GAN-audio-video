@@ -3,6 +3,7 @@
 #!pip install mne mne_connectivity -U
 #!pip install pyvistaqt PyQt5 darkdetect qdarkstyle
 #!pip install ray
+#!pip install imageio-ffmpeg nibabel
 
 
 import ray
@@ -13,13 +14,12 @@ start = time.time()
 import asyncio
 
 #ray.init(object_store_memory=10**9)
-#ray.init()
+ray.init()
 #ray.init(num_cpus=1)
-ray.init(num_cpus=8)
+#ray.init(num_cpus=8)
 
 
 if False:    
-
     @ray.remote
     class AsyncActor:
         async def run_task(self):
@@ -153,8 +153,8 @@ if True:
 #        if show_inverse_3d or show_inverse_circle_cons:
 #            mne.set_log_level('CRITICAL')
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
-            cov = mne.compute_covariance(epochs[0][ji:ji+75], tmax=0., n_jobs=cuda_jobs, verbose=False)
-#            cov = mne.compute_covariance(epochs[0][ji:ji+200], tmax=0., n_jobs=cuda_jobs, verbose=False)
+#            cov = mne.compute_covariance(epochs[0][ji:ji+75], tmax=0., n_jobs=cuda_jobs, verbose=False)
+            cov = mne.compute_covariance(epochs[0][ji:ji+200], tmax=0., n_jobs=cuda_jobs, verbose=False)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
@@ -345,7 +345,8 @@ if False:
 
 
 #async 
-def main():
+#def main():
+if True:
 
 
   import mne
@@ -418,9 +419,10 @@ def main():
   flags.DEFINE_list('methods', ['coh'], 'methods')
   flags.DEFINE_string('vmin', '0.9', 'vmin')
 #  flags.DEFINE_string('vmin', '0.7', 'vmin')
-#flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
+#  flags.DEFINE_string('duration', '10', 'duration: if None, used: 5*1/bands[0]')
   flags.DEFINE_string('duration', None, 'if None, used: 5*1/bands[0]')
-#flags.DEFINE_string('fps', '3', 'fps')
+#  flags.DEFINE_string('fps', '3', 'fps')
+#  flags.DEFINE_string('fps', '1.6', 'fps')
   flags.DEFINE_string('fps', '10', 'fps')
 #flags.DEFINE_string('fps', '20', 'fps')
 #flags.DEFINE_string('fps', '30', 'fps')
@@ -465,10 +467,11 @@ def main():
 #flags.DEFINE_string('n_jobs', '10', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '20', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '32', 'n_jobs')
-#  flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
-  flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
+  flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
+#  flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
 #flags.DEFINE_string('n_jobs', '32', "n_jobs: number of cpu jobs or 'cuda'")
-  flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
+  flags.DEFINE_boolean('draw_fps', False, 'draw_fps')
+#  flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
 #flags.DEFINE_string('from_bdf', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'from_bdf')
   flags.DEFINE_string('from_bdf', None, 'from_bdf')
@@ -4900,7 +4903,7 @@ def main():
   print("duration =", time.time() - start)
 
 #asyncio.run(
-main()
+#main()
 #)
 
 if False:    
