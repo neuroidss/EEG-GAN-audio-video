@@ -4,10 +4,33 @@
 #!pip install pyvistaqt PyQt5 darkdetect qdarkstyle
 #!pip install ray
 
+
 import ray
-ray.init(object_store_memory=10**9)
 
 import time
+start = time.time()
+
+import asyncio
+
+#ray.init(object_store_memory=10**9)
+#ray.init()
+#ray.init(num_cpus=1)
+ray.init(num_cpus=8)
+
+
+if False:    
+
+    @ray.remote
+    class AsyncActor:
+        async def run_task(self):
+            print("started")
+            await asyncio.sleep(1) # Network, I/O task here
+            print("ended")
+
+    actor = AsyncActor.options(max_concurrency=10).remote()
+
+    # Only 10 tasks will be running concurrently. Once 10 finish, the next 10 should run.
+    ray.get([actor.run_task.remote() for _ in range(50)])
 
 
 if False:    
@@ -24,7 +47,7 @@ if False:
             self.messages = []
             return messages
 
-
+    
     # Define a remote function which loops around and pushes
     # messages to the actor.
     @ray.remote
@@ -63,8 +86,24 @@ if False:
 
 
 
+if True:
 
 
+    @ray.remote
+    class AsyncActor_(object):
+        async def __init__(self):
+            self.messages = []
+    
+        async def add_message(self, message):
+            self.messages.append(message)
+    
+        async def get_and_clear_messages(self):
+            messages = self.messages
+            print("messages len:", len(messages))
+            self.messages = []
+            return messages
+
+    actor_ = AsyncActor_.options(max_concurrency=1).remote()
 
 
 
@@ -82,23 +121,40 @@ if True:
             self.messages = []
             return messages
 
+    # Create a message actor.
+    message_actor_ = MessageActor_.remote()
+
+
+#    async def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
+#        pass
 
     # Define a remote function which loops around and pushes
     # messages to the actor.
     @ray.remote
-    def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji):
+#    def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
+    def worker__(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
+        import mne
+        from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
+        from mne_connectivity import spectral_connectivity_epochs
+        import numpy as np
+        from mne.viz import circular_layout
+        from mne_connectivity.viz import plot_connectivity_circle
+        import matplotlib.pyplot as plt
+        
+        print('worker_(ji):',ji)
 #        for i in range(100):
 #            time.sleep(1)
 
 #@ray.remote(memory=10**9)
 #def f_(epochs, fwd, ji, labels_parc):
 
-#   if True:
+        if True:
 #   if False:
-        if show_inverse_3d or show_inverse_circle_cons:
+#        if show_inverse_3d or show_inverse_circle_cons:
 #            mne.set_log_level('CRITICAL')
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
-            cov = mne.compute_covariance(epochs[0][ji:ji+200], tmax=0., n_jobs=cuda_jobs)#, verbose=False)
+            cov = mne.compute_covariance(epochs[0][ji:ji+75], tmax=0., n_jobs=cuda_jobs, verbose=False)
+#            cov = mne.compute_covariance(epochs[0][ji:ji+200], tmax=0., n_jobs=cuda_jobs, verbose=False)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
@@ -106,14 +162,19 @@ if True:
 #            evoked.plot_joint()
    
             inv = mne.minimum_norm.make_inverse_operator(
-                  evoked.info, fwd, cov, verbose=True, depth=None, fixed=False)
-            stc = mne.minimum_norm.apply_inverse(evoked, inv)
+                  evoked.info, fwd, cov, 
+                  verbose=False, 
+#                  verbose=True, 
+                  depth=None, fixed=False)
+            stc = mne.minimum_norm.apply_inverse(evoked, inv, verbose=False)
+#        if False:
 #       if not brain is None:
 
             data_path = mne.datasets.sample.data_path()
             subjects_dir = data_path / 'subjects'
               
-            if show_inverse_circle_cons:
+            if True:
+    #        if show_inverse_circle_cons:
 
               # Compute inverse operator
 #              inverse_operator = make_inverse_operator(
@@ -125,7 +186,7 @@ if True:
                     epochs[0][ji:ji+n_jobs],
 #                    epochs[0][ji:ji+10],
                     inv, lambda2, inv_method,
-                                          pick_ori=None, return_generator=True)
+                                          pick_ori=None, return_generator=True, verbose=False)
 
               # Average the source estimates within each label of the cortical parcellation
               # and each sub-structure contained in the source space.
@@ -135,7 +196,7 @@ if True:
                   stcs, labels_parc, src, mode='mean_flip', 
                   allow_empty=False,
 #                  allow_empty=True,
-                  return_generator=True)
+                  return_generator=True, verbose=False)
 
               # We compute the connectivity in the alpha band and plot it using a circular
               # graph layout
@@ -145,10 +206,10 @@ if True:
               fmin=bands[0][0]
               fmax=bands[0][1]
               sfreq = epochs[0].info['sfreq']  # the sampling frequency
-              print('label_ts:',label_ts)
+#              print('label_ts:',label_ts)
               con = spectral_connectivity_epochs(
                   label_ts, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
-                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs)
+                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=False)
 
               # We create a list of Label containing also the sub structures
               labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
@@ -259,10 +320,16 @@ if True:
 
 #            message_actor.add_message.remote(
 #                "Message {} from worker {}.".format(i, j))
-            message_actor.add_message.remote(image)
+#            message_actor.add_message.remote(image)
+            return image
 
-    # Create a message actor.
-    message_actor_ = MessageActor_.remote()
+
+if False:
+    @ray.remote
+    def wrapper_(message_actor, epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
+        import asyncio
+        asyncio.get_event_loop().run_until_complete(worker_(message_actor, epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps))
+
 if False:
 
     # Start 3 tasks that push messages to the actor.
@@ -277,151 +344,156 @@ if False:
 
 
 
+#async 
+def main():
 
 
-import mne
+  import mne
 
 #%matplotlib inline
 
-import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use('agg')
+  import matplotlib.pyplot as plt
+  import matplotlib
+  matplotlib.use('agg')
 
-from matplotlib.pyplot import draw, figure, show
+  from matplotlib.pyplot import draw, figure, show
 
-import brainflow
-from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
-from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+  import brainflow
+  from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
+  from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 
-import mne
+  import mne
 #from mne.connectivity import spectral_connectivity, seed_target_indices
-from mne_connectivity import SpectralConnectivity
-from mne_connectivity import spectral_connectivity_epochs
+  from mne_connectivity import SpectralConnectivity
+  from mne_connectivity import spectral_connectivity_epochs
 #from mne.viz import circular_layout, plot_connectivity_circle
-from mne_connectivity.viz import plot_connectivity_circle
+  from mne_connectivity.viz import plot_connectivity_circle
 
-from mne_connectivity import spectral_connectivity_epochs
-from mne.datasets import sample
-from mne_connectivity.viz import plot_sensors_connectivity
+  from mne_connectivity import spectral_connectivity_epochs
+  from mne.datasets import sample
+  from mne_connectivity.viz import plot_sensors_connectivity
 
-import mne
-from mne.datasets import sample
-from mne import setup_volume_source_space, setup_source_space
-from mne import make_forward_solution
-from mne.io import read_raw_fif
-from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
-from mne.viz import circular_layout
-from mne_connectivity import spectral_connectivity_epochs
-from mne_connectivity.viz import plot_connectivity_circle
+  import mne
+  from mne.datasets import sample
+  from mne import setup_volume_source_space, setup_source_space
+  from mne import make_forward_solution
+  from mne.io import read_raw_fif
+  from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
+  from mne.viz import circular_layout
+  from mne_connectivity import spectral_connectivity_epochs
+  from mne_connectivity.viz import plot_connectivity_circle
 
 #import keyboard  # using module keyboard
 #from pynput.mouse import Listener
 
 
-import os
+  import os
     
-from absl import flags
-FLAGS = flags.FLAGS
+  from absl import flags
+  FLAGS = flags.FLAGS
 #  bands = [[8.,12.]]
 #  methods = ['coh']
-flags.DEFINE_boolean('help', False, 'help: show help and exit')
-flags.DEFINE_boolean('debug', False, 'debug')
+  flags.DEFINE_boolean('help', False, 'help: show help and exit')
+  flags.DEFINE_boolean('debug', False, 'debug')
 #flags.DEFINE_string('input_name', '5min_experienced_meditator_unfiltered_signals', 'input')
 #flags.DEFINE_string('input_name', 'neurofeedback', 'input')
-flags.DEFINE_string('input_name', None, 'input: if None, will be neurofeedback or file name')
-flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
+  flags.DEFINE_string('input_name', None, 'input: if None, will be neurofeedback or file name')
+  flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
 #flags.DEFINE_list('prefix', None, 'prefix')
-flags.DEFINE_string('output_path', '', 'output_path')
-flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
-flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
-#flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
-flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F7','F8','C3','C4','T7','T8','P3','P4','P7','P8','O1','O2'], 'ch_names')
+  flags.DEFINE_string('output_path', '', 'output_path')
+  flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
+  flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
+  flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
+#  flags.DEFINE_list('ch_names_pick', ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2'], 'ch_names')
+#flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F7','F8','C3','C4','T7','T8','P3','P4','P7','P8','O1','O2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2'], 'ch_names')
 #flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
-flags.DEFINE_list('bands', [8.,12.], 'bands')
+  flags.DEFINE_list('bands', [8.,12.], 'bands')
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
 #flags.DEFINE_list('methods', ['ciplv'], 'methods')
 #flags.DEFINE_list('methods', ['wpli'], 'methods')
-flags.DEFINE_list('methods', ['coh'], 'methods')
-flags.DEFINE_string('vmin', '0.7', 'vmin')
+  flags.DEFINE_list('methods', ['coh'], 'methods')
+  flags.DEFINE_string('vmin', '0.9', 'vmin')
+#  flags.DEFINE_string('vmin', '0.7', 'vmin')
 #flags.DEFINE_string('duration', '1', 'duration: if None, used: 5*1/bands[0]')
-flags.DEFINE_string('duration', None, 'if None, used: 5*1/bands[0]')
+  flags.DEFINE_string('duration', None, 'if None, used: 5*1/bands[0]')
 #flags.DEFINE_string('fps', '3', 'fps')
-flags.DEFINE_string('fps', '10', 'fps')
+  flags.DEFINE_string('fps', '10', 'fps')
 #flags.DEFINE_string('fps', '20', 'fps')
 #flags.DEFINE_string('fps', '30', 'fps')
-flags.DEFINE_string('overlap', None, 'if None, used: duration-1/fps')
-flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
+  flags.DEFINE_string('overlap', None, 'if None, used: duration-1/fps')
+  flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
 #flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
-flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
+  flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
 #flags.DEFINE_boolean('show_spectrum_cons', True, 'show_spectrum_cons')
-flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
-flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
+  flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
+  flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
 #flags.DEFINE_boolean('sound_cons', True, 'sound_cons')
-flags.DEFINE_boolean('sound_cons_swap', True, 'sound_cons_swap')
-flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
-flags.DEFINE_boolean('rotate', True, 'rotate')
+  flags.DEFINE_boolean('sound_cons_swap', True, 'sound_cons_swap')
+  flags.DEFINE_string('sound_cons_buffer_path', '', 'sound_cons_buffer_path')
+  flags.DEFINE_boolean('rotate', True, 'rotate')
 #flags.DEFINE_boolean('show_stable_diffusion_cons', True, 'show_stable_diffusion_cons')
-flags.DEFINE_boolean('show_stable_diffusion_cons', False, 'show_stable_diffusion_cons')
-flags.DEFINE_string('huggingface_hub_token', 'huggingface_hub_token', 'token or file with token')
+  flags.DEFINE_boolean('show_stable_diffusion_cons', False, 'show_stable_diffusion_cons')
+  flags.DEFINE_string('huggingface_hub_token', 'huggingface_hub_token', 'token or file with token')
 #flags.DEFINE_string('unet_height', '256', 'unet_height')
 #flags.DEFINE_string('unet_width', '256', 'unet_width')
-flags.DEFINE_string('unet_height', '512', 'unet_height')
-flags.DEFINE_string('unet_width', '512', 'unet_width')
-flags.DEFINE_string('num_inference_steps', '10', 'num_inference_steps')
+  flags.DEFINE_string('unet_height', '512', 'unet_height')
+  flags.DEFINE_string('unet_width', '512', 'unet_width')
+  flags.DEFINE_string('num_inference_steps', '10', 'num_inference_steps')
 #flags.DEFINE_string('num_inference_steps', '50', 'num_inference_steps')
-flags.DEFINE_string('unet_num_inference_steps', '10', 'unet_num_inference_steps')
+  flags.DEFINE_string('unet_num_inference_steps', '10', 'unet_num_inference_steps')
 #flags.DEFINE_string('unet_num_inference_steps', '5', 'unet_num_inference_steps')
-flags.DEFINE_string('unet_latents', None, 'unet_latents: if None, load random')
-flags.DEFINE_string('unet_guidance_scale', '7.5', 'unet_guidance_scale')
-flags.DEFINE_string('apply_to_latents', '10', ' closer to zero means apply more')
+  flags.DEFINE_string('unet_latents', None, 'unet_latents: if None, load random')
+  flags.DEFINE_string('unet_guidance_scale', '7.5', 'unet_guidance_scale')
+  flags.DEFINE_string('apply_to_latents', '10', ' closer to zero means apply more')
 #flags.DEFINE_string('apply_to_latents', '0.5', 'apply_to_latents: closer to zero means apply more')
-flags.DEFINE_string('apply_to_embeds', '10', 'closer to zero means apply more')
+  flags.DEFINE_string('apply_to_embeds', '10', 'closer to zero means apply more')
 #flags.DEFINE_string('apply_to_embeds', '1', 'apply_to_embeds: closer to zero means apply more')
-flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day', 'clip_prompt')
-flags.DEFINE_boolean('show_stylegan3_cons', False, 'show_stylegan3_cons')
+  flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day', 'clip_prompt')
+  flags.DEFINE_boolean('show_stylegan3_cons', False, 'show_stylegan3_cons')
 #flags.DEFINE_boolean('show_stylegan3_cons', True, 'show_stylegan3_cons')
 #flags.DEFINE_boolean('show_game_cons', True, 'show_game_cons')
-flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
+  flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
 #flags.DEFINE_string('game_mode', '1', 'game_mode: 1 or 3')
-flags.DEFINE_string('game_mode', '3', 'game_mode: 1 or 3')
+  flags.DEFINE_string('game_mode', '3', 'game_mode: 1 or 3')
 #flags.DEFINE_string('n_jobs', None, 'n_jobs')
-flags.DEFINE_string('n_jobs', '1', 'n_jobs')
-#flags.DEFINE_string('n_jobs', '4', 'n_jobs')
+  flags.DEFINE_string('n_jobs', '1', 'n_jobs')
+#  flags.DEFINE_string('n_jobs', '4', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '10', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '20', 'n_jobs')
 #flags.DEFINE_string('n_jobs', '32', 'n_jobs')
-flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
-#flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
+#  flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
+  flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
 #flags.DEFINE_string('n_jobs', '32', "n_jobs: number of cpu jobs or 'cuda'")
-flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
+  flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
 #flags.DEFINE_string('from_bdf', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'from_bdf')
-flags.DEFINE_string('from_bdf', None, 'from_bdf')
+  flags.DEFINE_string('from_bdf', None, 'from_bdf')
 #flags.DEFINE_string('from_edf', None, 'from_edf')
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
-flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
+  flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
 #flags.DEFINE_string('n_jobs', '8', 'n_jobs')
-flags.DEFINE_string('n_parts_one_time', '30000', 'n_parts_one_time')
+  flags.DEFINE_string('n_parts_one_time', '100', 'n_parts_one_time')
+#flags.DEFINE_string('n_parts_one_time', '30000', 'n_parts_one_time')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.DEFINE_boolean('show_inverse_3d', True, 'show_inverse_3d')
-flags.DEFINE_boolean('show_inverse_3d', False, 'show_inverse_3d')
-flags.DEFINE_boolean('show_inverse_circle_cons', True, 'show_inverse_circle_cons')
+  flags.DEFINE_boolean('show_inverse_3d', False, 'show_inverse_3d')
+  flags.DEFINE_boolean('show_inverse_circle_cons', True, 'show_inverse_circle_cons')
 #flags.DEFINE_boolean('show_inverse_circle_cons', False, 'show_inverse_circle_cons')
 #flags.DEFINE_boolean('cache_fwd', False, 'cache_fwd')
-flags.DEFINE_boolean('cache_fwd', True, 'cache_fwd')
-flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
+  flags.DEFINE_boolean('cache_fwd', True, 'cache_fwd')
+  flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
 #flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
 #flags.DEFINE_boolean('write_video', False, 'write_video')
-flags.DEFINE_boolean('write_video', True, 'write_video')
-flags.DEFINE_string('video_output_file', None, 'if None, used: output_path+input_name+method+band+"-%Y.%m.%d-%H.%M.%S.mp4"')
+  flags.DEFINE_boolean('write_video', True, 'write_video')
+  flags.DEFINE_string('video_output_file', None, 'if None, used: output_path+input_name+method+band+"-%Y.%m.%d-%H.%M.%S.mp4"')
 #flags.DEFINE_string('raw_fname', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'raw_fname')
-flags.DEFINE_string('raw_fname', None, 'raw_fname')
-flags.DEFINE_string('brain_views', 'dorsal', 'lateral, medial, rostral, caudal, dorsal, ventral, frontal, parietal, axial, sagittal, coronal')
+  flags.DEFINE_string('raw_fname', None, 'raw_fname')
+  flags.DEFINE_string('brain_views', 'dorsal', 'lateral, medial, rostral, caudal, dorsal, ventral, frontal, parietal, axial, sagittal, coronal')
 #                  views='lateral', #From the left or right side such that the lateral (outside) surface of the given hemisphere is visible.
 #                  views='medial', #From the left or right side such that the medial (inside) surface of the given hemisphere is visible (at least when in split or single-hemi mode).
 #                  views='rostral', #From the front.
@@ -446,72 +518,72 @@ flags.DEFINE_string('brain_views', 'dorsal', 'lateral, medial, rostral, caudal, 
 #flags.mark_flag_as_required('fps')
 #flags.mark_flag_as_required('n_parts_one_time')
 #flags.mark_flag_as_required('part_len')
-import sys
-FLAGS(sys.argv)
+  import sys
+  FLAGS(sys.argv)
 
-print(FLAGS)
+  print(FLAGS)
 
-if FLAGS.help:
-  exit()
+  if FLAGS.help:
+    exit()
 
-from_bdf=FLAGS.from_bdf
-write_video=FLAGS.write_video
+  from_bdf=FLAGS.from_bdf
+  write_video=FLAGS.write_video
 
-if FLAGS.show_inverse_3d:
-  mne.viz.set_3d_backend('pyvistaqt')
+  if FLAGS.show_inverse_3d:
+    mne.viz.set_3d_backend('pyvistaqt')
 
-draw_fps=FLAGS.draw_fps
+  draw_fps=FLAGS.draw_fps
 
 
-if FLAGS.input_name is None:
-  if FLAGS.from_bdf is None:
-    input_name = 'neurofeedback'
+  if FLAGS.input_name is None:
+    if FLAGS.from_bdf is None:
+      input_name = 'neurofeedback'
+    else:
+      from pathlib import Path
+      input_name = Path(FLAGS.from_bdf).stem
   else:
-    from pathlib import Path
-    input_name = Path(FLAGS.from_bdf).stem
-else:
-  input_name = FLAGS.input_name
+    input_name = FLAGS.input_name
   
-if not(FLAGS.n_jobs is None):
-  n_jobs=int(FLAGS.n_jobs)
-else:
-  n_jobs=FLAGS.n_jobs
+  if not(FLAGS.n_jobs is None):
+    n_jobs=int(FLAGS.n_jobs)
+  else:
+    n_jobs=FLAGS.n_jobs
 
-if FLAGS.cuda_jobs:
-  mne.utils.set_config('MNE_USE_CUDA', 'true')
-  mne.cuda.init_cuda(verbose=True)
+  if FLAGS.cuda_jobs:
+    mne.utils.set_config('MNE_USE_CUDA', 'true')
+    mne.cuda.init_cuda(verbose=True)
   
-  from mne.cuda import _cuda_capable
+    from mne.cuda import _cuda_capable
   
 #  print(mne.get_config())
 #  global _cuda_capable
-  if _cuda_capable:
-    cuda_jobs='cuda'
+    if _cuda_capable:
+      cuda_jobs='cuda'
+    else:
+      cuda_jobs=n_jobs
   else:
     cuda_jobs=n_jobs
-else:
-  cuda_jobs=n_jobs
 #if FLAGS.n_jobs=='cuda':
 #  n_jobs=FLAGS.n_jobs
 #else:
 #n_jobs=int(FLAGS.n_jobs)
-apply_to_latents=float(FLAGS.apply_to_latents)
-apply_to_embeds=float(FLAGS.apply_to_embeds)
-clip_prompt=FLAGS.clip_prompt
+  apply_to_latents=float(FLAGS.apply_to_latents)
+  apply_to_embeds=float(FLAGS.apply_to_embeds)
+  clip_prompt=FLAGS.clip_prompt
 
-if os.path.isfile(FLAGS.huggingface_hub_token):
-  with open(FLAGS.huggingface_hub_token, 'r') as file:
-    huggingface_hub_token = file.read().replace('\n', '')
-else:
-  huggingface_hub_token=FLAGS.huggingface_hub_token
+  if os.path.isfile(FLAGS.huggingface_hub_token):
+    with open(FLAGS.huggingface_hub_token, 'r') as file:
+      huggingface_hub_token = file.read().replace('\n', '')
+  else:
+    huggingface_hub_token=FLAGS.huggingface_hub_token
 
 #print(huggingface_hub_token)
   
-print_freq_once = FLAGS.print_freq_once
-print_freq_once_printed = False
+  print_freq_once = FLAGS.print_freq_once
+  print_freq_once_printed = False
   
-debug = FLAGS.debug
-serial_port=FLAGS.serial_port
+  debug = FLAGS.debug
+  serial_port=FLAGS.serial_port
 
 #fps=float(FLAGS.fps)
 #files_path=flags.path
@@ -522,54 +594,56 @@ serial_port=FLAGS.serial_port
 #print('len(FLAGS.prefix): ',len(FLAGS.prefix))
 #print('files_path: ',files_path)
 #print('len(files_path): ',len(files_path))
-ch_names=FLAGS.ch_names
-ch_names_pick=FLAGS.ch_names_pick
-bands=[{}]*int(len(FLAGS.bands)/2)
+  ch_names=FLAGS.ch_names
+  ch_names_pick=FLAGS.ch_names_pick
+  bands=[{}]*int(len(FLAGS.bands)/2)
 #bands[0]=FLAGS.bands
-for flags_band in range(int(len(FLAGS.bands)/2)):
-  bands[flags_band]=[float(FLAGS.bands[0+flags_band*2]),float(FLAGS.bands[1+flags_band*2])]
-methods=FLAGS.methods
-vmin=float(FLAGS.vmin)
+  for flags_band in range(int(len(FLAGS.bands)/2)):
+    bands[flags_band]=[float(FLAGS.bands[0+flags_band*2]),float(FLAGS.bands[1+flags_band*2])]
+  methods=FLAGS.methods
+  vmin=float(FLAGS.vmin)
 
-if FLAGS.duration==None:
-  duration=5*1/bands[0][0]
-else:
-  duration=float(FLAGS.duration)
+  if FLAGS.duration==None:
+    duration=5*1/bands[0][0]
+  else:
+    duration=float(FLAGS.duration)
 
-fps=float(FLAGS.fps)  
+  fps=float(FLAGS.fps)  
 
-if FLAGS.overlap==None:
-  overlap=duration-1/fps
-else:
-  overlap=float(FLAGS.overlap)
+  if FLAGS.overlap==None:
+    overlap=duration-1/fps
+  else:
+    overlap=float(FLAGS.overlap)
 
-n_parts_one_time=int(FLAGS.n_parts_one_time)
+  n_parts_one_time=int(FLAGS.n_parts_one_time)
 #part_len=int(FLAGS.part_len)
 
-if (FLAGS.from_bdf is None):
+
+  if (FLAGS.from_bdf is None):
 #if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
-  params = BrainFlowInputParams()
-  if debug:
-    board_id = -1 # synthetic
-    sample_rate = 512
-  else:
-    board_id = BoardIds.FREEEEG32_BOARD.value
+    params = BrainFlowInputParams()
+    if debug:
+      board_id = -1 # synthetic
+      sample_rate = 512
+    else:
+      board_id = BoardIds.FREEEEG32_BOARD.value
     #params.serial_port = '/dev/ttyACM0'
-    params.serial_port = serial_port
+      params.serial_port = serial_port
 #    params.serial_port = '/dev/ttyS20'
-    sample_rate = 512
-    eeg_channels = BoardShim.get_eeg_channels(board_id)
+      sample_rate = 512
+      eeg_channels = BoardShim.get_eeg_channels(board_id)
 #        if num_channels is not None:
 #            eeg_channels = eeg_channels[:num_channels]
-
-  board = BoardShim(board_id, params)
+  
+    board = BoardShim(board_id, params)
         #global board
-  board.release_all_sessions()
+    board.release_all_sessions()
 
-  board.prepare_session()
-  board.start_stream()
+    board.prepare_session()
+    board.start_stream()
 
-if True:
+#if True:
+
 
   import matplotlib.pyplot as plt
   import numpy as np
@@ -4461,11 +4535,27 @@ if True:
         return x * x
 
 
-
-  fwd_id = ray.put(fwd)
-  labels_parc_id = ray.put(labels_parc)
+#  fwd_id = ray.put(fwd)
+#  labels_parc_id = ray.put(labels_parc)
+#  video_out_id=ray.put(video_out)
   result_ids = []
-  video_out_id=ray.put(video_out)
+  object_refs=[]
+  if True:
+        fwd_id = ray.put(fwd)
+        labels_parc_id = ray.put(labels_parc)
+        cuda_jobs_id = ray.put(cuda_jobs)
+        n_jobs_id = ray.put(n_jobs)
+        bands_id = ray.put(bands)
+        methods_id = ray.put(methods)
+        inv_method_id = ray.put(inv_method)
+        lambda2_id = ray.put(lambda2)
+        input_fname_name_id = ray.put(input_fname_name)
+        vmin_id = ray.put(vmin)
+        subject_id = ray.put(subject)
+        subjects_dir_id = ray.put(subjects_dir)
+        from_bdf_id = ray.put(from_bdf)
+        fps_id = ray.put(fps)
+  start = time.time()
 
   while True:
   
@@ -4613,8 +4703,13 @@ if True:
 #          datas[0].set_eeg_reference().apply_proj()
           
         epochs.append(mne.make_fixed_length_epochs(datas[0], 
-                                            duration=duration, preload=True, overlap=overlap, verbose='ERROR'))
+                                            duration=duration, preload=True, overlap=overlap, 
+                                            verbose='ERROR'))
+
         epochs_id = ray.put(epochs)
+
+
+#        epochs_id = ray.put(epochs)
 #          epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=5*1/8, preload=False, overlap=5*1/8-0.1))
 
@@ -4630,14 +4725,17 @@ if True:
        #events = mne.find_events(raw)
        #epochs = mne.Epochs(raw, events)
        epochs = mne.make_fixed_length_epochs(raw1, 
-                          duration=duration, preload=True, overlap=overlap)#, verbose='ERROR')
+                          duration=duration, preload=True, overlap=overlap, verbose='ERROR')
        cov = mne.compute_covariance(epochs, tmax=0., n_jobs=cuda_jobs)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
        evoked = epochs['1'].average()  # trigger 1 in auditory/left
        evoked.plot_joint()
    
        inv = mne.minimum_norm.make_inverse_operator(
-           evoked.info, fwd, cov, verbose=True, depth=None, fixed=False)
+           evoked.info, fwd, cov, 
+           verbose=False, 
+#           verbose=True, 
+           depth=None, fixed=False)
        stc = mne.minimum_norm.apply_inverse(evoked, inv)
 #       if not brain is None:
 
@@ -4721,19 +4819,47 @@ if True:
 #            psd_array=np.random.rand((n_generate-ji), dim) 
 
         # Start 3 tasks that push messages to the actor.
-        worker_.remote(message_actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji)
+        
+#        await wrapper_.remote(actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps)
+#        wrapper_.remote(actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji)
+#        worker_.remote(actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps)
+#        worker_.remote(message_actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps)
+        ji_id = ray.put(ji)
+        object_refs.append(worker__.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id))
+#        print("ji:", ji)
 
-        # Periodically get the messages and print them.
-#        for _ in range(100):
-        new_messages = ray.get(message_actor_.get_and_clear_messages.remote())
+#        print("object_refs:", object_refs)
+#  if False:
+        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+#        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
+        
+#  if False:
+        new_messages = []
+        object_refs = remaining_refs
+        for ready_ref in ready_refs:
+#          new_messages.append(ray.get(ready_ref))
+          message = ray.get(ready_ref)
+          if not(message is None):
+            new_messages.append(message)
+        
         for image in new_messages:
           if write_video:
             video_out.append_data(image)
-#        if len(new_messages)>0:
+##        if len(new_messages)>0:
           image = image[:,:,::-1]
           screen5.update(image)
+#        print("New messages len:", len(new_messages))
 #        print("New messages:", new_messages)
 #        time.sleep(0.1)
+
+  if False:
+        # Periodically get the messages and print them.
+#        for _ in range(100):
+
+#        new_messages = ray.get(actor_.get_and_clear_messages.remote())
+#        await actor_.get_and_clear_messages.remote()
+        new_messages = ray.get(message_actor_.get_and_clear_messages.remote())
+        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), timeout=None)
 
   if False:
         start = time.time()
@@ -4749,13 +4875,36 @@ if True:
 
         print("duration =", time.time() - start)
 
+  while len(object_refs)>0:
+        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+#        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
 
+        new_messages = []
+        object_refs = remaining_refs
+        for ready_ref in ready_refs:
+          message = ray.get(ready_ref)
+          if not(message is None):
+            new_messages.append(message)
+        for image in new_messages:
+          if write_video:
+            video_out.append_data(image)
+          image = image[:,:,::-1]
+          screen5.update(image)
+#        print("New messages len:", len(new_messages))
 
 
   if (FLAGS.from_bdf is None):
     bdf.close()
   if (FLAGS.write_video is None):
     video_out.close()
+  print("duration =", time.time() - start)
+
+#asyncio.run(
+main()
+#)
 
 if False:    
   cv2.destroyAllWindows()
+  
+print("duration =", time.time() - start)
+  
