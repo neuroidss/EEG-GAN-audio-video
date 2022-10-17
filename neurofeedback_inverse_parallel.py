@@ -1606,8 +1606,8 @@ if False:
 
 
 #async 
-#def main():
-if True:
+def main():
+#if True:
 
 
   import mne
@@ -5004,11 +5004,11 @@ if True:
   print("duration =", time.time() - start)
 
 #asyncio.run(
-#main()
+main()
 #)
 
 if False:    
   cv2.destroyAllWindows()
   
-print("duration =", time.time() - start)
+print("duration full =", time.time() - start)
   
