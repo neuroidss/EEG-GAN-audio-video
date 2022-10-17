@@ -5001,7 +5001,7 @@ def main():
     bdf.close()
   if (FLAGS.write_video is None):
     video_out.close()
-  print("duration =", time.time() - start)
+  print("duration without startup = ", time.time() - start)
 
 #asyncio.run(
 main()
@@ -5010,5 +5010,5 @@ main()
 if False:    
   cv2.destroyAllWindows()
   
-print("duration full =", time.time() - start)
+print("duration with startup = ", time.time() - start)
   
