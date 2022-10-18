@@ -36,7 +36,7 @@ if True:
         if show_stylegan3_cons:
           import torch
     @ray.remote
-    def worker_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration):
+    def worker_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices):
         import mne
 #        from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
         from mne_connectivity import spectral_connectivity_epochs
@@ -1609,6 +1609,7 @@ if False:
 #async 
 #def main():
 if True:
+  start_0 = time.time()
 
 
   import mne
@@ -4902,8 +4903,9 @@ if True:
           object_refs.append(worker_inverse_circle_cons.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id))
         if show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
           duration_id = ray.put(duration)
+          cohs_tril_indices_id = ray.put(cohs_tril_indices)
 #        if show_circle_cons:
-          object_refs.append(worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id))
+          object_refs.append(worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id))
         if show_stylegan3_cons or show_game_cons:
 #        if show_circle_cons:
           object_refs.append(worker_stylegan3_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, G3ms_id))
@@ -5004,6 +5006,7 @@ if True:
   if (FLAGS.write_video is None):
     video_out.close()
   print("duration without startup = ", time.time() - start)
+  print("duration with startup = ", time.time() - start_0)
 
 #asyncio.run(
 #main()
@@ -5012,5 +5015,5 @@ if True:
 if False:    
   cv2.destroyAllWindows()
   
-print("duration with startup = ", time.time() - start)
+#print("duration with startup = ", time.time() - start)
   
