@@ -2138,6 +2138,9 @@ if True:
        # space (MNI space) for standard_1020:
        montage = mne.channels.make_standard_montage('standard_1005')
 #       montage = mne.channels.make_standard_montage('biosemi32')
+
+       raw_before_pick = raw
+       raw = raw.pick(ch_names_pick)
        
        raw.set_montage(montage)
        raw.set_eeg_reference(projection=True)  # needed for inverse modeling
