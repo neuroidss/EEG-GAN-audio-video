@@ -26,6 +26,7 @@ def auto_garbage_collect(pct=80.0):
         pct - Default value of 80%.  Amount of memory in use that triggers the garbage collection call.
     """
     import psutil
+    import gc
     if psutil.virtual_memory().percent >= pct:
         gc.collect()
     return
