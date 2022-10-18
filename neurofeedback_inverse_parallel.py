@@ -36,7 +36,7 @@ if True:
         if show_stylegan3_cons:
           import torch
     @ray.remote
-    def worker_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons):
+    def worker_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration):
         import mne
 #        from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
         from mne_connectivity import spectral_connectivity_epochs
@@ -65,6 +65,7 @@ if True:
 #        tmin, tmax = 0+(eeg_step/fps), 2+(eeg_step/fps)  # use the first 120s of data
         #tmin, tmax = 0, duration
 #        sfreq = raw.info['sfreq']  # the sampling frequency
+          sfreq = epochs[band].info['sfreq']  # the sampling frequency
           for band in range(len(bands)):
            for method in range(len(methods)):
           #fmin=8.
@@ -1606,8 +1607,8 @@ if False:
 
 
 #async 
-def main():
-#if True:
+#def main():
+if True:
 
 
   import mne
@@ -4900,8 +4901,9 @@ def main():
         if show_inverse_circle_cons:
           object_refs.append(worker_inverse_circle_cons.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id))
         if show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
+          duration_id = ray.put(duration)
 #        if show_circle_cons:
-          object_refs.append(worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id))
+          object_refs.append(worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id))
         if show_stylegan3_cons or show_game_cons:
 #        if show_circle_cons:
           object_refs.append(worker_stylegan3_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, G3ms_id))
@@ -5004,7 +5006,7 @@ def main():
   print("duration without startup = ", time.time() - start)
 
 #asyncio.run(
-main()
+#main()
 #)
 
 if False:    
