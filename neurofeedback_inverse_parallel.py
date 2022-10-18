@@ -65,7 +65,7 @@ if True:
 #        tmin, tmax = 0+(eeg_step/fps), 2+(eeg_step/fps)  # use the first 120s of data
         #tmin, tmax = 0, duration
 #        sfreq = raw.info['sfreq']  # the sampling frequency
-          sfreq = epochs[band].info['sfreq']  # the sampling frequency
+          sfreq = epochs[0].info['sfreq']  # the sampling frequency
           for band in range(len(bands)):
            for method in range(len(methods)):
           #fmin=8.
