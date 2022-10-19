@@ -93,7 +93,7 @@ if True:
 #            epochs[0][ji:ji+4], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
 #            np_array, method=methods[method], n_epochs_used=len(np_array), mode='multitaper', sfreq=sfreq, freqs=freqs,
 #            n_nodes=len(epochs[band][0].get_data()), faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=50)
-              epochs[band][ji:ji+10], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+              epochs[band][ji:ji+epochs_con], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
               fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose='CRITICAL')
 #          cons=np.roll(cons,1,axis=0)
             cons=np.roll(cons,1,axis=0)
@@ -1424,11 +1424,12 @@ if True:
 #            mne.set_log_level('CRITICAL')
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+75], tmax=0., n_jobs=cuda_jobs, verbose=False)
-            cov = mne.compute_covariance(epochs[0][ji:ji+200], tmax=0., n_jobs=cuda_jobs, verbose=False)
+            cov = mne.compute_covariance(epochs[0][ji:ji+epochs_inverse_cov], tmax=0., n_jobs=cuda_jobs, verbose=False)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
-            evoked = epochs[0][ji].average()  # trigger 1 in auditory/left
+            evoked = epochs[0][ji+epochs_inverse_ev_av].average()  # trigger 1 in auditory/left
+#            evoked = epochs[0][ji].average()  # trigger 1 in auditory/left
 #            evoked.plot_joint()
    
             inv = mne.minimum_norm.make_inverse_operator(
@@ -1453,8 +1454,8 @@ if True:
 
               stcs = apply_inverse_epochs(
 #                    epochs[0][ji:ji+1], 
-                    epochs[0][ji:ji+n_jobs],
-#                    epochs[0][ji:ji+10],
+#                    epochs[0][ji:ji+n_jobs],
+                    epochs[0][ji:ji+epochs_inverse_con],
                     inv, lambda2, inv_method,
                                           pick_ori=None, return_generator=True, verbose=False)
 
@@ -1749,9 +1750,9 @@ if True:
 #flags.DEFINE_string('from_edf', None, 'from_edf')
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
   flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
-  flags.DEFINE_string('n_parts_one_time', '10', 'n_parts_one_time')
+#  flags.DEFINE_string('n_parts_one_time', '10', 'n_parts_one_time')
 #  flags.DEFINE_string('n_parts_one_time', '100', 'n_parts_one_time')
-#  flags.DEFINE_string('n_parts_one_time', '30000', 'n_parts_one_time')
+  flags.DEFINE_string('n_parts_one_time', '864000', 'n_parts_one_time')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.DEFINE_boolean('show_inverse_3d', True, 'show_inverse_3d')
@@ -1769,6 +1770,13 @@ if True:
   flags.DEFINE_string('raw_fname', None, 'raw_fname')
   flags.DEFINE_string('brain_views', 'dorsal', 'lateral, medial, rostral, caudal, dorsal, ventral, frontal, parietal, axial, sagittal, coronal')
   flags.DEFINE_boolean('stable_fps', True, 'stable_fps')
+  flags.DEFINE_string('epochs_con', '10', 'epochs_con')
+  flags.DEFINE_string('epochs_inverse_con', '10', 'epochs_inverse_con')
+  flags.DEFINE_string('epochs_inverse_cov', '165', 'epochs_inverse_cov')
+  flags.DEFINE_string('epochs_inverse_ev_av', '10', 'inverse epochs evoked average')
+  flags.DEFINE_string('inverse_snr', '1.0', 'use smaller SNR for raw data')
+  flags.DEFINE_string('inverse_method', 'dSPM', 'MNE, dSPM, sLORETA, eLORETA')
+  flags.DEFINE_string('inverse_parc', 'aparc.a2009s', 'aparc, aparc.a2005s, aparc.a2009s')
 #                  views='lateral', #From the left or right side such that the lateral (outside) surface of the given hemisphere is visible.
 #                  views='medial', #From the left or right side such that the medial (inside) surface of the given hemisphere is visible (at least when in split or single-hemi mode).
 #                  views='rostral', #From the front.
@@ -1800,6 +1808,14 @@ if True:
 
   if FLAGS.help:
     exit()
+    
+  epochs_con = int(FLAGS.epochs_con)
+  epochs_inverse_con = int(FLAGS.epochs_inverse_con)
+  epochs_inverse_cov = int(FLAGS.epochs_inverse_cov)
+  epochs_inverse_ev_av = int(FLAGS.epochs_inverse_ev_av)
+  inverse_snr = float(FLAGS.inverse_snr)
+  inverse_method = FLAGS.inverse_method
+  inverse_parc = FLAGS.inverse_parc
 
   from_bdf=FLAGS.from_bdf
   write_video=FLAGS.write_video
@@ -3518,9 +3534,12 @@ if True:
   
     if True:
               # Compute inverse solution and for each epoch
-              snr = 1.0           # use smaller SNR for raw data
-              inv_method = 'dSPM'
-              parc = 'aparc.a2009s'      # the parcellation to use, e.g., 'aparc' 'aparc.a2009s'
+#              snr = 1.0           # use smaller SNR for raw data
+#              inv_method = 'dSPM'
+#              parc = 'aparc.a2009s'      # the parcellation to use, e.g., 'aparc' 'aparc.a2009s'
+              snr = inverse_snr
+              inv_method = inverse_method
+              parc = inverse_parc
 #              parc = 'aparc'      # the parcellation to use, e.g., 'aparc' 'aparc.a2009s'
 
               lambda2 = 1.0 / snr ** 2
@@ -4284,10 +4303,11 @@ if True:
 #      print(raws_hstack)
 #      print(len(raws_hstack))
 #      raws_hstack_cut = raws_hstack[:,:]
+
       if show_inverse_circle_cons:
-        samples_cut = int(sample_rate*(duration*2+(duration-overlap)*165))
+        samples_cut = int(sample_rate*(duration*2+(duration-overlap)*epochs_inverse_cov))
       elif show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
-        samples_cut = int(sample_rate*(duration*2+(duration-overlap)*10))
+        samples_cut = int(sample_rate*(duration*2+(duration-overlap)*epochs_con))
       else:
         samples_cut = int(sample_rate*(duration*2))
 #      print('samples_cut, duration, overlap, (duration-overlap), (sample_rate*(duration*2+(duration-overlap)*165)):', samples_cut, duration, overlap, (duration-overlap), (sample_rate*(duration*2+(duration-overlap)*165)))
