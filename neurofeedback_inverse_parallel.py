@@ -4522,7 +4522,7 @@ if True:
           for image_idx, image in enumerate(ready_images):
            shows_idx = ready_shows_ids[image_idx]
            ji_idx = ready_ji_ids[image_idx]
-           print('image_idx, shows_idx, ji_idx:', image_idx, shows_idx, ji_idx)
+           print('image_idx, shows_idx, ji_idx, ji0, ji0-ji_idx:', image_idx, shows_idx, ji_idx, ji0, ji0-ji_idx)
            if last_image_shows_ji[shows_idx] == ji_idx - 1:
             last_image_shows_ji[shows_idx] = ji_idx
             ready_images.pop(image_idx)
