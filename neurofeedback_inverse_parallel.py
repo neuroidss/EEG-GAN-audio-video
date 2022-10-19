@@ -37,7 +37,7 @@ if True:
         if show_stylegan3_cons:
           import torch
     @ray.remote
-    def worker_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices):
+    def worker_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps):
         out_shows_ji_images=[]
         import mne
 #        from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
@@ -169,11 +169,13 @@ if True:
             n_lines=np.argmax(con_sort<vmin)
                
 #            print(freqs)
+#            if not(from_bdf is None):
+#              ji_fps = ji/fps
             fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=n_lines, 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names,# n_lines=300, 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2), 
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
+                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+f'{ji_fps:.2f}', 
 #                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{freqs[0][0]:.1f}'+'-'+f'{freqs[0][len(freqs[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
 #               title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+str(len(epochs[0].events)-2)+'\n'+str(ji), 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2)+'_'+str(ji), 
@@ -1399,7 +1401,7 @@ if True:
     # messages to the actor.
     @ray.remote
 #    def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
-    def worker_inverse_circle_cons(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
+    def worker_inverse_circle_cons(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps, ji_fps):
         out_shows_ji_images=[]
         import mne
         from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
@@ -1531,10 +1533,7 @@ if True:
 #              title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(n_generate)+'/'+str(ji)
 #              px = 1/plt.rcParams['figure.dpi']  # pixel in inches
 #              fig = plt.figure(figsize=(800*px, 800*px))
-              if from_bdf is None:
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)
-              else:
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+f'{ji/fps:.2f}'
+              title=input_fname_name+'_inverse_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+f'{ji_fps:.2f}'
               fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, title=title, 
                                              show = False, vmin=vmin, vmax=1, 
                                              fontsize_names=6,
@@ -4159,6 +4158,7 @@ if True:
         ready_images = []
         ready_shows_ids = []
         ready_ji_ids = []
+        ji0=-1
 
 
         cuda_jobs_id = ray.put(cuda_jobs)
@@ -4435,6 +4435,7 @@ if True:
         break
        for i in range(part_len): # display separate audio for each break
         ji = j * part_len + i
+        ji0 = ji0 + 1
         
 #        if (i==0) and (n_generate-ji<part_len):
 #            psd_array=np.random.rand((n_generate-ji), dim) 
@@ -4448,28 +4449,34 @@ if True:
         ji_id = ray.put(ji)
         rotate_id = ray.put(FLAGS.rotate)
         cons_id = ray.put(cons)
+        if from_bdf is None:
+#          ji_fps_id = ray.put(ji0/fps)
+          ji_fps = time.time() - start
+        else:
+          ji_fps = ji/fps
+        ji_fps_id = ray.put(ji_fps)
         if show_stylegan3_cons or show_game_cons:
           G3ms_id = ray.put(G3ms)
         
 #        if show_inverse_3d or show_inverse_circle_cons:
         if show_inverse_circle_cons:
-          object_ref = worker_inverse_circle_cons.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id)
+          object_ref = worker_inverse_circle_cons.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id)
           shows_ids.append(shows_inverse_circle)
-          ji_ids.append(ji)
+          ji_ids.append(ji0)
           object_refs.append(object_ref)
         if show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
           duration_id = ray.put(duration)
           cohs_tril_indices_id = ray.put(cohs_tril_indices)
 #        if show_circle_cons:
-          object_ref = worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id)
+          object_ref = worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id)
           shows_ids.append(shows_circle)
-          ji_ids.append(ji)
+          ji_ids.append(ji0)
           object_refs.append(object_ref)
         if show_stylegan3_cons or show_game_cons:
 #        if show_circle_cons:
           object_ref = worker_stylegan3_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, G3ms_id)
           shows_ids.append(shows_stylegan3)
-          ji_ids.append(ji)
+          ji_ids.append(ji0)
           object_refs.append(object_ref)
           
           
@@ -4502,7 +4509,7 @@ if True:
           for image_idx, image in enumerate(ready_images):
            shows_idx = ready_shows_ids[image_idx]
            ji_idx = ready_ji_ids[image_idx]
-#           print('image_idx, shows_idx, ji_idx:', image_idx, shows_idx, ji_idx)
+           print('image_idx, shows_idx, ji_idx:', image_idx, shows_idx, ji_idx)
            if last_image_shows_ji[shows_idx] == ji_idx - 1:
             last_image_shows_ji[shows_idx] = ji_idx
             ready_images.pop(image_idx)
@@ -4537,28 +4544,49 @@ if True:
 
      auto_garbage_collect()
 
-  if False:
-        # Periodically get the messages and print them.
-#        for _ in range(100):
+   if (len(object_refs)>0) or (len(ready_images)>0):
+        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+#        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
 
-#        new_messages = ray.get(actor_.get_and_clear_messages.remote())
-#        await actor_.get_and_clear_messages.remote()
-        new_messages = ray.get(message_actor_.get_and_clear_messages.remote())
-        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), timeout=None)
-
-  if False:
-        start = time.time()
-#        ji_id = ray.put(ji)
-        result_ids.append(f_.remote(epochs_id, fwd_id, ji, labels_parc_id))
-#        result_ids = [f_.remote(epochs_id, fwd_id, ji) for x in range(1)]
-#        result_ids = [f_.remote(epochs_id, fwd_id, ji) for x in range(10)]
-#        results = ray.get(result_ids)
-        if len(result_ids):
-#        while len(result_ids):
-          done_id, result_ids = ray.wait(result_ids)
-          ray.get(done_id[0])
-
-        print("duration =", time.time() - start)
+#        new_images = []
+#        new_shows_ids = []
+#        new_ji_ids = []
+        for ready_ref in ready_refs:
+          message = ray.get(ready_ref)
+          if not(message is None):
+#            print('message:', message)
+            ready_images.append(message)
+            ready_id = object_refs.index(ready_ref)
+            ready_shows_ids.append(shows_ids[ready_id])
+            ready_ji_ids.append(ji_ids[ready_id])
+            object_refs.pop(ready_id)
+            shows_ids.pop(ready_id)
+            ji_ids.pop(ready_id)
+#        if len(new_images)>0:
+#          ready_images.append(new_images)
+#          ready_shows_ids.append(new_shows_ids)
+#          ready_ji_ids.append(new_ji_ids)
+#          print('ready_shows_ids:', ready_shows_ids)
+#          print('ready_ji_ids:', ready_ji_ids)
+        if len(ready_images)>0:
+#          print('enumerate(ready_images):', enumerate(ready_images))
+#          print('ready_images:', ready_images)
+          for image_idx, image in enumerate(ready_images):
+           shows_idx = ready_shows_ids[image_idx]
+           ji_idx = ready_ji_ids[image_idx]
+#           print('image_idx, shows_idx, ji_idx:', image_idx, shows_idx, ji_idx)
+#           print('last_image_shows_ji[shows_idx]', last_image_shows_ji[shows_idx])
+           if last_image_shows_ji[shows_idx] == ji_idx - 1:
+#            print('ji_idx:', ji_idx)
+            last_image_shows_ji[shows_idx] = ji_idx
+            ready_images.pop(image_idx)
+            ready_shows_ids.pop(image_idx)
+            ready_ji_ids.pop(image_idx)
+            if write_video:
+              video_outs[shows_idx].append_data(image)
+            image = image[:,:,::-1]
+            screens[shows_idx].update(image)
+#        print("New messages len:", len(new_messages))
 
   while (len(object_refs)>0) or (len(ready_images)>0):
         ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
