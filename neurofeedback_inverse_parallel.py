@@ -38,6 +38,7 @@ if True:
           import torch
     @ray.remote
     def worker_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices):
+        out_shows_ji_images=[]
         import mne
 #        from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
         from mne_connectivity import spectral_connectivity_epochs
@@ -314,6 +315,7 @@ if True:
 
             plt.close(fig)
             del fig
+            out_shows_ji_images.append([shows_circle,ji,image])
 
 
         if False:
@@ -393,6 +395,7 @@ if True:
 
             plt.close(fig)
             del fig
+            out_shows_ji_images.append([shows_spectrum,ji,image])
  
         if False:
           #import stft
@@ -821,8 +824,8 @@ if True:
 
 
 
-#        if False:
-        if show_stylegan3_cons:
+        if False:
+#        if show_stylegan3_cons:
 
 #                dim_sg2=512
                 sg3_latents=np.random.rand((1), G3ms[0].z_dim) 
@@ -1268,6 +1271,7 @@ if True:
 
 
         return image
+#        return out_shows_ji_images
 
 
 
@@ -1396,6 +1400,7 @@ if True:
     @ray.remote
 #    def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
     def worker_inverse_circle_cons(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
+        out_shows_ji_images=[]
         import mne
         from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
         from mne_connectivity import spectral_connectivity_epochs
@@ -1577,6 +1582,7 @@ if True:
 
               plt.close(fig)
               del fig
+              out_shows_ji_images.append([shows_inverse_circle,ji,image])
 
 
 
@@ -1585,6 +1591,7 @@ if True:
 #                "Message {} from worker {}.".format(i, j))
 #            message_actor.add_message.remote(image)
             return image
+#            return out_shows_ji_images
 
 
 if False:
@@ -1743,7 +1750,8 @@ if True:
 #flags.DEFINE_string('from_edf', None, 'from_edf')
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
   flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
-  flags.DEFINE_string('n_parts_one_time', '100', 'n_parts_one_time')
+  flags.DEFINE_string('n_parts_one_time', '10', 'n_parts_one_time')
+#  flags.DEFINE_string('n_parts_one_time', '100', 'n_parts_one_time')
 #  flags.DEFINE_string('n_parts_one_time', '30000', 'n_parts_one_time')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
@@ -1947,32 +1955,47 @@ if True:
 
     sd.default.reset()
 
+
+  shows_circle = 0
+  shows_spectrum = 1
+  shows_stable_diffusion = 2
+  shows_stylegan3 = 3
+  shows_inverse_circle = 4
+  shows_inverse_3d = 5
+  shows = ['circle', 'spectrum', 'stable_diffusion', 'stylegan3', 'inverse_circle', 'inverse_3d']
+  screens=[{}]*len(shows)
+  
   if show_circle_cons:
     canvas = np.zeros((800,800))
 #  canvas = np.zeros((480,640))
     screen = pf.screen(canvas, 'circle_cons')
+    screens[shows_circle]=screen
 
   if show_spectrum_cons:
     canvas2 = np.zeros((800,800))
 #  canvas = np.zeros((480,640))
     screen2 = pf.screen(canvas2, 'spectrum_cons')
+    screens[shows_spectrum]=screen2
 
   if show_stable_diffusion_cons:
     canvas3 = np.zeros((800,800))
 #    canvas3 = np.zeros((512,512))
 #  canvas = np.zeros((480,640))
     screen3 = pf.screen(canvas3, 'stable_diffusion_cons')
+    screens[shows_stable_diffusion]=screen3
     import random 
 
   if show_stylegan3_cons:
     canvas4 = np.zeros((1024,1024))
 #    canvas4 = np.zeros((800,800))
     screen4 = pf.screen(canvas4, 'stylegan3_cons')
+    screens[shows_stylegan3]=screen4
 
   if show_inverse_circle_cons:
     canvas5 = np.zeros((800,800))
 #  canvas = np.zeros((480,640))
     screen5 = pf.screen(canvas5, 'inverse_circle_cons')
+    screens[shows_inverse_circle]=screen5
   
 #  if show_inverse_3d:
 #    canvas6 = np.zeros((800,800))
@@ -3387,20 +3410,28 @@ if True:
     now = datetime.now()
     dt_string = now.strftime("%Y.%m.%d-%H.%M.%S")
     output_path=FLAGS.output_path
-  
+    video_output_files=[{}]*len(shows)
     if FLAGS.video_output_file==None:
+      if show_circle_cons:
+        video_output_file=output_path+input_name+'_'+shows[shows_circle]+'_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
+        video_output_files[shows_circle]=video_output_file
+      if show_spectrum_cons:
+        video_output_file=output_path+input_name+'_'+shows[shows_spectrum]+'_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
+        video_output_files[shows_spectrum]=video_output_file
+      if show_stable_diffusion_cons:
+        video_output_file=output_path+input_name+'_'+shows[shows_stable_diffusion]+'_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
+        video_output_files[shows_stable_diffusion]=video_output_file
+      if show_stylegan3_cons:
+        video_output_file=output_path+input_name+'_'+shows[shows_stylegan3]+'_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
+        video_output_files[shows_stylegan3]=video_output_file
+      if show_inverse_circle_cons:
+        video_output_file=output_path+input_name+'_'+shows[shows_inverse_circle]+'_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
+        video_output_files[shows_inverse_circle]=video_output_file
       if show_inverse_3d:
-        video_output_file=output_path+input_name+'_inverse_3d_'+"_"+dt_string+".mp4"
-      elif show_inverse_circle_cons:
-        video_output_file=output_path+input_name+'_inverse_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
-      elif show_circle_cons:
-        video_output_file=output_path+input_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
-      elif show_spectrum_cons:
-        video_output_file=output_path+input_name+'_spectrum_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
-      elif show_stylegan3_cons:
-        video_output_file=output_path+input_name+'_stylegan3_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
-      else:
-        video_output_file=output_path+input_name+"-"+dt_string+".mp4"
+        video_output_file=output_path+input_name+'_'+shows[shows_inverse_3d]+'_'+"_"+dt_string+".mp4"
+        video_output_files[shows_inverse_3d]=video_output_file
+#      else:
+#        video_output_file=output_path+input_name+"-"+dt_string+".mp4"
     else:
       video_output_file=FLAGS.video_output_file
 
@@ -4097,520 +4128,38 @@ if True:
 
   if FLAGS.write_video:
     import imageio
-    video_out = imageio.get_writer(video_output_file, fps=fps)
+    video_outs=[{}]*len(shows)
+    if show_circle_cons:
+      video_outs[shows_circle] = imageio.get_writer(video_output_files[shows_circle], fps=fps)
+    if show_spectrum_cons:
+      video_outs[shows_spectrum] = imageio.get_writer(video_output_files[shows_spectrum], fps=fps)
+    if show_stable_diffusion_cons:
+      video_outs[shows_stable_diffusion] = imageio.get_writer(video_output_files[shows_stable_diffusion], fps=fps)
+    if show_stylegan3_cons:
+      video_outs[shows_stylegan3] = imageio.get_writer(video_output_files[shows_stylegan3], fps=fps)
+    if show_inverse_circle_cons:
+      video_outs[shows_inverse_circle] = imageio.get_writer(video_output_files[shows_inverse_circle], fps=fps)
+    if show_inverse_3d:
+      video_outs[shows_inverse] = imageio.get_writer(video_output_files[shows_inverse], fps=fps)
+#    video_out = imageio.get_writer(video_output_file, fps=fps)
 #  video_out = imageio.get_writer('/content/out/output.mp4', mode='I', fps=fps, codec='libx264', bitrate='16M')
 #out.close()
 
 #with autocast('cuda'):
-
-
-  @ray.remote
-  def f2(x):
-    return x * x
-  
-  @ray.remote
-  def f(x):
-
-
-
-        if show_inverse_3d or show_inverse_circle_cons:
-#            mne.set_log_level('CRITICAL')
-#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
-            cov = mne.compute_covariance(epochs[0][ji:ji+200], tmax=0., n_jobs=cuda_jobs)#, verbose=False)
-#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
-#            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
-#     cov = mne.compute_covariance(epochs, tmax=0.)
-            evoked = epochs[0][ji].average()  # trigger 1 in auditory/left
-            evoked.plot_joint()
-   
-            inv = mne.minimum_norm.make_inverse_operator(
-                  evoked.info, fwd, cov, verbose=True, depth=None, fixed=False)
-            stc = mne.minimum_norm.apply_inverse(evoked, inv)
-#       if not brain is None:
-
-            data_path = mne.datasets.sample.data_path()
-            subjects_dir = data_path / 'subjects'
-
-#            if not (brain is None):
-#                brain.close()        
-#                brain.toggle_interface(False)
-#            toggle_interface
-            if (brain is None):
-#             px = 1/plt.rcParams['figure.dpi']  # pixel in inches
-#             fig = plt.figure(figsize=(576*px, 576*px))
-
-             if show_inverse_3d:
-#             if True:
-             
-             
-#    def plot(self, subject=None, surface='inflated', hemi='lh',
-#             colormap='auto', time_label='auto', smoothing_steps=10,
-#             transparent=True, alpha=1.0, time_viewer='auto',
-#             subjects_dir=None,
-#             figure=None, views='auto', colorbar=True, clim='auto',
-#             cortex="classic", size=800, background="black",
-#             foreground=None, initial_time=None, time_unit='s',
-#             backend='auto', spacing='oct6', title=None, show_traces='auto',
-#             src=None, volume_options=1., view_layout='vertical',
-#             add_data_kwargs=None, brain_kwargs=None, verbose=None):
-#        brain = plot_source_estimates(
-#            self, subject, surface=surface, hemi=hemi, colormap=colormap,
-#            time_label=time_label, smoothing_steps=smoothing_steps,
-#            transparent=transparent, alpha=alpha, time_viewer=time_viewer,
-#            subjects_dir=subjects_dir, figure=figure, views=views,
-#            colorbar=colorbar, clim=clim, cortex=cortex, size=size,
-#            background=background, foreground=foreground,
-#            initial_time=initial_time, time_unit=time_unit, backend=backend,
-#            spacing=spacing, title=title, show_traces=show_traces,
-#            src=src, volume_options=volume_options, view_layout=view_layout,
-#            add_data_kwargs=add_data_kwargs, brain_kwargs=brain_kwargs,
-#            verbose=verbose)
-#        return brain             
-             
-#def plot_source_estimates(stc, subject=None, surface='inflated', hemi='lh',
-#                          colormap='auto', time_label='auto',
-#                          smoothing_steps=10, transparent=True, alpha=1.0,
-#                          time_viewer='auto', subjects_dir=None, figure=None,
-#                          views='auto', colorbar=True, clim='auto',
-#                          cortex="classic", size=800, background="black",
-#                          foreground=None, initial_time=None,
-#                          time_unit='s', backend='auto', spacing='oct6',
-#                          title=None, show_traces='auto',
-#                          src=None, volume_options=1., view_layout='vertical',
-#                          add_data_kwargs=None, brain_kwargs=None,
-#                          verbose=None):             
-
-              brain = stc.plot(
-                  hemi='both', 
-                  src=inv['src'], 
-                  views=FLAGS.brain_views,
-#                  views='lateral', #From the left or right side such that the lateral (outside) surface of the given hemisphere is visible.
-#                  views='medial', #From the left or right side such that the medial (inside) surface of the given hemisphere is visible (at least when in split or single-hemi mode).
-#                  views='rostral', #From the front.
-#                  views='caudal', #From the rear.
-#                  views='dorsal', #From above, with the front of the brain pointing up.
-#                  views='ventral', #From below, with the front of the brain pointing up.
-#                  views='frontal', #From the front and slightly lateral, with the brain slightly tilted forward (yielding a view from slightly above).
-#                  views='parietal', #From the rear and slightly lateral, with the brain slightly tilted backward (yielding a view from slightly above).
-#                  views='axial', #From above with the brain pointing up (same as 'dorsal').
-#                  views='sagittal', #From the right side.
-#                  views='coronal', #From the rear.                  
-                  initial_time=0.1, 
-                  subjects_dir=subjects_dir,
-                  brain_kwargs=dict(silhouette=True), 
-                  alpha=0.25,
-                  smoothing_steps='nearest',
-#                  smoothing_steps=7,
-                  show_traces=True, verbose=False)
-#                  show_traces=False)
-            
-#              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.0, figure=1,
-#                 show_traces=False)#, 
-
-              #brain.add_data(array=stc, initial_time=0.0, time=brain._times)
-              #brain.apply_auto_scaling()        
-
-#                  time_viewer=(brain is None))
-              #brain_data_frame = stc.to_data_frame()
-#              time = np.arange(stc.shape[-1])
-#              print('time: ',time)
-             if False:
-              import os
-              import numpy as np
-
-              from surfer import Brain
-              from surfer.io import read_stc
-
-              print(__doc__)
-              
-              # define subject, surface and hemisphere(s) to plot:
-
-              subject_id, surf = 'fsaverage', 'inflated'
-              hemi = 'lh'
-
-              # create Brain object for visualization
-              brain = Brain(subject_id, hemi, surf, size=(400, 400), background='w',
-                            interaction='terrain', cortex='bone', units='m', offscreen=True)
-
-              # label for time annotation in milliseconds
-
-
-              def time_label(t):
-                  return 'time=%0.2f ms' % (t * 1e3)
-
-
-              # Read MNE dSPM inverse solution and plot
-
-              for hemi in ['lh']:  # , 'rh']:
-#                  stc_fname = os.path.join('example_data', 'meg_source_estimate-' +
-#                                           hemi + '.stc')
-#                  stc = read_stc(stc_fname)
-              
-                  # data and vertices for which the data is defined
-                  data = stc['data']
-                  vertices = stc['vertices']
-
-                  # time points (in seconds)
-                  time = np.linspace(stc['tmin'], stc['tmin'] + data.shape[1] * stc['tstep'],
-                                     data.shape[1], endpoint=False)
-
-                  # colormap to use
-                  colormap = 'hot'
-
-                  # add data and set the initial time displayed to 100 ms,
-                  # plotted using the nearest relevant colors
-                  brain.add_data(data, colormap=colormap, vertices=vertices,
-                                 smoothing_steps='nearest', time=time, time_label=time_label,
-                                 hemi=hemi, initial_time=0.1, verbose=False)
-
-              # scale colormap
-              brain.scale_data_colormap(fmin=13, fmid=18, fmax=22, transparent=True,
-                                        verbose=False)
-              
-            else:
-             if False:
-              for hemi in ['lh']:  # , 'rh']:
-#                  stc_fname = os.path.join('example_data', 'meg_source_estimate-' +
-#                                           hemi + '.stc')
-#                  stc = read_stc(stc_fname)
-              
-                  # data and vertices for which the data is defined
-                  data = stc['data']
-                  vertices = stc['vertices']
-
-                  # time points (in seconds)
-                  time = np.linspace(stc['tmin'], stc['tmin'] + data.shape[1] * stc['tstep'],
-                                     data.shape[1], endpoint=False)
-
-                  # colormap to use
-                  colormap = 'hot'
-
-                  # add data and set the initial time displayed to 100 ms,
-                  # plotted using the nearest relevant colors
-                  brain.add_data(data, colormap=colormap, vertices=vertices,
-                                 smoothing_steps='nearest', time=time, time_label=time_label,
-                                 hemi=hemi, initial_time=0.1, verbose=False)
-              
-             if show_inverse_3d:
-           #  if True:
-              
-#              kwargs = dict(
-#                  array=stc.rh_data, hemi='rh', vertices=stc.rh_vertno, fmin=stc.data.min(),
-#                  fmax=stc.data.max(), smoothing_steps='nearest', time=brain._times)
-
-#              brain_camera_position=brain._renderer.camera_position
-
-              kwargs = dict(
-#                  array=stc, 
-                  colormap='plasma', 
-                  fmin=stc.data.min(),
-                  alpha=0.25,
-                  src=inv['src'], 
-#                  initial_time=0.1, 
-#                  align=False,
-#                  focalpoint=brain_camera_position,
-#                  fmax=stc.data.max(), smoothing_steps=7, time=brain._times)
-                  fmax=stc.data.max(), 
-                  fmid=stc.data.min()+(stc.data.max()-stc.data.min())/2, 
-                  smoothing_steps='nearest', 
-                  time=brain._times, verbose=False)
-
-              # name: works
-              add_data(brain, stc.lh_data, hemi='lh', vertices=stc.lh_vertno, **kwargs)
-              add_data(brain, stc.rh_data, hemi='rh', vertices=stc.rh_vertno, **kwargs)
-#              brain.add_data(stc.lh_data, hemi='lh', vertices=stc.lh_vertno, **kwargs)
-#              brain.add_data(stc.rh_data, hemi='rh', vertices=stc.rh_vertno, **kwargs)
-#              brain.add_data(colormap='plasma', **kwargs)
-
-              # object: works (not documented)
-#              list_of_colors = ['cyan', 'red', 'green']
-#              my_cmap = LinearSegmentedColormap.from_list('foo', list_of_colors, N=12)
-              #brain.add_data(colormap=my_cmap, **kwargs)            
-              #brain.add_data(array=stc, initial_time=0.0, time=brain._times)
-              
-              #brain.add_data(array=stc, initial_time=0.0, time=brain._times)
-              brain.apply_auto_scaling()        
-              #print(brain_data_frame)
-              #brain_data_frame = stc.to_data_frame()
-              #print(brain_data_frame)
-
-
-#              brain.show_view(view='coronal')
-              
-              #    kwargs = {
-              #        "array": stc,
-              #        "colormap": colormap,
-              #        "smoothing_steps": smoothing_steps,
-              #        "time": times, "time_label": time_label,
-              #        "alpha": overlay_alpha,
-              #        "colorbar": colorbar,
-              #        "vector_alpha": vector_alpha,
-              #        "scale_factor": scale_factor,
-              #        "initial_time": initial_time,
-              #        "transparent": transparent,
-              #        "center": center,
-              #        "fmin": scale_pts[0],
-              #        "fmid": scale_pts[1],
-              #        "fmax": scale_pts[2],
-              #        "clim": clim,
-              #        "src": src,
-              #        "volume_options": volume_options,
-              #        "verbose": None,
-              #        }              
-#              time = np.arange(stc.shape[-1])
-#              print('time: ',time)
-#              stc.time_as_index(time)
-#              print('stc.time_as_index(time): ',stc.time_as_index(time))
-#              print('brain._times: ',brain._times)
-#              print('np.array_equal(time, brain._times): ',np.array_equal(time, brain._times))
-
-#              print('brain._n_times: ',brain._n_times)
-
-              #brain.add_data(array=stc, initial_time=0.1, time=brain._times)
-              
-              #brain.setup_time_viewer(time_viewer=False, show_traces=False)
-              #brain.setup_time_viewer()
-#              brain.show()
-
-#            if not (brain is None):
-#                brain.close()
-#              brain.remove_data()
-              brain.plot_time_line()
-#              brain.toggle_interface(False)
-#              brain.time_viewer=False
-#              brain.setup_time_viewer(time_viewer=False, show_traces=False)
-              setup_time_viewer(brain)
-              #brain.toggle_interface()
-#              print(brain.time_viewer)
-#              print(brain.mpl_canvas)
-#              brain.mpl_canvas.show()
-#              brain.mpl_canvas.hide()
-#              brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.1, figure=1)#, 
-
-#            brain=brain1
-              #brain.show_view()
-              
-              if True:
-                import io
-                from PIL import Image
-#              img_buf = io.BytesIO()
-                img_buf = 'inverse_brain_buf.png'
-#              brain.save_image(filename='inverse_brain_out.png', mode='rgb')
-                brain.save_image(filename=img_buf, mode='rgb')
-#              img_buf.seek(0)
-                image = Image.open(img_buf)
-
-                if draw_fps:
-
-#                    time111=perf_counter()
-                    draw_time=f'time: {ji/fps:.2f}'
-##                    draw_fps=f'fps: {1/(time111-time001):3.2f}'
-                    #print (f'fps: {1/(time111-time001):.1f}s')
-                    #print (f'111-001: {(time111-time001):.1f}s')
-                  
-                    from PIL import Image, ImageDraw
-                    draw = ImageDraw.Draw(image)
-                    draw.text((0, 0), draw_time, font=font, fill='rgb(0, 0, 0)', stroke_fill='rgb(255, 255, 255)', stroke_width=1)
-#                    draw.text((0, 0), draw_fps, font=font, fill='rgb(0, 0, 0)', stroke_fill='rgb(255, 255, 255)', stroke_width=1)
-                    image = draw._image
-#                    time001=time111
-
-                image_arr = np.array(image)
-              
-              if FLAGS.write_video:
-                video_out.append_data(image_arr)
-              if False:
-                image_arr = image_arr[:,:,::-1]
-                screen6.update(image_arr)
-
-              
-            if show_inverse_circle_cons:
-
-              # Compute inverse operator
-#              inverse_operator = make_inverse_operator(
-#                  epochs[0].info, fwd, noise_cov, depth=None, fixed=False)
-#              del fwd
-
-              stcs = apply_inverse_epochs(
-#                    epochs[0][ji:ji+1], 
-                    epochs[0][ji:ji+n_jobs],
-#                    epochs[0][ji:ji+10],
-                    inv, lambda2, inv_method,
-                                          pick_ori=None, return_generator=True)
-
-              # Average the source estimates within each label of the cortical parcellation
-              # and each sub-structure contained in the source space.
-              # When mode = 'mean_flip', this option is used only for the cortical labels.
-              src = inv['src']
-              label_ts = mne.extract_label_time_course(
-                  stcs, labels_parc, src, mode='mean_flip', 
-                  allow_empty=False,
-#                  allow_empty=True,
-                  return_generator=True)
-
-              # We compute the connectivity in the alpha band and plot it using a circular
-              # graph layout
-#              fmin = 8.
-#              fmin = 10.
-#              fmax = 13.
-              fmin=bands[0][0]
-              fmax=bands[0][1]
-              sfreq = epochs[0].info['sfreq']  # the sampling frequency
-              print('label_ts:',label_ts)
-              con = spectral_connectivity_epochs(
-                  label_ts, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
-                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs)
-
-              # We create a list of Label containing also the sub structures
-              labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
-              labels = labels_parc + labels_aseg
-
-              # read colors
-              node_colors = [label.color for label in labels]
-
-              # We reorder the labels based on their location in the left hemi
-              label_names = [label.name for label in labels]
-              lh_labels = [name for name in label_names if name.endswith('lh')]
-              rh_labels = [name for name in label_names if name.endswith('rh')]
-
-              # Get the y-location of the label
-              label_ypos_lh = list()
-              for name in lh_labels:
-                  idx = label_names.index(name)
-                  ypos = np.mean(labels[idx].pos[:, 1])
-                  label_ypos_lh.append(ypos)
-              try:
-                  idx = label_names.index('Brain-Stem')
-              except ValueError:
-                  pass
-              else:
-                  ypos = np.mean(labels[idx].pos[:, 1])
-                  lh_labels.append('Brain-Stem')
-                  label_ypos_lh.append(ypos)
-
-              # Reorder the labels based on their location
-              lh_labels = [label for (yp, label) in sorted(zip(label_ypos_lh, lh_labels))]
-
-              # For the right hemi
-              rh_labels = [label[:-2] + 'rh' for label in lh_labels
-                           if label != 'Brain-Stem' and label[:-2] + 'rh' in rh_labels]
-
-              # Save the plot order
-              node_order = lh_labels[::-1] + rh_labels
-
-              node_angles = circular_layout(label_names, node_order, start_pos=90,
-                                            group_boundaries=[0, len(label_names) // 2])
-
-              # Plot the graph using node colors from the FreeSurfer parcellation. We only
-              # show the 300 strongest connections.
-              conmat = con.get_data(output='dense')[:, :, 0]
-#              fig, ax = plt.subplots(figsize=(8, 8), facecolor='black',
-#                                     subplot_kw=dict(polar=True))
-
-              con_sort=np.sort(np.abs(conmat).ravel())[::-1]
-              n_lines=np.argmax(con_sort<vmin)
-#              input_fname_name
-#              title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(n_generate)+'/'+str(ji)
-#              px = 1/plt.rcParams['figure.dpi']  # pixel in inches
-#              fig = plt.figure(figsize=(800*px, 800*px))
-              if FLAGS.from_bdf is None:
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)
-              else:
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+f'{ji/fps:.2f}'
-              fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, title=title, 
-                                             show = False, vmin=vmin, vmax=1, 
-                                             fontsize_names=6,
-#                                             fontsize_names=8,
-                                       node_angles=node_angles, node_colors=node_colors)
-#              plot_connectivity_circle(conmat, label_names, n_lines=300,
-#                                       node_angles=node_angles, node_colors=node_colors,
-#                                       title='All-to-All Connectivity left-Auditory '
-#                                       'Condition (PLI)')#, ax=ax)#, fig=fig)
-#              fig.tight_layout()            
-              plt.savefig('inverse_coh.png', facecolor='black', format='png')
-
-              fig.canvas.draw()
-
-            #image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-              image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
-              image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-
-##              size1=16*4
-##              size = 592+size1
-#            size = 608
-            #im3 = im1.resize((576, 576), Image.ANTIALIAS)
-##              left=348-int(size/2)+int(size1/2)
-##              top=404-int(size/2)+int(size1/16)
-
-##              image_crop=image[top:top+size,left:left+size]   
-            #im2 = im1.crop((left, top, left+size, top+size))
-
-#              if FLAGS.rotate:
-#                image_rot90 = np.rot90(image_crop)
-#                image=image_rot90
-#              screen.update(image_rot90)
-#              else:
-#                image=image_crop
-#            image_rot90 = np.rot90(image)
-
-#            screen.update(image)
-#              screen.update(image_crop)
-
-              if FLAGS.write_video:
-                video_out.append_data(image)
-#                video_out.close()
-              image = image[:,:,::-1]
-              screen5.update(image)
-
-              plt.close(fig)
-              del fig
-              
-            if False:
-              eeg_step=ji
-              #print (f'EEG step: {(eeg_step/3):.1f} s')
-              tmin, tmax = 0+(eeg_step/fps), duration+(eeg_step/fps)  # use the first 120s of data
-
-              #ji=0 
-              #eeg_step=ji
-      #        tmin, tmax = 0+(eeg_step/fps), 2+(eeg_step/fps)  # use the first 120s of data
-         #tmin, tmax = 0, duration
-#        sfreq = raw.info['sfreq']  # the sampling frequency
-              for band in range(len(bands)):
-               for method in range(len(methods)):
-          #fmin=8.
-          #fmax=13.
-                fmin=bands[band][0]
-                fmax=bands[band][1]
-                
-                con = spectral_connectivity_epochs(
-                    epochs[0][ji:ji+10], method='pli', mode='multitaper', sfreq=sfreq, fmin=fmin, fmax=fmax,
-                    faverage=True, tmin=tmin, mt_adaptive=False, n_jobs=cuda_jobs)
-
-                # Now, visualize the connectivity in 3D:
-                plot_sensors_connectivity(
-                    epochs[0][ji:ji+10].info,
-                    con.get_data(output='dense')[:, :, 0])                
-
-
-
-
-
-
-
-
-
-
-
-
-        return x * x
-
 
 #  fwd_id = ray.put(fwd)
 #  labels_parc_id = ray.put(labels_parc)
 #  video_out_id=ray.put(video_out)
   if True:
         result_ids = []
-        object_refs=[]
+        object_refs = []
+        shows_ids = []
+        ji_ids = []
+        last_image_shows_ji=[-1]*len(shows)
+        ready_images = []
+        ready_shows_ids = []
+        ready_ji_ids = []
+
 
         cuda_jobs_id = ray.put(cuda_jobs)
         n_jobs_id = ray.put(n_jobs)
@@ -4904,15 +4453,26 @@ if True:
         
 #        if show_inverse_3d or show_inverse_circle_cons:
         if show_inverse_circle_cons:
-          object_refs.append(worker_inverse_circle_cons.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id))
+          object_ref = worker_inverse_circle_cons.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id)
+          shows_ids.append(shows_inverse_circle)
+          ji_ids.append(ji)
+          object_refs.append(object_ref)
         if show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
           duration_id = ray.put(duration)
           cohs_tril_indices_id = ray.put(cohs_tril_indices)
 #        if show_circle_cons:
-          object_refs.append(worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id))
+          object_ref = worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id)
+          shows_ids.append(shows_circle)
+          ji_ids.append(ji)
+          object_refs.append(object_ref)
         if show_stylegan3_cons or show_game_cons:
 #        if show_circle_cons:
-          object_refs.append(worker_stylegan3_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, G3ms_id))
+          object_ref = worker_stylegan3_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, G3ms_id)
+          shows_ids.append(shows_stylegan3)
+          ji_ids.append(ji)
+          object_refs.append(object_ref)
+          
+          
           
 #        print("ji:", ji)
 
@@ -4922,29 +4482,51 @@ if True:
 #        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
         
 #  if False:
-        new_messages = []
-        object_refs = remaining_refs
+        new_images = []
+        new_shows_ids = []
+        new_ji_ids = []
         for ready_ref in ready_refs:
-#          new_messages.append(ray.get(ready_ref))
           message = ray.get(ready_ref)
           if not(message is None):
-            new_messages.append(message)
-        
-        for image in new_messages:
-          if write_video:
-            video_out.append_data(image)
+            ready_images.append(message)
+            ready_id = object_refs.index(ready_ref)
+            ready_shows_ids.append(shows_ids[ready_id])
+            ready_ji_ids.append(ji_ids[ready_id])
+            object_refs.pop(ready_id)
+            shows_ids.pop(ready_id)
+            ji_ids.pop(ready_id)
+        if len(ready_images)>0:
+#          print('enumerate(ready_images):', enumerate(ready_images))
+#          print('ready_images:', ready_images)
+#          print('len(ready_images):', len(ready_images))
+          for image_idx, image in enumerate(ready_images):
+           shows_idx = ready_shows_ids[image_idx]
+           ji_idx = ready_ji_ids[image_idx]
+#           print('image_idx, shows_idx, ji_idx:', image_idx, shows_idx, ji_idx)
+           if last_image_shows_ji[shows_idx] == ji_idx - 1:
+            last_image_shows_ji[shows_idx] = ji_idx
+            ready_images.pop(image_idx)
+            ready_shows_ids.pop(image_idx)
+            ready_ji_ids.pop(image_idx)
+            if write_video:
+              video_outs[shows_idx].append_data(image)
+            image = image[:,:,::-1]
+            screens[shows_idx].update(image)
+#          screens[image_idx].update(image)
 ##        if len(new_messages)>0:
-          image = image[:,:,::-1]
-          if show_circle_cons:
-            screen.update(image)
-          if show_spectrum_cons: 
-            screen2.update(image)
-          if show_stable_diffusion_cons:
-            screen3.update(image)
-          if show_stylegan3_cons:
-            screen4.update(image)
-          if show_inverse_circle_cons:
-            screen5.update(image)
+#        for image in images:
+#          image = image[:,:,::-1]
+#          screens[].update(image)
+#          if show_circle_cons:
+#            screen.update(image)
+#          if show_spectrum_cons: 
+#            screen2.update(image)
+#          if show_stable_diffusion_cons:
+#            screen3.update(image)
+#          if show_stylegan3_cons:
+#            screen4.update(image)
+#          if show_inverse_circle_cons:
+#            screen5.update(image)
 #        print("New messages len:", len(new_messages))
 #        print("New messages:", new_messages)
 #        time.sleep(0.1)
@@ -4978,30 +4560,48 @@ if True:
 
         print("duration =", time.time() - start)
 
-  while len(object_refs)>0:
+  while (len(object_refs)>0) or (len(ready_images)>0):
         ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
 #        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
 
-        new_messages = []
-        object_refs = remaining_refs
+#        new_images = []
+#        new_shows_ids = []
+#        new_ji_ids = []
         for ready_ref in ready_refs:
           message = ray.get(ready_ref)
           if not(message is None):
-            new_messages.append(message)
-        for image in new_messages:
-          if write_video:
-            video_out.append_data(image)
-          image = image[:,:,::-1]
-          if show_circle_cons:
-            screen.update(image)
-          if show_spectrum_cons: 
-            screen2.update(image)
-          if show_stable_diffusion_cons:
-            screen3.update(image)
-          if show_stylegan3_cons:
-            screen4.update(image)
-          if show_inverse_circle_cons:
-            screen5.update(image)
+#            print('message:', message)
+            ready_images.append(message)
+            ready_id = object_refs.index(ready_ref)
+            ready_shows_ids.append(shows_ids[ready_id])
+            ready_ji_ids.append(ji_ids[ready_id])
+            object_refs.pop(ready_id)
+            shows_ids.pop(ready_id)
+            ji_ids.pop(ready_id)
+#        if len(new_images)>0:
+#          ready_images.append(new_images)
+#          ready_shows_ids.append(new_shows_ids)
+#          ready_ji_ids.append(new_ji_ids)
+#          print('ready_shows_ids:', ready_shows_ids)
+#          print('ready_ji_ids:', ready_ji_ids)
+        if len(ready_images)>0:
+#          print('enumerate(ready_images):', enumerate(ready_images))
+#          print('ready_images:', ready_images)
+          for image_idx, image in enumerate(ready_images):
+           shows_idx = ready_shows_ids[image_idx]
+           ji_idx = ready_ji_ids[image_idx]
+#           print('image_idx, shows_idx, ji_idx:', image_idx, shows_idx, ji_idx)
+#           print('last_image_shows_ji[shows_idx]', last_image_shows_ji[shows_idx])
+           if last_image_shows_ji[shows_idx] == ji_idx - 1:
+#            print('ji_idx:', ji_idx)
+            last_image_shows_ji[shows_idx] = ji_idx
+            ready_images.pop(image_idx)
+            ready_shows_ids.pop(image_idx)
+            ready_ji_ids.pop(image_idx)
+            if write_video:
+              video_outs[shows_idx].append_data(image)
+            image = image[:,:,::-1]
+            screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
 
 
