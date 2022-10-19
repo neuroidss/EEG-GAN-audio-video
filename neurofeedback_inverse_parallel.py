@@ -4284,9 +4284,18 @@ if True:
 #      print(raws_hstack)
 #      print(len(raws_hstack))
 #      raws_hstack_cut = raws_hstack[:,:]
-      raws_hstack_cut = raws_hstack[:,-int(sample_rate*duration*2):]
+      if show_inverse_circle_cons:
+        samples_cut = int(sample_rate*(duration*2+(duration-overlap)*165))
+      elif show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
+        samples_cut = int(sample_rate*(duration*2+(duration-overlap)*10))
+      else:
+        samples_cut = int(sample_rate*(duration*2))
+#      print('samples_cut, duration, overlap, (duration-overlap), (sample_rate*(duration*2+(duration-overlap)*165)):', samples_cut, duration, overlap, (duration-overlap), (sample_rate*(duration*2+(duration-overlap)*165)))
+      raws_hstack_cut = raws_hstack[:,-samples_cut:]
+#      raws_hstack_cut = raws_hstack[:,-int(sample_rate*duration*2):]
 #      print(raws_hstack_cut)
 #      print(len(raws_hstack_cut))
+#      print(len(raws_hstack_cut[0]))
 
       ch_types_pick = ['eeg'] * len(ch_names_pick)
       info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
@@ -4424,7 +4433,8 @@ if True:
           n_parts=n_parts+1
       n_parts_now = 0
       
-      if len(datas[0])==int(sample_rate*duration*2):
+#      if len(datas[0])>=int(sample_rate*duration*2):
+      if from_bdf is None:
         n_parts=1
         part_len=1
 
@@ -4498,6 +4508,9 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
+            if FLAGS.stable_fps:
+              image_show = message[:,:,::-1]
+              screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
             object_refs.pop(ready_id)
             shows_ids.pop(ready_id)
@@ -4517,8 +4530,9 @@ if True:
             ready_ji_ids.pop(image_idx)
             if write_video:
               video_outs[shows_idx].append_data(image)
-            image = image[:,:,::-1]
-            screens[shows_idx].update(image)
+            if not FLAGS.stable_fps:
+              image = image[:,:,::-1]
+              screens[shows_idx].update(image)
 #          screens[image_idx].update(image)
 ##        if len(new_messages)>0:
 #        for image in images:
@@ -4558,6 +4572,9 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
+            if FLAGS.stable_fps:
+              image_show = message[:,:,::-1]
+              screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
             object_refs.pop(ready_id)
             shows_ids.pop(ready_id)
@@ -4584,8 +4601,9 @@ if True:
             ready_ji_ids.pop(image_idx)
             if write_video:
               video_outs[shows_idx].append_data(image)
-            image = image[:,:,::-1]
-            screens[shows_idx].update(image)
+            if not FLAGS.stable_fps:
+              image = image[:,:,::-1]
+              screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
 
   while (len(object_refs)>0) or (len(ready_images)>0):
@@ -4602,6 +4620,9 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
+            if FLAGS.stable_fps:
+              image_show = message[:,:,::-1]
+              screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
             object_refs.pop(ready_id)
             shows_ids.pop(ready_id)
@@ -4628,8 +4649,9 @@ if True:
             ready_ji_ids.pop(image_idx)
             if write_video:
               video_outs[shows_idx].append_data(image)
-            image = image[:,:,::-1]
-            screens[shows_idx].update(image)
+            if not FLAGS.stable_fps:
+              image = image[:,:,::-1]
+              screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
 
 
