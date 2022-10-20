@@ -1424,7 +1424,10 @@ if True:
 #            mne.set_log_level('CRITICAL')
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+75], tmax=0., n_jobs=cuda_jobs, verbose=False)
-            cov = mne.compute_covariance(epochs[0][ji:ji+epochs_inverse_cov], tmax=0., n_jobs=cuda_jobs, verbose=False)
+            if ji+epochs_inverse_cov>len(epochs[0]):
+              cov = mne.compute_covariance(epochs[0][:-epochs_inverse_cov], tmax=0., n_jobs=cuda_jobs, verbose=False)
+            else:
+              cov = mne.compute_covariance(epochs[0][ji:ji+epochs_inverse_cov], tmax=0., n_jobs=cuda_jobs, verbose=False)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
@@ -1743,7 +1746,7 @@ if True:
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
 #flags.DEFINE_list('methods', ['ciplv'], 'methods')
 #flags.DEFINE_list('methods', ['wpli'], 'methods')
-  flags.DEFINE_list('methods', ['coh'], 'methods')
+  flags.DEFINE_list('methods', ['coh'], 'coh, cohy, imcoh, plv, ciplv, ppc, pli, dpli, wpli, wpli2_debiased')
 #  flags.DEFINE_string('vmin', '0.9', 'vmin')
   flags.DEFINE_string('vmin', '0.7', 'vmin')
 #  flags.DEFINE_string('duration', '10', 'duration: if None, used: 5*1/bands[0]')
