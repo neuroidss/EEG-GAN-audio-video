@@ -1771,11 +1771,13 @@ if True:
   flags.DEFINE_string('brain_views', 'dorsal', 'lateral, medial, rostral, caudal, dorsal, ventral, frontal, parietal, axial, sagittal, coronal')
   flags.DEFINE_boolean('stable_fps', True, 'stable_fps')
   flags.DEFINE_string('epochs_con', '10', 'epochs_con')
-  flags.DEFINE_string('epochs_inverse_con', '10', 'epochs_inverse_con')
+  flags.DEFINE_string('epochs_inverse_con', '1', 'epochs_inverse_con')
   flags.DEFINE_string('epochs_inverse_cov', '165', 'epochs_inverse_cov')
   flags.DEFINE_string('inverse_snr', '1.0', 'use smaller SNR for raw data')
   flags.DEFINE_string('inverse_method', 'dSPM', 'MNE, dSPM, sLORETA, eLORETA')
-  flags.DEFINE_string('inverse_parc', 'aparc.a2009s', 'aparc, aparc.a2005s, aparc.a2009s')
+  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc, aparc.a2005s, aparc.a2009s')
+  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
+  
 #                  views='lateral', #From the left or right side such that the lateral (outside) surface of the given hemisphere is visible.
 #                  views='medial', #From the left or right side such that the medial (inside) surface of the given hemisphere is visible (at least when in split or single-hemi mode).
 #                  views='rostral', #From the front.
@@ -1811,10 +1813,10 @@ if True:
   epochs_con = int(FLAGS.epochs_con)
   epochs_inverse_con = int(FLAGS.epochs_inverse_con)
   epochs_inverse_cov = int(FLAGS.epochs_inverse_cov)
-  epochs_inverse_ev_av = int(FLAGS.epochs_inverse_ev_av)
   inverse_snr = float(FLAGS.inverse_snr)
   inverse_method = FLAGS.inverse_method
   inverse_parc = FLAGS.inverse_parc
+  inverse_montage = FLAGS.inverse_montage
 
   from_bdf=FLAGS.from_bdf
   write_video=FLAGS.write_video
@@ -2238,8 +2240,10 @@ if True:
        # MRI<->head transform ``trans``:
 #       fname_biosemi32 = op.join(subjects_dir, subject, 'montages', '10-10-montage.fif')
 #       mon = mne.channels.read_dig_fif(fname_biosemi32)
-       fname_1005 = op.join(subjects_dir, subject, 'montages', '10-5-montage.fif')
-       mon = mne.channels.read_dig_fif(fname_1005)
+       fname_montage = op.join(subjects_dir, subject, 'montages', inverse_montage+'-montage.fif')
+       mon = mne.channels.read_dig_fif(fname_montage)
+#       fname_1005 = op.join(subjects_dir, subject, 'montages', '10-5-montage.fif')
+#       mon = mne.channels.read_dig_fif(fname_1005)
 #       fname_1020 = op.join(subjects_dir, subject, 'montages', '10-20-montage.fif')
 #       mon = mne.channels.read_dig_fif(fname_1020)
        print('mon:',mon)
@@ -3548,6 +3552,11 @@ if True:
               subject = 'fsaverage'
               labels_parc = mne.read_labels_from_annot(subject, parc=parc,
                                                        subjects_dir=subjects_dir)
+#              print('labels_parc:',labels_parc)
+              for label in labels_parc:
+                if label.name.startswith('unknown'):
+                  labels_parc.remove(label)
+#              print('labels_parc:',labels_parc)
   
     def add_data(brain, array, fmin=None, fmid=None, fmax=None,
                  thresh=None, center=None, transparent=False, colormap="auto",
