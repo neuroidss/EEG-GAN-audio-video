@@ -1579,7 +1579,7 @@ if True:
 #              fig, ax = plt.subplots(figsize=(1024*px, 1024*px), facecolor='black',
                        subplot_kw=dict(polar=True))
 #              fig = plt.figure(figsize=(800*px, 800*px))
-              title=input_fname_name+'_inverse_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'_'+'parc-'+inverse_parc+'_'+'epochs-'+epochs_inverse_con+'\n'+f'{ji_fps:.2f}'
+              title=input_fname_name+'_inverse_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'_'+'parc-'+inverse_parc+'_'+'epochs-'+str(epochs_inverse_con)+'\n'+f'{ji_fps:.2f}'
               fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, title=title, 
                                              show = False, vmin=vmin, vmax=1, 
 #                                             fontsize_names=4,
@@ -3543,7 +3543,7 @@ if True:
         video_output_file=output_path+input_name+'_'+shows[shows_stylegan3]+'_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+"_"+dt_string+".mp4"
         video_output_files[shows_stylegan3]=video_output_file
       if show_inverse_circle_cons:
-        video_output_file=output_path+input_name+'_'+shows[shows_inverse_circle]+'_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'_'+'parc-'+inverse_parc+'_'+'epochs-'+epochs_inverse_con+"_"+dt_string+".mp4"
+        video_output_file=output_path+input_name+'_'+shows[shows_inverse_circle]+'_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'_'+'parc-'+inverse_parc+'_'+'epochs-'+str(epochs_inverse_con)+"_"+dt_string+".mp4"
         video_output_files[shows_inverse_circle]=video_output_file
       if show_inverse_3d:
         video_output_file=output_path+input_name+'_'+shows[shows_inverse_3d]+'_'+"_"+dt_string+".mp4"
