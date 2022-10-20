@@ -1751,15 +1751,15 @@ if True:
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
   flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
 #  flags.DEFINE_string('n_parts_one_time', '10', 'n_parts_one_time')
-#  flags.DEFINE_string('n_parts_one_time', '100', 'n_parts_one_time')
-  flags.DEFINE_string('n_parts_one_time', '864000', 'n_parts_one_time')
+  flags.DEFINE_string('n_parts_one_time', '100', 'n_parts_one_time')
+#  flags.DEFINE_string('n_parts_one_time', '864000', 'n_parts_one_time')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
 #flags.DEFINE_boolean('show_inverse_3d', True, 'show_inverse_3d')
   flags.DEFINE_boolean('show_inverse_3d', False, 'show_inverse_3d')
   flags.DEFINE_boolean('show_inverse_circle_cons', True, 'show_inverse_circle_cons')
 #  flags.DEFINE_boolean('show_inverse_circle_cons', False, 'show_inverse_circle_cons')
-#flags.DEFINE_boolean('cache_fwd', False, 'cache_fwd')
+#  flags.DEFINE_boolean('cache_fwd', False, 'cache_fwd')
   flags.DEFINE_boolean('cache_fwd', True, 'cache_fwd')
   flags.DEFINE_string('fname_fwd', None, 'fname_fwd')
 #flags.DEFINE_string('fname_fwd', 'inverse_fwd.fif', 'fname_fwd')
@@ -1769,15 +1769,6 @@ if True:
 #flags.DEFINE_string('raw_fname', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'raw_fname')
   flags.DEFINE_string('raw_fname', None, 'raw_fname')
   flags.DEFINE_string('brain_views', 'dorsal', 'lateral, medial, rostral, caudal, dorsal, ventral, frontal, parietal, axial, sagittal, coronal')
-  flags.DEFINE_boolean('stable_fps', True, 'stable_fps')
-  flags.DEFINE_string('epochs_con', '10', 'epochs_con')
-  flags.DEFINE_string('epochs_inverse_con', '1', 'epochs_inverse_con')
-  flags.DEFINE_string('epochs_inverse_cov', '165', 'epochs_inverse_cov')
-  flags.DEFINE_string('inverse_snr', '1.0', 'use smaller SNR for raw data')
-  flags.DEFINE_string('inverse_method', 'dSPM', 'MNE, dSPM, sLORETA, eLORETA')
-  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc.a2005s, aparc.a2009s, aparc, aparc_sub, HCPMMP1, HCPMMP1_combined, oasis.chubs, PALS_B12_Brodmann, PALS_B12_Lobes, PALS_B12_OrbitoFrontal, PALS_B12_Visuotopic, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
-  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
-  
 #                  views='lateral', #From the left or right side such that the lateral (outside) surface of the given hemisphere is visible.
 #                  views='medial', #From the left or right side such that the medial (inside) surface of the given hemisphere is visible (at least when in split or single-hemi mode).
 #                  views='rostral', #From the front.
@@ -1789,6 +1780,18 @@ if True:
 #                  views='axial', #From above with the brain pointing up (same as 'dorsal').
 #                  views='sagittal', #From the right side.
 #                  views='coronal', #From the rear.                  
+  
+  flags.DEFINE_boolean('stable_fps', True, 'stable_fps')
+  flags.DEFINE_string('epochs_con', '10', 'epochs_con')
+  flags.DEFINE_string('epochs_inverse_con', '1', 'epochs_inverse_con')
+  flags.DEFINE_string('epochs_inverse_cov', '165', 'epochs_inverse_cov')
+  flags.DEFINE_string('inverse_snr', '1.0', 'use smaller SNR for raw data')
+  flags.DEFINE_string('inverse_method', 'dSPM', 'MNE, dSPM, sLORETA, eLORETA')
+#  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc.a2005s, aparc.a2009s, aparc, aparc_sub, HCPMMP1, HCPMMP1_combined, oasis.chubs, PALS_B12_Brodmann, PALS_B12_Lobes, PALS_B12_OrbitoFrontal, PALS_B12_Visuotopic, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
+#  aparc_sub, ValueError: node_order has to be the same length as node_names  
+  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc.a2005s, aparc.a2009s, aparc, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
+  flags.DEFINE_string('inverse_standard_montage', 'standard_1005', 'EGI_256, GSN-HydroCel-128, GSN-HydroCel-129, GSN-HydroCel-256, GSN-HydroCel-257, GSN-HydroCel-32, GSN-HydroCel-64_1.0, GSN-HydroCel-65_1.0, artinis-brite23, artinis-octamon, biosemi128, biosemi16, biosemi160, biosemi256, biosemi32, biosemi64, brainproducts-RNP-BA-128, easycap-M1, easycap-M10, mgh60, mgh70, standard_1005, standard_1020, standard_alphabetic, standard_postfixed, standard_prefixed, standard_primed')
+#  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
 
 #flags.mark_flag_as_required('input')
 #flags.mark_flag_as_required('prefix')
@@ -1816,7 +1819,8 @@ if True:
   inverse_snr = float(FLAGS.inverse_snr)
   inverse_method = FLAGS.inverse_method
   inverse_parc = FLAGS.inverse_parc
-  inverse_montage = FLAGS.inverse_montage
+#  inverse_montage = FLAGS.inverse_montage
+  inverse_standard_montage = FLAGS.inverse_standard_montage
 
   from_bdf=FLAGS.from_bdf
   write_video=FLAGS.write_video
@@ -2137,12 +2141,14 @@ if True:
        fs_dir = fetch_fsaverage(verbose=True)
        subjects_dir = op.dirname(fs_dir)
 
-       # The files live in:
-       subject = 'fsaverage'
-       trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
-       src = op.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
-       bem = op.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
-
+       if True:
+#       if False:
+         # The files live in:
+         subject = 'fsaverage'
+         trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
+         src = op.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
+         bem = op.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+       
 
        ##############################################################################
        # Load the data
@@ -2176,14 +2182,19 @@ if True:
 
        # Read and set the EEG electrode locations, which are already in fsaverage's
        # space (MNI space) for standard_1020:
-       montage = mne.channels.make_standard_montage('standard_1005')
-#       montage = mne.channels.make_standard_montage('biosemi32')
 
        raw_bdf = raw
        raw = raw.pick(ch_names)
        
-       raw.set_montage(montage)
-       raw.set_eeg_reference(projection=True)  # needed for inverse modeling
+       if True:
+#       if False:
+         montage = mne.channels.make_standard_montage(inverse_standard_montage)
+#       montage = mne.channels.make_standard_montage('standard_1005')
+#       montage = mne.channels.make_standard_montage('biosemi32')
+
+       
+         raw.set_montage(montage)
+         raw.set_eeg_reference(projection=True)  # needed for inverse modeling
 
        # Check that the locations of EEG electrodes is correct with respect to MRI
 #       mne.viz.plot_alignment(
@@ -2194,23 +2205,25 @@ if True:
        # Setup source space and compute forward
        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+       if True:
+#       if False:
 #       if not (FLAGS.fname_fwd is None):
-       if FLAGS.cache_fwd:
-         if (FLAGS.fname_fwd is None):
-           from pathlib import Path
-           fname_fwd = 'inverse_'+Path(raw_fname).stem+'_fwd.fif'
-         else:
-           fname_fwd = FLAGS.fname_fwd
-         if os.path.isfile(fname_fwd):
-           fwd = mne.read_forward_solution(fname_fwd)
+         if FLAGS.cache_fwd:
+           if (FLAGS.fname_fwd is None):
+             from pathlib import Path
+             fname_fwd = 'inverse_'+Path(raw_fname).stem+'_fwd.fif'
+           else:
+             fname_fwd = FLAGS.fname_fwd
+           if os.path.isfile(fname_fwd):
+             fwd = mne.read_forward_solution(fname_fwd)
+           else:
+             fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
+                                         bem=bem, eeg=True, mindist=5.0, n_jobs=None)
+             mne.write_forward_solution(fname_fwd, fwd)
          else:
            fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
                                        bem=bem, eeg=True, mindist=5.0, n_jobs=None)
-           mne.write_forward_solution(fname_fwd, fwd)
-       else:
-         fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
-                                       bem=bem, eeg=True, mindist=5.0, n_jobs=None)
-       print(fwd)
+         print(fwd)
 
        ##############################################################################
        # From here on, standard inverse imaging methods can be used!
@@ -2219,12 +2232,15 @@ if True:
        # ---------------------
        # We don't have a sample infant dataset for MNE, so let's fake a 10-20 one:
 
-       ch_names_ = \
-           'Fz Cz Pz Oz Fp1 Fp2 F3 F4 F7 F8 C3 C4 T7 T8 P3 P4 P7 P8 O1 O2'.split()
-       ch_names_=ch_names_pick
-       data = np.random.RandomState(0).randn(len(ch_names_), 1000)
-       info = mne.create_info(ch_names_, 1000., 'eeg')
-       raw = mne.io.RawArray(data, info)
+#       ch_names_ = \
+#           'Fz Cz Pz Oz Fp1 Fp2 F3 F4 F7 F8 C3 C4 T7 T8 P3 P4 P7 P8 O1 O2'.split()
+#       ch_names_=ch_names_pick
+#       data = np.random.RandomState(0).randn(len(ch_names_), 1000)
+#       info = mne.create_info(ch_names_, 1000., 'eeg')
+#       raw = mne.io.RawArray(data, info)
+
+       mon=montage
+#       trans = mne.channels.compute_native_head_t(mon)
 
        ##############################################################################
        # Get an infant MRI template
@@ -2232,36 +2248,40 @@ if True:
        # To use an infant head model for M/EEG data, you can use
        # :func:`mne.datasets.fetch_infant_template` to download an infant template:
 
-       subject = mne.datasets.fetch_infant_template('6mo', subjects_dir, verbose=True)
+       if False: 
+         subject = mne.datasets.fetch_infant_template('6mo', subjects_dir, verbose=True)
 
        ##############################################################################
        # It comes with several helpful built-in files, including a 10-20 montage
        # in the MRI coordinate frame, which can be used to compute the
        # MRI<->head transform ``trans``:
+       if False: 
 #       fname_biosemi32 = op.join(subjects_dir, subject, 'montages', '10-10-montage.fif')
 #       mon = mne.channels.read_dig_fif(fname_biosemi32)
-       fname_montage = op.join(subjects_dir, subject, 'montages', inverse_montage+'-montage.fif')
-       mon = mne.channels.read_dig_fif(fname_montage)
+         fname_montage = op.join(subjects_dir, subject, 'montages', inverse_montage+'-montage.fif')
+         mon = mne.channels.read_dig_fif(fname_montage)
 #       fname_1005 = op.join(subjects_dir, subject, 'montages', '10-5-montage.fif')
 #       mon = mne.channels.read_dig_fif(fname_1005)
 #       fname_1020 = op.join(subjects_dir, subject, 'montages', '10-20-montage.fif')
 #       mon = mne.channels.read_dig_fif(fname_1020)
-       print('mon:',mon)
-       mon.rename_channels(
-           {f'EEG{ii:03d}': ch_name for ii, ch_name in enumerate(ch_names_, 1)})
-       trans = mne.channels.compute_native_head_t(mon)
-       raw.set_montage(mon)
-       print(trans)
+         print('mon:',mon)
+#       mon.rename_channels(
+#           {f'EEG{ii:03d}': ch_name for ii, ch_name in enumerate(ch_names_, 1)})
+         trans = mne.channels.compute_native_head_t(mon)
+         raw.set_montage(mon)
+         print(trans)
 
        ##############################################################################
        # There are also BEM and source spaces:
 
-       bem_dir = op.join(subjects_dir, subject, 'bem')
-       fname_src = op.join(bem_dir, f'{subject}-oct-6-src.fif')
-       src = mne.read_source_spaces(fname_src)
-       print(src)
- #      fname_bem = op.join(bem_dir, f'{subject}-5120-5120-5120-bem-sol.fif')
- #      bem = mne.read_bem_solution(fname_bem)
+#       if True:
+       if False:
+         bem_dir = op.join(subjects_dir, subject, 'bem')
+         fname_src = op.join(bem_dir, f'{subject}-oct-6-src.fif')
+         src = mne.read_source_spaces(fname_src)
+         print(src)
+         fname_bem = op.join(bem_dir, f'{subject}-5120-5120-5120-bem-sol.fif')
+         bem = mne.read_bem_solution(fname_bem)
 
        ##############################################################################
        # You can ensure everything is as expected by plotting the result:
@@ -2277,6 +2297,26 @@ if True:
        # If you have digitized head positions or MEG data, consider using
        # :ref:`mne coreg` to warp a suitable infant template MRI to your
        # digitization information.   
+
+
+       if False:
+#       if True:
+         if FLAGS.cache_fwd:
+           if (FLAGS.fname_fwd is None):
+             from pathlib import Path
+             fname_fwd = 'inverse_'+Path(raw_fname).stem+'_fwd.fif'
+           else:
+             fname_fwd = FLAGS.fname_fwd
+           if os.path.isfile(fname_fwd):
+             fwd = mne.read_forward_solution(fname_fwd)
+           else:
+             fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
+                                         bem=bem, eeg=True, mindist=5.0, n_jobs=None)
+             mne.write_forward_solution(fname_fwd, fwd)
+         else:
+           fwd = mne.make_forward_solution(raw.info, trans=trans, src=src,
+                                       bem=bem, eeg=True, mindist=5.0, n_jobs=None)
+         print(fwd)
 
        brain=None   
        if False:
@@ -2302,6 +2342,7 @@ if True:
          data_path = mne.datasets.sample.data_path()
          subjects_dir = data_path / 'subjects'
         
+
          brain = stc.plot(subjects_dir=subjects_dir, initial_time=0.1, figure=1)
 
        raw=None
@@ -3549,7 +3590,7 @@ if True:
 
               # Get labels for FreeSurfer 'aparc' cortical parcellation with 34 labels/hemi
               print('subject:',subject)
-              subject = 'fsaverage'
+#              subject = 'fsaverage'
               labels_parc = mne.read_labels_from_annot(subject, parc=parc,
                                                        subjects_dir=subjects_dir)
 #              print('labels_parc:',labels_parc)
@@ -4356,6 +4397,7 @@ if True:
         # epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=0.1, preload=False))
         if show_inverse_3d or show_inverse_circle_cons:
+#          datas[0].set_montage(montage)
           datas[0].set_montage(mon)
           datas[0].set_eeg_reference(projection=True).apply_proj()
 #          datas[0].set_eeg_reference().apply_proj()
