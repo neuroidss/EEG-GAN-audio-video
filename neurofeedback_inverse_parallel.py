@@ -1463,6 +1463,24 @@ if True:
               # and each sub-structure contained in the source space.
               # When mode = 'mean_flip', this option is used only for the cortical labels.
               src = inv['src']
+              
+              
+              if False:
+#              if True:
+#                print('labels_parc:',labels_parc)
+                
+                for label in labels_parc:
+#                  print('label:', label)
+#                  if label.name.startswith('???'):
+#                    print('???')
+                  if label.name.startswith('unknown') or label.name.startswith('???'):
+                    labels_parc.remove(label)
+#                for label in labels_parc:
+#                  print('label:',label)
+                      
+#                print('labels_parc:',labels_parc)
+              
+              
               label_ts = mne.extract_label_time_course(
                   stcs, labels_parc, src, mode='mean_flip', 
                   allow_empty=False,
@@ -1482,9 +1500,16 @@ if True:
                   label_ts, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
                   fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=False)
 
+              if True:
+#              if False:
               # We create a list of Label containing also the sub structures
-              labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
-              labels = labels_parc + labels_aseg
+                labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
+              
+              
+                labels = labels_parc + labels_aseg
+                
+#              labels = labels_parc
+#              print('len(labels), labels:', len(labels), labels)
 
               # read colors
               node_colors = [label.color for label in labels]
@@ -1493,6 +1518,8 @@ if True:
               label_names = [label.name for label in labels]
               lh_labels = [name for name in label_names if name.endswith('lh')]
               rh_labels = [name for name in label_names if name.endswith('rh')]
+#              print('len(lh_labels), lh_labels:', len(lh_labels), lh_labels)
+#              print('len(rh_labels), rh_labels:', len(rh_labels), rh_labels)
 
               # Get the y-location of the label
               label_ypos_lh = list()
@@ -1513,11 +1540,20 @@ if True:
               lh_labels = [label for (yp, label) in sorted(zip(label_ypos_lh, lh_labels))]
 
               # For the right hemi
-              rh_labels = [label[:-2] + 'rh' for label in lh_labels
+              if lh_labels[0].startswith('L_'):
+                  rh_labels = ['R_'+label[2:-2] + 'rh' for label in lh_labels
+                           if label != 'Brain-Stem' and 'R_'+label[2:-2] + 'rh' in rh_labels]
+              else:
+                  rh_labels = [label[:-2] + 'rh' for label in lh_labels
                            if label != 'Brain-Stem' and label[:-2] + 'rh' in rh_labels]
+#              lh_labels = ['L_'+label[2:-2] + 'rh' for label in lh_labels
+#                           if label != 'Brain-Stem' and 'L_'+label[2:-2] + 'rh' in lh_labels]
 
               # Save the plot order
               node_order = lh_labels[::-1] + rh_labels
+#              print('rh_labels: ', rh_labels)
+              
+#              print('len(label_names), len(node_order), label_names, node_order:', len(label_names), len(node_order), label_names, node_order)
 
               node_angles = circular_layout(label_names, node_order, start_pos=90,
                                             group_boundaries=[0, len(label_names) // 2])
@@ -1789,7 +1825,7 @@ if True:
   flags.DEFINE_string('inverse_method', 'dSPM', 'MNE, dSPM, sLORETA, eLORETA')
 #  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc.a2005s, aparc.a2009s, aparc, aparc_sub, HCPMMP1, HCPMMP1_combined, oasis.chubs, PALS_B12_Brodmann, PALS_B12_Lobes, PALS_B12_OrbitoFrontal, PALS_B12_Visuotopic, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
 #  aparc_sub, ValueError: node_order has to be the same length as node_names  
-  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc.a2005s, aparc.a2009s, aparc, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
+  flags.DEFINE_string('inverse_parc', 'HCPMMP1', 'aparc.a2005s, aparc.a2009s, aparc, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
   flags.DEFINE_string('inverse_standard_montage', 'standard_1005', 'EGI_256, GSN-HydroCel-128, GSN-HydroCel-129, GSN-HydroCel-256, GSN-HydroCel-257, GSN-HydroCel-32, GSN-HydroCel-64_1.0, GSN-HydroCel-65_1.0, artinis-brite23, artinis-octamon, biosemi128, biosemi16, biosemi160, biosemi256, biosemi32, biosemi64, brainproducts-RNP-BA-128, easycap-M1, easycap-M10, mgh60, mgh70, standard_1005, standard_1020, standard_alphabetic, standard_postfixed, standard_prefixed, standard_primed')
 #  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
 
@@ -3594,9 +3630,13 @@ if True:
               labels_parc = mne.read_labels_from_annot(subject, parc=parc,
                                                        subjects_dir=subjects_dir)
 #              print('labels_parc:',labels_parc)
-              for label in labels_parc:
-                if label.name.startswith('unknown'):
-                  labels_parc.remove(label)
+              remove_unknown_label = True
+              while remove_unknown_label:
+                remove_unknown_label = False
+                for label in labels_parc:
+                  if label.name.startswith('unknown') or label.name.startswith('???'):
+                    labels_parc.remove(label)
+                    remove_unknown_label = True
 #              print('labels_parc:',labels_parc)
   
     def add_data(brain, array, fmin=None, fmid=None, fmax=None,
