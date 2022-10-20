@@ -1428,7 +1428,7 @@ if True:
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmax=0., n_jobs=10)
 #     cov = mne.compute_covariance(epochs, tmax=0.)
-            evoked = epochs[0][ji+epochs_inverse_ev_av].average()  # trigger 1 in auditory/left
+            evoked = epochs[0][ji].average()  # trigger 1 in auditory/left
 #            evoked = epochs[0][ji].average()  # trigger 1 in auditory/left
 #            evoked.plot_joint()
    
@@ -1773,7 +1773,6 @@ if True:
   flags.DEFINE_string('epochs_con', '10', 'epochs_con')
   flags.DEFINE_string('epochs_inverse_con', '10', 'epochs_inverse_con')
   flags.DEFINE_string('epochs_inverse_cov', '165', 'epochs_inverse_cov')
-  flags.DEFINE_string('epochs_inverse_ev_av', '10', 'inverse epochs evoked average')
   flags.DEFINE_string('inverse_snr', '1.0', 'use smaller SNR for raw data')
   flags.DEFINE_string('inverse_method', 'dSPM', 'MNE, dSPM, sLORETA, eLORETA')
   flags.DEFINE_string('inverse_parc', 'aparc.a2009s', 'aparc, aparc.a2005s, aparc.a2009s')
