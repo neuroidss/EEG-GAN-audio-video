@@ -1568,13 +1568,25 @@ if True:
               n_lines=np.argmax(con_sort<vmin)
 #              input_fname_name
 #              title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(n_generate)+'/'+str(ji)
-#              px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+              px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#              fig = plt.figure(figsize=(1024*px, 1024*px))
+#              fig, ax = plt.subplots(figsize=(800*px, 800*px), facecolor='black',
+              fig, ax = plt.subplots(figsize=(1500*px, 1500*px), facecolor='black',
+#              fig, ax = plt.subplots(figsize=(1400*px, 1400*px), facecolor='black',
+#              fig, ax = plt.subplots(figsize=(1024*px, 1024*px), facecolor='black',
+                       subplot_kw=dict(polar=True))
 #              fig = plt.figure(figsize=(800*px, 800*px))
               title=input_fname_name+'_inverse_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+f'{ji_fps:.2f}'
               fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, title=title, 
                                              show = False, vmin=vmin, vmax=1, 
-                                             fontsize_names=6,
+#                                             fontsize_names=4,
+                                             fontsize_names=5,
+#                                             fontsize_names=5.5,
+#                                             fontsize_names=6,
 #                                             fontsize_names=8,
+#                                       node_height = 0.5,
+                                       padding=1.2,
+                                       ax=ax,
                                        node_angles=node_angles, node_colors=node_colors)
 #              plot_connectivity_circle(conmat, label_names, n_lines=300,
 #                                       node_angles=node_angles, node_colors=node_colors,
@@ -1589,14 +1601,21 @@ if True:
               image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
               image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
 
-##              size1=16*4
+              size1=16*8
 ##              size = 592+size1
-#            size = 608
+              size = 1024
+              
             #im3 = im1.resize((576, 576), Image.ANTIALIAS)
-##              left=348-int(size/2)+int(size1/2)
-##              top=404-int(size/2)+int(size1/16)
+#              left=348-int(size/2)+int(size1/2)
+#              top=404-int(size/2)+int(size1/16)
+              left=150
+              top=240
+#              left=150
+#              top=240
 
-##              image_crop=image[top:top+size,left:left+size]   
+              image_crop=image[top:top+size,left:left+size]   
+              image=image_crop
+#              image=image.resize((800, 800), Image.ANTIALIAS)
             #im2 = im1.crop((left, top, left+size, top+size))
 
 #              if FLAGS.rotate:
@@ -1787,7 +1806,8 @@ if True:
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
   flags.DEFINE_string('font_fname', '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf', 'font_fname')
 #  flags.DEFINE_string('n_parts_one_time', '10', 'n_parts_one_time')
-  flags.DEFINE_string('n_parts_one_time', '100', 'n_parts_one_time')
+  flags.DEFINE_string('n_parts_one_time', '50', 'n_parts_one_time')
+#  flags.DEFINE_string('n_parts_one_time', '100', 'n_parts_one_time')
 #  flags.DEFINE_string('n_parts_one_time', '864000', 'n_parts_one_time')
 #flags.DEFINE_string('n_parts_one_time', None, 'n_parts_one_time')
 #flags.DEFINE_string('part_len', None, 'part_len')
