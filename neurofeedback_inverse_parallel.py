@@ -1775,7 +1775,7 @@ if True:
   flags.DEFINE_string('epochs_inverse_cov', '165', 'epochs_inverse_cov')
   flags.DEFINE_string('inverse_snr', '1.0', 'use smaller SNR for raw data')
   flags.DEFINE_string('inverse_method', 'dSPM', 'MNE, dSPM, sLORETA, eLORETA')
-  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc, aparc.a2005s, aparc.a2009s')
+  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc.a2005s, aparc.a2009s, aparc, aparc_sub, HCPMMP1, HCPMMP1_combined, oasis.chubs, PALS_B12_Brodmann, PALS_B12_Lobes, PALS_B12_OrbitoFrontal, PALS_B12_Visuotopic, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
   flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
   
 #                  views='lateral', #From the left or right side such that the lateral (outside) surface of the given hemisphere is visible.
