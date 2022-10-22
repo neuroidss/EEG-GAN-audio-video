@@ -992,14 +992,17 @@ if True:
               peak_freq_maxs=[]
               psds, freqs = epo_spectrum.get_data(return_freqs=True)
             #print(f'\nPSDs shape: {psds.shape}, freqs shape: {freqs.shape}')
-              for x0 in psds[0]:
+              for x0 in psds:
                 peak_loc, peak_mag = mne.preprocessing.peak_finder(x0, thresh=None, extrema=1, verbose=False)
-                peak_index_max = max(range(len(peak_mag)), key=peak_mag.__getitem__)
-                peak_max=peak_loc[peak_index_max]
+#                peak_mag_max_value = max(peak_mag)
+#                peak_mag_max_index = peak_mag.index(peak_mag_max_value)
+                peak_mag_max_index = np.argmax(peak_mag, axis=0)
+                peak_index_max = peak_loc[peak_mag_max_index]
+                peak_max=x0[peak_index_max]
 #                print(f'\npeak_max: {peak_max}')
                 peak_maxs.append(peak_max)
                 peak_index_maxs.append(peak_index_max)
-                peak_freq_maxs.append(fmin+(peak_index_max/freqs[0])*(fmax-fmin))
+                peak_freq_maxs.append(fmin+(peak_index_max/len(x0))*(fmax-fmin))
 #                print(f'\npeak_loc, peak_mag: {peak_loc}, {peak_mag}')
 
             #fig = epo_spectrum.plot(show=False)
@@ -1196,11 +1199,17 @@ if True:
 
     @ray.remote
     def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps):
+#        import pyvjoy
         out_shows_ji_images=[]
         import numpy as np
         import matplotlib.pyplot as plt
         import PIL.Image
         from matplotlib.colors import LinearSegmentedColormap
+        from mne_connectivity import spectral_connectivity_epochs
+        import numpy as np
+        from mne.viz import circular_layout
+        from mne_connectivity.viz import plot_connectivity_circle
+        import matplotlib.pyplot as plt
 
         import mne
         from mne import io
@@ -1276,15 +1285,19 @@ if True:
             #print(f'\nPSDs shape: {psds.shape}, freqs shape: {freqs.shape}')
             for x0 in psds[0]:
                 peak_loc, peak_mag = mne.preprocessing.peak_finder(x0, thresh=None, extrema=1, verbose=False)
-                peak_index_max = max(range(len(peak_mag)), key=peak_mag.__getitem__)
-                peak_max=peak_loc[peak_index_max]
+#                peak_mag_max_value = max(peak_mag)
+#                peak_mag_max_index = peak_mag.index(peak_mag_max_value)
+                peak_mag_max_index = np.argmax(peak_mag, axis=0)
+                peak_index_max = peak_loc[peak_mag_max_index]
+                peak_max=x0[peak_index_max]
 #                print(f'\npeak_max: {peak_max}')
                 peak_maxs.append(peak_max)
                 peak_index_maxs.append(peak_index_max)
-                peak_freq_maxs.append(fmin+(peak_index_max/freqs[0])*(fmax-fmin))
+                peak_freq_maxs.append(fmin+(peak_index_max/len(x0))*(fmax-fmin))
 #                print(f'\npeak_loc, peak_mag: {peak_loc}, {peak_mag}')
 
-            if True:
+            if show_gamepad_peaks_sensor_psd:
+#            if False:
                 fig = epo_spectrum.plot(show=False)
                 fig.canvas.draw()
                         
@@ -1296,7 +1309,8 @@ if True:
 #                tmin=tmin, tmax=tmax,
 #                fmin=fmin, fmax=fmax
 #                ).plot(show=False)
-            if False:
+            if show_gamepad_peaks_sensor_iapf:
+#            if False:
               fig, ax = plt.subplots(figsize=(5, 5))
               cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
                                          colors=['g', 'y', 'r'], N=256)
@@ -1319,9 +1333,274 @@ if True:
 #            image_pil_resize=image_pil.resize((992,336),PIL.Image.Resampling.LANCZOS)
               image=np.asarray(image_pil_resize)
 
+              plt.close(fig)
+              del fig
+              out_shows_ji_images.append([shows_circle,ji,image])
+
+
+
+        if show_gamepad_peaks_sensor_iapf_circle_cons or vjoy_gamepad_peaks_sensor_iapf:
+
+         for band in range(len(bands)):
+          for method_idx, method in enumerate(methods):
+          #fmin=8.
+          #fmax=13.
+            fmin=bands[band][0]
+            fmax=bands[band][1]
+          
+#          if band == 0:
+            mne.set_log_level('CRITICAL')
+            con = spectral_connectivity_epochs(
+#          con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
+#            epochs[0], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+#            epochs[0][ji:ji+4], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+#            np_array, method=methods[method], n_epochs_used=len(np_array), mode='multitaper', sfreq=sfreq, freqs=freqs,
+#            n_nodes=len(epochs[band][0].get_data()), faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=50)
+              epochs[band][ji:ji+epochs_con], method=methods[method_idx], mode='multitaper', sfreq=sfreq, fmin=fmin,
+              fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose='CRITICAL')
+#          cons=np.roll(cons,1,axis=0)
+            cons=np.roll(cons,1,axis=0)
+            conmat = con.get_data(output='dense')[:, :, 0]
+#          print(conmat.shape)
+#          cons[1:,:] = cons[:len(cons),:]
+            cons[0]=conmat[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+#          cons[0]=con[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
+          
+#          if print_freq_once and not print_freq_once_printed:
+#             print(freqs)
+#             print_freq_once_printed = True
+          #con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
+          #  epochs[band][ji,ji+1], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
+          #  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=1)
+#          psds_shift1=int(round(method*len(bands)+band)*(len(ch_names)*(len(ch_names)-1)/2))
+#          ji1=0
+#          for j1 in range(0,len(ch_names)): # display separate audio for each break
+#            for i1 in range(0,j1): # display separate audio for each break
+#              psds[ji1+psds_shift1]=(con[j1][i1][0]-0.5)*1
+#              ji1 = ji1+1
+            cons = cons[-int(len(cons[0])):]
+        #psds, freqs = mne.time_frequency.psd_welch(raw, picks=picks,
+        #                 tmin=tmin, tmax=tmax, fmin=fmin, fmax=fmax,
+        #                 n_fft=n_fft)
+        #logger.disabled = False
+
+        #print(freqs)
+        #print(psds)
+        
+#        psd_array[i]=psds
+        ##z_samples = psds
+
+        #w_samples = G.mapping(torch.from_numpy(z_samples).to(device), None)  # [N, L, C]
+        #w_samples = w_samples[:, :1, :].cpu().numpy().astype(np.float32)       # [N, 1, C]
+        ##z_avg = np.mean(z_samples, axis=0)      # [1, 1, C]
+        #z_avg = np.mean(z_samples, axis=0, keepdims=True)      # [1, 1, C]
+        ##psd_array[i]=z_avg
+        #psd_array[i]=z_avg
+        #print(z_avg)
+        #z_std = (np.sum((z_samples - z_avg) ** 2) / z_avg_samples) ** 0.5
+
+        #psd_array[i]=psds
+        #psds_transpose=np.transpose(psds)
+        #plt.plot(freqs,psds_transpose)
+        #plt.xlabel('Frequency (Hz)')
+        #plt.ylabel('PSD (dB)')
+        #plt.title('Power Spectrum (PSD)')
+        #plt.show()
+#        if (i==part_len-1) or (ji==n_generate-1) :
+#        fig = plt.figure()
+#        if True:
+#        if show_circle_cons:
+#          con_res = dict()
+#          for method, c in zip(methods, con):
+#            con_res[method] = c[:, :, 0]
+#            con_res[method] = c[:, :]
+#         for ii, method in enumerate(methods):
+#            fig,_ = plot_connectivity_circle(con_res[method], label_names, n_lines=300, 
+
+#            plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
+#                                             title=method, show = False)
+#            px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#            fig = plt.figure(figsize=(800*px, 800*px))
+#            px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#            fig = plt.figure(figsize=(576*px, 576*px))
+#            fig,_ = 
+
+#            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=300, 
+#                                             title=method, show = False, vmin=0, vmax=1)#, fig=fig)
+            con_sort=np.sort(np.abs(conmat).ravel())[::-1]
+#            con_sort=np.sort(np.abs(con).ravel())[::-1]
+            n_lines=np.argmax(con_sort<vmin)
+               
+#            print(freqs)
+#            if not(from_bdf is None):
+#              ji_fps = ji/fps
+            cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
+                                         colors=['g', 'y', 'r'], N=256)
+#            print('cmap_circle:',cmap.resampled(len(x0)))
+            cmap_circle=cmap.resampled(len(x0))
+            node_colors=[]
+
+#  flags.DEFINE_list('ch_names',
+#['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz',
+#'O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'for neurofeedback')
+#            score_peaks=[0,1,2,3]
+            score_controls=[
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                ]
+            score_peak_pair_names=[
+#                [['PO3','O1','Oz','O2','PO4'],['PO3','O1','Oz','O2','PO4']],
+                [['P3'],['PO3','O1','Oz','O2','PO4']],
+                [['P4'],['PO3','O1','Oz','O2','PO4']],
+                [['PO3'],['PO3','O1','Oz','O2','PO4']],
+                [['O1'],['PO3','O1','Oz','O2','PO4']],
+                [['Oz'],['PO3','O1','Oz','O2','PO4']],
+                [['O2'],['PO3','O1','Oz','O2','PO4']],
+                [['PO4'],['PO3','O1','Oz','O2','PO4']],
+                [['Pz'],['PO3','O1','Oz','O2','PO4']],
+                [['PO3','O1','Oz','O2','PO4'],['PO3']],
+                [['PO3','O1','Oz','O2','PO4'],['O1']],
+                [['PO3','O1','Oz','O2','PO4'],['O2']],
+                [['PO3','O1','Oz','O2','PO4'],['PO4']],
+                [['PO3','O1','Oz','O2','PO4'],['Oz']],
+                [['PO3','O1','Oz','O2','PO4'],['Pz']],
+                [['PO3','O1','Oz','O2','PO4'],['P3']],
+                [['PO3','O1','Oz','O2','PO4'],['P4']],
+                [['PO3','O1','Oz','O2','PO4'],['P7']],
+                [['PO3','O1','Oz','O2','PO4'],['P8']],
+#                [['Fz','Cz'],['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz',
+#                'PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4',
+#                'Fp2','Fz','Cz']],
+#                [['F7','F3','F4','F8'],['P7','P3','P4','P8']],
+#                [['F4','F8'],['P7','P3']],
+#                [['F4','F8'],['P4','P8']],
+#                [['F7','F3'],['P7','P3']],
+#                [['F7','F3'],['P4','P8']],
+                ]
+            score_peak_pair_indexes=score_peak_pair_names.copy()
+            for idx0 in range(len(score_peak_pair_names)):
+              for idx1 in range(len(score_peak_pair_names[idx0])):
+                for idx2 in range(len(score_peak_pair_names[idx0][idx1])):
+                    score_peak_pair_indexes[idx0][idx1][idx2]=label_names.index(score_peak_pair_names[idx0][idx1][idx2])
+            scores=score_controls.copy()
+            peak_maxs_norm=np.asarray(peak_index_maxs)
+            peak_maxs_norm=peak_maxs_norm/(len(x0)-1)
+#            print('peak_maxs_norm:',peak_maxs_norm)
+            score_ns=score_controls.copy()
+            for idx0 in range(len(score_peak_pair_indexes)):
+              score_ns[idx0]=0
+              scores[idx0]=0
+              for idx1 in range(len(score_peak_pair_indexes[idx0][0])):
+                for idx2 in range(len(score_peak_pair_indexes[idx0][1])):
+                  if not(score_peak_pair_indexes[idx0][0][idx1] == score_peak_pair_indexes[idx0][1][idx2]):
+                    if score_peak_pair_indexes[idx0][0][idx1] > score_peak_pair_indexes[idx0][1][idx2]:
+                      con_peak0_peak1 = conmat[score_peak_pair_indexes[idx0][0][idx1]][score_peak_pair_indexes[idx0][1][idx2]]
+                    else:
+                      con_peak0_peak1 = conmat[score_peak_pair_indexes[idx0][1][idx2]][score_peak_pair_indexes[idx0][0][idx1]]
+                    peak_norm = peak_maxs_norm[score_peak_pair_indexes[idx0][0][idx1]] * peak_maxs_norm[score_peak_pair_indexes[idx0][1][idx2]]
+#                    print('con_peak0_peak1, peak_norm:', con_peak0_peak1, peak_norm)
+                    scores[idx0] = scores[idx0] + peak_norm * con_peak0_peak1
+                    score_ns[idx0] = score_ns[idx0] + 1
+#                    print('scores[idx0]:',scores[idx0])
+              scores[idx0] = scores[idx0] / score_ns[idx0]
+#            print('scores:',scores)
+            if vjoy_gamepad_peaks_sensor_iapf:
+              return(scores)
+
+
+#        if show_gamepad_peaks_sensor_iapf_circle_cons:
+            
+            for con_idx in range(len(conmat)):
+              node_colors.append(cmap_circle(peak_index_maxs[con_idx]))
+#              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
+            for con_idx in range(len(conmat)):
+                if peak_index_maxs[con_idx]<len(x0)-1:
+                    conmat[con_idx] = 0
+                    conmat[:,con_idx] = 0
+#                elif peak_index_maxs[con_idx]<len(x0)-1:
+#                    conmat[con_idx] = vmin+0.001
+#                    conmat[:,con_idx] = vmin+0.001
+
+            #color1=mcp.gen_color(cmap="winter",n=5)
+            #color1=mcp.gen_color(cmap=cmap,n=256)
+            #print('color1:',color1)
+            #iapf=(0+(peak_index_max/len(x0))*(256))
+            #print('node_colors:',node_colors)
+#            print('node_colors:',node_colors)
+            #node_colors=color1*(0+(peak_index_max/len(x0))*(256))
+            
+            fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, 
+#            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=n_lines, 
+#            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names,# n_lines=300, 
+#                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2), 
+                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+f'{ji_fps:.2f}', 
+#                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{freqs[0][0]:.1f}'+'-'+f'{freqs[0][len(freqs[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
+#               title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+str(len(epochs[0].events)-2)+'\n'+str(ji), 
+#                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2)+'_'+str(ji),
+                                              node_colors=node_colors,
+                                             show = False, vmin=vmin, vmax=1, fontsize_names=8)#, fig=fig)
+#                                             show = False, vmin=0, vmax=1, fontsize_names=8)#16)#, fig=fig)
+#         if True:
+
+            fig.canvas.draw()
+
+            #image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+            image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+            image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+            size1=16*4
+            size = 592+size1
+#            size = 608
+            #im3 = im1.resize((576, 576), Image.ANTIALIAS)
+            left=348-int(size/2)+int(size1/2)
+            top=404-int(size/2)+int(size1/16)
+
+            image_crop=image[top:top+size,left:left+size]   
+            #im2 = im1.crop((left, top, left+size, top+size))
+
+            if rotate:
+              image_rot90 = np.rot90(image_crop)
+              image=image_rot90
+#              screen.update(image_rot90)
+            else:
+              image=image_crop
+#            image_rot90 = np.rot90(image)
+
+#            screen.update(image)
+#              screen.update(image_crop)
+
+##            image = image[:,:,::-1]
+##            screen.update(image)
+
             plt.close(fig)
             del fig
             out_shows_ji_images.append([shows_circle,ji,image])
+
+
+
+
+
+
+
+
+            
         return image
 
 
@@ -2796,8 +3075,8 @@ if True:
 #  flags.DEFINE_string('vmin', '0.9', 'vmin')
   flags.DEFINE_string('vmin', '0.7', 'vmin')
 #  flags.DEFINE_string('duration', '10', 'duration: if None, used: 5*1/bands[0]')
-  flags.DEFINE_string('duration', '8', 'if None, used: 5*1/bands[0]')
-#  flags.DEFINE_string('duration', None, 'if None, used: 5*1/bands[0]')
+#  flags.DEFINE_string('duration', '8', 'if None, used: 5*1/bands[0]')
+  flags.DEFINE_string('duration', None, 'if None, used: 5*1/bands[0]')
 #  flags.DEFINE_string('fps', '3', 'fps')
 #  flags.DEFINE_string('fps', '1.6', 'fps')
   flags.DEFINE_string('fps', '10', 'fps')
@@ -2898,26 +3177,37 @@ if True:
   flags.DEFINE_string('inverse_parc', 'HCPMMP1', 'aparc.a2005s, aparc.a2009s, aparc, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
   flags.DEFINE_string('inverse_standard_montage', 'standard_1005', 'EGI_256, GSN-HydroCel-128, GSN-HydroCel-129, GSN-HydroCel-256, GSN-HydroCel-257, GSN-HydroCel-32, GSN-HydroCel-64_1.0, GSN-HydroCel-65_1.0, artinis-brite23, artinis-octamon, biosemi128, biosemi16, biosemi160, biosemi256, biosemi32, biosemi64, brainproducts-RNP-BA-128, easycap-M1, easycap-M10, mgh60, mgh70, standard_1005, standard_1020, standard_alphabetic, standard_postfixed, standard_prefixed, standard_primed')
 #  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
-#  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
-  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
+  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
+#  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
   flags.DEFINE_string('epochs_peaks', '1', 'epochs_peaks')
+#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', True, '')
+  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', False, '')
+#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf', True, '')
+  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf', False, '')
+
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
   flags.DEFINE_string('gamepad_inverse_peaks_label', None, 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
 #  flags.DEFINE_string('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', False, '')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', True, '')
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', False, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', True, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', False, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_psd', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_psd', False, '')
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf', True, '')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf', False, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf', False, '')
 
   flags.DEFINE_boolean('gamepad_inverse_peaks_stc_iapf_transparent', False, '')
 #  flags.DEFINE_boolean('gamepad_inverse_peaks_stc_iapf_transparent', True, '')
   flags.DEFINE_list('gamepad_inverse_peaks_stc_iapf_background', [0,0,0], '')
 #  flags.DEFINE_list('gamepad_inverse_peaks_stc_iapf_background', [1,1,1], '')
+
+  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', True, '')
+#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', False, '')
+
+  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', True, '')
+#  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', False, '')
 
 
 #flags.mark_flag_as_required('input')
@@ -2939,6 +3229,34 @@ if True:
 
   if FLAGS.help:
     exit()
+
+  write_video=FLAGS.write_video
+  stable_fps=FLAGS.stable_fps
+
+  vjoy_gamepad_peaks_sensor_iapf = FLAGS.vjoy_gamepad_peaks_sensor_iapf
+  if vjoy_gamepad_peaks_sensor_iapf:
+    import pyvjoy
+    vjoy = pyvjoy.VJoyDevice(1)
+
+    print('vjoy.data:', vjoy.data)
+    vjoy.reset()
+    vjoy.reset_buttons()
+    vjoy.reset_povs()
+#    vjoy.data.lButtons = 19 # buttons number 1,2 and 5 (1+2+16)
+#    vjoy.data.wAxisX = 0x2000 
+#    vjoy.data.wAxisY= 0x7500
+#    vjoy.update()
+#    vjoy.reset()
+#HID_USAGE_X = 0x30
+#HID_USAGE_Y	= 0x31
+#HID_USAGE_Z	= 0x32
+#HID_USAGE_RX = 0x33
+#HID_USAGE_RY = 0x34
+#HID_USAGE_RZ = 0x35    
+  
+  show_gamepad_peaks_sensor_iapf_circle_cons = FLAGS.show_gamepad_peaks_sensor_iapf_circle_cons
+  show_gamepad_peaks_sensor_psd = FLAGS.show_gamepad_peaks_sensor_psd
+  show_gamepad_peaks_sensor_iapf = FLAGS.show_gamepad_peaks_sensor_iapf
 
   gamepad_inverse_peaks_stc_iapf_transparent=FLAGS.gamepad_inverse_peaks_stc_iapf_transparent
   gamepad_inverse_peaks_stc_iapf_background=(int(FLAGS.gamepad_inverse_peaks_stc_iapf_background[0]),int(FLAGS.gamepad_inverse_peaks_stc_iapf_background[1]),int(FLAGS.gamepad_inverse_peaks_stc_iapf_background[2]))
@@ -2965,7 +3283,6 @@ if True:
   inverse_standard_montage = FLAGS.inverse_standard_montage
 
   from_bdf=FLAGS.from_bdf
-  write_video=FLAGS.write_video
 
   if FLAGS.show_inverse_3d:
     mne.viz.set_3d_backend('pyvistaqt')
@@ -3131,49 +3448,50 @@ if True:
   shows_gamepad_inverse_peaks = 7
   shows = ['circle', 'spectrum', 'stable_diffusion', 'stylegan3', 'inverse_circle', 'inverse_3d', 'gamepad_peaks', 'gamepad_inverse_peaks']
   screens=[{}]*len(shows)
-  
-  if show_circle_cons:
-    canvas = np.zeros((800,800))
-#  canvas = np.zeros((480,640))
-    screen = pf.screen(canvas, 'circle_cons')
-    screens[shows_circle]=screen
 
-  if show_spectrum_cons:
-    canvas2 = np.zeros((800,800))
+  if not vjoy_gamepad_peaks_sensor_iapf:
+    if show_circle_cons:
+      canvas = np.zeros((800,800))
 #  canvas = np.zeros((480,640))
-    screen2 = pf.screen(canvas2, 'spectrum_cons')
-    screens[shows_spectrum]=screen2
+      screen = pf.screen(canvas, 'circle_cons')
+      screens[shows_circle]=screen
 
-  if show_stable_diffusion_cons:
-    canvas3 = np.zeros((800,800))
+    if show_spectrum_cons:
+      canvas2 = np.zeros((800,800))
+#  canvas = np.zeros((480,640))
+      screen2 = pf.screen(canvas2, 'spectrum_cons')
+      screens[shows_spectrum]=screen2
+
+    if show_stable_diffusion_cons:
+      canvas3 = np.zeros((800,800))
 #    canvas3 = np.zeros((512,512))
 #  canvas = np.zeros((480,640))
-    screen3 = pf.screen(canvas3, 'stable_diffusion_cons')
-    screens[shows_stable_diffusion]=screen3
-    import random 
+      screen3 = pf.screen(canvas3, 'stable_diffusion_cons')
+      screens[shows_stable_diffusion]=screen3
+      import random 
 
-  if show_stylegan3_cons:
-    canvas4 = np.zeros((1024,1024))
+    if show_stylegan3_cons:
+      canvas4 = np.zeros((1024,1024))
 #    canvas4 = np.zeros((800,800))
-    screen4 = pf.screen(canvas4, 'stylegan3_cons')
-    screens[shows_stylegan3]=screen4
+      screen4 = pf.screen(canvas4, 'stylegan3_cons')
+      screens[shows_stylegan3]=screen4
 
-  if show_inverse_circle_cons:
-    canvas5 = np.zeros((800,800))
+    if show_inverse_circle_cons:
+      canvas5 = np.zeros((800,800))
 #  canvas = np.zeros((480,640))
-    screen5 = pf.screen(canvas5, 'inverse_circle_cons')
-    screens[shows_inverse_circle]=screen5
+      screen5 = pf.screen(canvas5, 'inverse_circle_cons')
+      screens[shows_inverse_circle]=screen5
 
-  if show_gamepad_peaks:
-    canvas6 = np.zeros((800,800))
+    if show_gamepad_peaks:
+      canvas6 = np.zeros((800,800))
 #  canvas = np.zeros((480,640))
-    screen6 = pf.screen(canvas6, 'gamepad_peaks')
-    screens[shows_gamepad_peaks]=screen6
+      screen6 = pf.screen(canvas6, 'gamepad_peaks')
+      screens[shows_gamepad_peaks]=screen6
 
-  if show_gamepad_inverse_peaks:
-    canvas7 = np.zeros((800,800))
-    screen7 = pf.screen(canvas7, 'gamepad_inverse_peaks')
-    screens[shows_gamepad_inverse_peaks]=screen7
+    if show_gamepad_inverse_peaks:
+      canvas7 = np.zeros((800,800))
+      screen7 = pf.screen(canvas7, 'gamepad_inverse_peaks')
+      screens[shows_gamepad_inverse_peaks]=screen7
   
 #  if show_inverse_3d:
 #    canvas6 = np.zeros((800,800))
@@ -5789,7 +6107,68 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
-            if FLAGS.stable_fps:
+            if vjoy_gamepad_peaks_sensor_iapf:
+              scores = message
+#PSB_SELECT      = 0x0001
+#PSB_L3          = 0x0002
+#PSB_R3          = 0x0004
+#PSB_START       = 0x0008
+#PSB_PAD_UP      = 0x0010
+#PSB_PAD_RIGHT   = 0x0020
+#PSB_PAD_DOWN    = 0x0040
+#PSB_PAD_LEFT    = 0x0080
+#PSB_L2          = 0x0100
+#PSB_R2          = 0x0200
+#PSB_L1          = 0x0400
+#PSB_R1          = 0x0800
+#PSB_GREEN       = 0x1000
+#PSB_RED         = 0x2000
+#PSB_BLUE        = 0x4000
+#PSB_PINK        = 0x8000
+#PSB_TRIANGLE    = 0x1000
+#PSB_CIRCLE      = 0x2000
+#PSB_CROSS       = 0x4000
+#PSB_SQUARE      = 0x8000
+
+#These are analog buttons
+#PSAB_PAD_RIGHT  =  9
+#PSAB_PAD_UP     = 11
+#PSAB_PAD_DOWN   = 12
+#PSAB_PAD_LEFT   = 10
+#PSAB_L2         = 19
+#PSAB_R2         = 20
+#PSAB_L1         = 17
+#PSAB_R1         = 18
+#PSAB_GREEN      = 13
+#PSAB_RED        = 14
+#PSAB_BLUE       = 15
+#PSAB_PINK       = 16
+#PSAB_TRIANGLE   = 13
+#PSAB_CIRCLE     = 14
+#PSAB_CROSS      = 15
+#PSAB_SQUARE     = 16
+#              vjoy.set_axis(pyvjoy.HID_USAGE_X, int(0x8000 * scores[0]))
+#              vjoy.set_axis(pyvjoy.HID_USAGE_Y, int(0x8000 * scores[1]))
+              vjoy.data.lButtons = 0
+#              for idx0 in range(len(scores)):
+              for idx0 in range(8):
+                idx1=10
+                vjoy.data.lButtons = vjoy.data.lButtons + round(scores[idx0+idx1])*(2**(idx0))
+              vjoy.data.wAxisX = round(0x8000 * (0.5-scores[0]/2+scores[1]/2))
+              vjoy.data.wAxisY = round(0x8000 * (0.5-scores[2]/2+scores[3]/2))
+              vjoy.data.wAxisZ = round(0x8000 * scores[4])
+              vjoy.data.wAxisXRot = round(0x8000 * (0.5-scores[5]/2+scores[6]/2))
+              vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
+              vjoy.data.wAxisZRot = round(0x8000 * scores[9])
+              vjoy.update()
+#              vjoy.set_disc_pov(1,round(scores[0]*3+1))
+#              vjoy.set_disc_pov(2,round(scores[0]*3+1))
+#              vjoy.set_disc_pov(3,round(scores[0]*3+1))
+#              vjoy.set_disc_pov(4,round(scores[0]*3+1))
+#              for idx0 in range(len(scores)):
+#               for idx1 in range(4):
+#                vjoy.set_button(idx0+9+4*idx1,round(scores[idx0]))
+            if not(vjoy_gamepad_peaks_sensor_iapf) and stable_fps:
               image_show = message[:,:,::-1]
               screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
@@ -5809,9 +6188,9 @@ if True:
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if write_video:
+            if not(vjoy_gamepad_peaks_sensor_iapf) and write_video:
               video_outs[shows_idx].append_data(image)
-            if not FLAGS.stable_fps:
+            if not(vjoy_gamepad_peaks_sensor_iapf) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #          screens[image_idx].update(image)
@@ -5853,7 +6232,24 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
-            if FLAGS.stable_fps:
+            if vjoy_gamepad_peaks_sensor_iapf:
+              scores = message
+              vjoy.data.lButtons = 0
+              for idx0 in range(8):
+                idx1=10
+                vjoy.data.lButtons = vjoy.data.lButtons + round(scores[idx0+idx1])*(2**(idx0))
+              vjoy.data.wAxisX = round(0x8000 * (0.5-scores[0]/2+scores[1]/2))
+              vjoy.data.wAxisY = round(0x8000 * (0.5-scores[2]/2+scores[3]/2))
+              vjoy.data.wAxisZ = round(0x8000 * scores[4])
+              vjoy.data.wAxisXRot = round(0x8000 * (0.5-scores[5]/2+scores[6]/2))
+              vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
+              vjoy.data.wAxisZRot = round(0x8000 * scores[9])
+              vjoy.update()
+#              vjoy.set_disc_pov(1,round(scores[0]*3+1))
+#              for idx0 in range(len(scores)):
+#               for idx1 in range(4):
+#                vjoy.set_button(idx0+9+4*idx1,round(scores[idx0]))
+            if not(vjoy_gamepad_peaks_sensor_iapf) and stable_fps:
               image_show = message[:,:,::-1]
               screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
@@ -5880,9 +6276,9 @@ if True:
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if write_video:
+            if not(vjoy_gamepad_peaks_sensor_iapf) and write_video:
               video_outs[shows_idx].append_data(image)
-            if not FLAGS.stable_fps:
+            if not(vjoy_gamepad_peaks_sensor_iapf) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
@@ -5901,7 +6297,24 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
-            if FLAGS.stable_fps:
+            if vjoy_gamepad_peaks_sensor_iapf:
+              scores = message
+              vjoy.data.lButtons = 0
+              for idx0 in range(8):
+                idx1=10
+                vjoy.data.lButtons = vjoy.data.lButtons + round(scores[idx0+idx1])*(2**(idx0))
+              vjoy.data.wAxisX = round(0x8000 * (0.5-scores[0]/2+scores[1]/2))
+              vjoy.data.wAxisY = round(0x8000 * (0.5-scores[2]/2+scores[3]/2))
+              vjoy.data.wAxisZ = round(0x8000 * scores[4])
+              vjoy.data.wAxisXRot = round(0x8000 * (0.5-scores[5]/2+scores[6]/2))
+              vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
+              vjoy.data.wAxisZRot = round(0x8000 * scores[9])
+              vjoy.update()
+#              vjoy.set_disc_pov(1,round(scores[0]*3+1))
+#              for idx0 in range(len(scores)):
+#               for idx1 in range(4):
+#                vjoy.set_button(idx0+9+4*idx1,round(scores[idx0]))
+            if not(vjoy_gamepad_peaks_sensor_iapf) and stable_fps:
               image_show = message[:,:,::-1]
               screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
@@ -5928,9 +6341,9 @@ if True:
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if write_video:
+            if not(vjoy_gamepad_peaks_sensor_iapf) and write_video:
               video_outs[shows_idx].append_data(image)
-            if not FLAGS.stable_fps:
+            if not(vjoy_gamepad_peaks_sensor_iapf) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
@@ -5952,3 +6365,10 @@ if False:
   
 #print("duration with startup = ", time.time() - start)
   
+#j.reset()
+#j.reset_buttons()
+#j.reset_povs()
+#j.data.lButtons = 19 # buttons number 1,2 and 5 (1+2+16)
+#j.data.wAxisX = 0x2000 
+#j.data.wAxisY= 0x7500
+#j.update()
