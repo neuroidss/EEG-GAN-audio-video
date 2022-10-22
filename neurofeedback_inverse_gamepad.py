@@ -503,10 +503,12 @@ if True:
 
 
 
+#            if False:
+            if True:
 #            n_epochs_use=2
 #            stcs = compute_source_psd_epochs(epochs[0][ji:ji+(n_epochs_use-1)],
 #            stc = compute_source_psd(raw,
-            stc,sensor_psd = compute_source_psd(raw,
+              stc,sensor_psd = compute_source_psd(raw,
                                      inverse_operator,
                                      lambda2=lambda2,
 #                                     lambda2=1. / 9.,
@@ -526,14 +528,72 @@ if True:
 #                                             return_generator=False
 #                                             return_generator=True
                                              )
-
+            if False:
+#            if True:
+              n_epochs_use=2
+              stcs = compute_source_psd_epochs(epochs[0][ji:ji+(n_epochs_use-1)],
+#            stc = compute_source_psd(raw,
+#              stc,sensor_psd = compute_source_psd(raw,
+                                     inverse_operator,
+                                     lambda2=lambda2,
+#                                     lambda2=1. / 9.,
+                                     method=inv_method,
+#                                     method="dSPM",
+#            stc,sensor_psd = compute_source_psd(raw, inverse_operator, lambda2=1. / 9., method="dSPM",
+#                         tmin=tmin, tmax=tmax,
+                                            fmin=fmin, fmax=fmax,
+                         pick_ori="normal",
+#                                            n_fft=n_fft,
+                                            label=label,
+#                                     overlap=0.1,
+#                                     overlap=0,
+#                                     return_sensor = False,
+#                                     return_sensor = True,
+#                         dB=True
+#                                             return_generator=False
+#                                             return_generator=True
+                                             )
             # compute average PSD over the first 10 epochs
-#            psd_avg = 0.
-#            for i, stc in enumerate(stcs):
-#                psd_avg += stc.data
-#            psd_avg /= n_epochs_use
-#            freqs = stc.times  # the frequencies are stored here
-#            stc = stcs[0]
+              psd_avg = 0.
+              for i, stc in enumerate(stcs):
+                psd_avg += stc.data
+              psd_avg /= n_epochs_use
+#              freqs = stc.times  # the frequencies are stored here
+#              stc = stcs[0]
+              stc.data = psd_avg
+
+            if show_gamepad_inverse_peaks_stc_psd:
+#            if False:
+
+                px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#              fig = plt.figure(figsize=(1024*px, 1024*px))
+#              fig, ax = plt.subplots(figsize=(800*px, 800*px), facecolor='black',
+                fig, ax = plt.subplots(figsize=(1024*px, 1024*px))
+#                fig, ax = plt.subplots(figsize=(5, 5))
+                ax.plot(stc.times, stc.data.T)
+
+#                fig.xlabel('Frequency (Hz)')
+#                fig.ylabel('PSD (dB)')
+#                fig.title('Source Power Spectrum (PSD)')
+              
+#              fig = sensor_psd.plot_topomap(
+                  #times=10,
+#                                          show=False,
+#                  scalings=1., cbar_fmt='%0.1f', vmin=0, cmap='inferno'
+#                  ,
+ #                 axes=ax
+        #time_format=title
+#                  )
+
+                fig.canvas.draw()
+                image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+                image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+#              image_pil=PIL.Image.fromarray(image, 'RGB')
+#              image_pil_resize=image_pil.resize((512,512),PIL.Image.Resampling.LANCZOS)
+##            image_pil_resize=image_pil.resize((992,336),PIL.Image.Resampling.LANCZOS)
+#              image=np.asarray(image_pil_resize)
+                plt.close(fig)
+                del fig
 
 #            epo_spectrum = epochs[0][ji:ji+1].compute_psd(
 #                'welch',
@@ -545,43 +605,87 @@ if True:
 #                window='boxcar',
 #                verbose=False
 #                )
+
+            if show_gamepad_inverse_peaks_sensor_psd:
+#            if False:
+              fig, ax_ = plt.subplots(figsize=(5, 5))
+              fig = sensor_psd.plot(show=False)#, title='EEG IAPF'+' '+f'{ji_fps:.2f}')
+              fig.canvas.draw()
+              image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+              image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+              plt.close(fig)
+              del fig
+#            ax_.set_title('EEG IAPF'+' '+f'{ji_fps:.2f}')
+#            cax = fig.colorbar(im, ax=ax)
+#            cax.set_label(r'IAPF (Hz)')
+
+
             peak_maxs=[]
             peak_index_maxs=[]
             peak_freq_maxs=[]
-            if False:
+            if show_gamepad_inverse_peaks_sensor_iapf:
+#            if False:
               psds = sensor_psd.get_data()
 #            psds = stc.data.T
-            if True:
+            if show_gamepad_inverse_peaks_stc_iapf:
+#            if True:
               psds = stc.data
 #            print(f'\nPSDs shape: {psds.shape}')
 #            print(f'\nstc.data shape: {stc.data.shape}')
             for x0 in psds:
                 peak_loc, peak_mag = mne.preprocessing.peak_finder(x0, thresh=None, extrema=1, verbose=False)
-                peak_index_max = max(range(len(peak_mag)), key=peak_mag.__getitem__)
-                peak_max=peak_loc[peak_index_max]
+#                peak_mag_max_value = max(peak_mag)
+#                peak_mag_max_index = peak_mag.index(peak_mag_max_value)
+                peak_mag_max_index = np.argmax(peak_mag, axis=0)
+                peak_index_max = peak_loc[peak_mag_max_index]
+                peak_max=x0[peak_index_max]
 #                print(f'\npeak_max: {peak_max}')
                 peak_maxs.append(peak_max)
                 peak_index_maxs.append(peak_index_max)
                 peak_freq_maxs.append(fmin+(peak_index_max/len(x0))*(fmax-fmin))
 #                print(f'\npeak_loc, peak_mag: {peak_loc}, {peak_mag}')
-            if True:
+            if show_gamepad_inverse_peaks_stc_iapf:
+#            if True:
               peak_freq_maxs_ar = np.asarray(peak_freq_maxs)
 #            print(f'\npeak_freq_maxs_ar shape: {peak_freq_maxs_ar.shape}')
               peak_freq_maxs_ar_rs=peak_freq_maxs_ar.reshape(len(stc.data),1)
               stc.data = peak_freq_maxs_ar_rs
 
+
+#            if show_gamepad_inverse_peaks_stc_iapf:
 #            if True:
             if False:
-              fig_, ax_ = plt.subplots(figsize=(5, 5))
-              fig_ = sensor_psd.plot(show=False)#, title='EEG IAPF'+' '+f'{ji_fps:.2f}')
-              fig_.canvas.draw()
-              image = np.frombuffer(fig_.canvas.tostring_rgb(),'u1')  
-              image = image.reshape(fig_.canvas.get_width_height()[::-1] + (3,))
-              plt.close(fig_)
-              del fig_
-#            ax_.set_title('EEG IAPF'+' '+f'{ji_fps:.2f}')
-#            cax = fig.colorbar(im, ax=ax)
-#            cax.set_label(r'IAPF (Hz)')
+
+                px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#              fig = plt.figure(figsize=(1024*px, 1024*px))
+#              fig, ax = plt.subplots(figsize=(800*px, 800*px), facecolor='black',
+                fig, ax = plt.subplots(figsize=(1024*px, 1024*px))
+#                fig, ax = plt.subplots(figsize=(5, 5))
+                ax.plot(stc.data)
+
+#                fig.xlabel('Frequency (Hz)')
+#                fig.ylabel('PSD (dB)')
+#                fig.title('Source Power Spectrum (PSD)')
+              
+#              fig = sensor_psd.plot_topomap(
+                  #times=10,
+#                                          show=False,
+#                  scalings=1., cbar_fmt='%0.1f', vmin=0, cmap='inferno'
+#                  ,
+ #                 axes=ax
+        #time_format=title
+#                  )
+
+                fig.canvas.draw()
+                image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+                image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+#              image_pil=PIL.Image.fromarray(image, 'RGB')
+#              image_pil_resize=image_pil.resize((512,512),PIL.Image.Resampling.LANCZOS)
+##            image_pil_resize=image_pil.resize((992,336),PIL.Image.Resampling.LANCZOS)
+#              image=np.asarray(image_pil_resize)
+                plt.close(fig)
+                del fig
+
             
             #fig = epo_spectrum.plot(show=False)
 #            fig = epochs[0].compute_psd(
@@ -593,8 +697,8 @@ if True:
 
 
 #              stc.save('psd_dSPM', overwrite=True)
-
-            if False:
+     
+            if show_gamepad_inverse_peaks_sensor_iapf:
 #            if True:
                 fig, ax = plt.subplots(figsize=(5, 5))
                 cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
@@ -618,8 +722,6 @@ if True:
 #            image_pil_resize=image_pil.resize((992,336),PIL.Image.Resampling.LANCZOS)
                 image=np.asarray(image_pil_resize)
 
-
-
 #            fig, ax = plt.subplots(figsize=(5, 5))
 
               
@@ -640,13 +742,11 @@ if True:
 ##            image_pil_resize=image_pil.resize((992,336),PIL.Image.Resampling.LANCZOS)
 #              image=np.asarray(image_pil_resize)
 
-
                 plt.close(fig)
                 del fig
 
-
+            if show_gamepad_inverse_peaks_stc_iapf:
 #            if False:
-            if True:
 
               fig_lh_0, ax_lh_0 = plt.subplots(figsize=(5, 5))
               fig_rh_0, ax_rh_0 = plt.subplots(figsize=(5, 5))
@@ -667,26 +767,26 @@ if True:
 #                                         colors=['y', 'r'], N=256)
 #              cmap = 'inferno'
 #              cmap = 'auto'
-              
+
               fig_lh_0 = __plot_source_estimates(stc, title='Source Individual Alpha Peak Frequency (IAPF)', subjects_dir=subjects_dir, subject=subject, figure=fig_lh_0, hemi='lh', views='lat', alpha=1, backend='matplotlib', clim=clim,
                                                  colormap=cmap,
-                                                 transparent=False,
-                                                 #background=(1,1,1)
+                                                 transparent=gamepad_inverse_peaks_stc_iapf_transparent,
+                                                 background=gamepad_inverse_peaks_stc_iapf_background
                                                  )
               fig_rh_0 = __plot_source_estimates(stc, subjects_dir=subjects_dir, subject=subject, figure=fig_rh_0, hemi='rh', views='lat', alpha=1, backend='matplotlib', clim=clim,
                                                  colormap=cmap,
-                                                 transparent=False,
-                                                 #background=(1,1,1)
+                                                 transparent=gamepad_inverse_peaks_stc_iapf_transparent,
+                                                 background=gamepad_inverse_peaks_stc_iapf_background
                                                  )
               fig_lh_1 = __plot_source_estimates(stc, subjects_dir=subjects_dir, subject=subject, figure=fig_lh_1, hemi='lh', views='med', alpha=1, backend='matplotlib', clim=clim,
                                                  colormap=cmap,
-                                                 transparent=False,
-                                                 #background=(1,1,1)
+                                                 transparent=gamepad_inverse_peaks_stc_iapf_transparent,
+                                                 background=gamepad_inverse_peaks_stc_iapf_background
                                                  )
               fig_rh_1 = __plot_source_estimates(stc, subjects_dir=subjects_dir, subject=subject, figure=fig_rh_1, hemi='rh', views='med', alpha=1, backend='matplotlib', clim=clim,
                                                  colormap=cmap,
-                                                 transparent=False,
-                                                 #background=(1,1,1)
+                                                 transparent=gamepad_inverse_peaks_stc_iapf_transparent,
+                                                 background=gamepad_inverse_peaks_stc_iapf_background
                                                  )
               figs.append(fig_lh_0)
               figs.append(fig_rh_0)
@@ -2803,6 +2903,21 @@ if True:
 #  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
   flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
   flags.DEFINE_string('epochs_peaks', '1', 'epochs_peaks')
+  flags.DEFINE_string('gamepad_inverse_peaks_label', None, 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
+#  flags.DEFINE_string('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', False, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', False, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_psd', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_psd', False, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf', True, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf', False, '')
+
+  flags.DEFINE_boolean('gamepad_inverse_peaks_stc_iapf_transparent', False, '')
+#  flags.DEFINE_boolean('gamepad_inverse_peaks_stc_iapf_transparent', True, '')
+  flags.DEFINE_list('gamepad_inverse_peaks_stc_iapf_background', [0,0,0], '')
+#  flags.DEFINE_list('gamepad_inverse_peaks_stc_iapf_background', [1,1,1], '')
 
 
 #flags.mark_flag_as_required('input')
@@ -2824,7 +2939,18 @@ if True:
 
   if FLAGS.help:
     exit()
+
+  gamepad_inverse_peaks_stc_iapf_transparent=FLAGS.gamepad_inverse_peaks_stc_iapf_transparent
+  gamepad_inverse_peaks_stc_iapf_background=(int(FLAGS.gamepad_inverse_peaks_stc_iapf_background[0]),int(FLAGS.gamepad_inverse_peaks_stc_iapf_background[1]),int(FLAGS.gamepad_inverse_peaks_stc_iapf_background[2]))
+
+  show_gamepad_inverse_peaks_sensor_psd = FLAGS.show_gamepad_inverse_peaks_sensor_psd
+  show_gamepad_inverse_peaks_sensor_iapf = FLAGS.show_gamepad_inverse_peaks_sensor_iapf
+  show_gamepad_inverse_peaks_stc_psd = FLAGS.show_gamepad_inverse_peaks_stc_psd
+  show_gamepad_inverse_peaks_stc_iapf = FLAGS.show_gamepad_inverse_peaks_stc_iapf
     
+  gamepad_inverse_peaks_label = FLAGS.gamepad_inverse_peaks_label
+  if gamepad_inverse_peaks_label=='None':
+      gamepad_inverse_peaks_label=None
   show_gamepad_inverse_peaks = FLAGS.show_gamepad_inverse_peaks
   show_gamepad_peaks = FLAGS.show_gamepad_peaks
   epochs_peaks = int(FLAGS.epochs_peaks)
@@ -3842,11 +3968,16 @@ if True:
 #              print('labels_parc:',labels_parc)
 
     if True:
-            fname_label_lh = subjects_dir + '/' + subject + '/label/lh.aparc.label'
+          if not (gamepad_inverse_peaks_label is None):  
+            fname_label_lh = subjects_dir + '/' + subject + '/label/lh.'+gamepad_inverse_peaks_label+'.label'
+#            fname_label_lh = subjects_dir + '/' + subject + '/label/lh.aparc.label'
             label_lh = mne.read_label(fname_label_lh)
-            fname_label_rh = subjects_dir + '/' + subject + '/label/rh.aparc.label'
+#            fname_label_rh = subjects_dir + '/' + subject + '/label/rh.aparc.label'
+            fname_label_rh = subjects_dir + '/' + subject + '/label/rh.'+gamepad_inverse_peaks_label+'.label'
             label_rh = mne.read_label(fname_label_rh)
             label = label_lh + label_rh
+          else:
+            label = None
 
   
     def add_data(brain, array, fmin=None, fmid=None, fmax=None,
@@ -5155,7 +5286,10 @@ if True:
         video_output_file=output_path+input_name+'_'+shows[shows_gamepad_peaks]+"_"+dt_string+".mp4"
         video_output_files[shows_gamepad_peaks]=video_output_file
       if show_gamepad_inverse_peaks:
-        video_output_file=output_path+input_name+'_'+shows[shows_gamepad_inverse_peaks]+"_"+dt_string+".mp4"
+        if gamepad_inverse_peaks_label is None:
+            video_output_file=output_path+input_name+'_'+shows[shows_gamepad_inverse_peaks]+'_'+f'label-None'+"_"+dt_string+".mp4"
+        else:
+            video_output_file=output_path+input_name+'_'+shows[shows_gamepad_inverse_peaks]+'_'+f'label-{gamepad_inverse_peaks_label}'+"_"+dt_string+".mp4"
         video_output_files[shows_gamepad_inverse_peaks]=video_output_file
 #      else:
 #        video_output_file=output_path+input_name+"-"+dt_string+".mp4"
