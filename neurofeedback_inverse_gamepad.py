@@ -1732,8 +1732,8 @@ if True:
             psds_raw_average=np.average(psds_raw[0], axis=1)
             reliability = psds_beta_average / psds_raw_average
             for idx0 in range(len(reliability)):
-                if reliability[idx0] > 1:
-                    reliability[idx0] = 1
+                if reliability[idx0] > show_circle_cons_reliability_value:
+                    reliability[idx0] = show_circle_cons_reliability_value
             #print(f'\nreliability_average shape: {reliability_average.shape}')
 
 #            if show_gamepad_peaks_sensor_psd:
@@ -1782,17 +1782,17 @@ if True:
 
 
             cmap = LinearSegmentedColormap.from_list(name='reliability_cmap',
-                                         colors=['g', 'y', 'r'], N=len(conmat))
+                                         colors=show_circle_cons_reliability_colors, N=256)
 #            print('cmap_circle:',cmap.resampled(len(x0)))
             cmap_circle=cmap
 #            cmap_circle=cmap.resampled(len(conmat))
             node_colors=[]
 
             for con_idx in range(len(conmat)):
-              node_colors.append(cmap_circle(reliability[con_idx]))
+              node_colors.append(cmap_circle(int(reliability[con_idx]*(256-1)/show_circle_cons_reliability_value)))
 #              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
             for con_idx in range(len(conmat)):
-                if reliability[con_idx]<1:
+                if reliability[con_idx]<show_circle_cons_reliability_value:
                     conmat[con_idx] = 0
                     conmat[:,con_idx] = 0
 #                elif peak_index_maxs[con_idx]<len(x0)-1:
@@ -3196,6 +3196,8 @@ if True:
 #  flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
   flags.DEFINE_boolean('show_circle_cons_reliability', True, '')
 #  flags.DEFINE_boolean('show_circle_cons_reliability', False, '')
+  flags.DEFINE_string('show_circle_cons_reliability_value', '1.0', 'beta/raw spectrum')
+  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#77ff77','#00ff00'], 'from 0 to reliability_value')
 #  flags.DEFINE_boolean('show_spectrum_cons', True, 'show_spectrum_cons')
   flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
   flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
@@ -3344,6 +3346,9 @@ if True:
 
   write_video=FLAGS.write_video
   stable_fps=FLAGS.stable_fps
+
+  show_circle_cons_reliability_colors = FLAGS.show_circle_cons_reliability_colors
+  show_circle_cons_reliability_value = float(FLAGS.show_circle_cons_reliability_value)
 
   show_circle_cons_reliability = FLAGS.show_circle_cons_reliability
 
