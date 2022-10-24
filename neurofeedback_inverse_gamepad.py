@@ -781,9 +781,16 @@ if True:
                 for con_idx in range(len(conmat)):
                   node_colors.append(cmap_circle(peak_index_maxs[con_idx]))
     #              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
-                for con_idx in range(len(conmat)):
-                        conmat[con_idx] = conmat[con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
-                        conmat[:,con_idx] = conmat[:,con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
+#                idx_count=0
+                for con_idx0 in range(len(conmat)-1):
+                  for con_idx1 in range(con_idx0+1,len(conmat)):
+#                    print('conmat[con_idx0][con_idx1]:', conmat[con_idx0][con_idx1])
+                    conmat[con_idx1][con_idx0] = conmat[con_idx1][con_idx0] * (((peak_index_maxs[con_idx0]+peak_index_maxs[con_idx1])/2)/(len(x0)-1))
+#                    idx_count=idx_count+1
+#                print('idx_count, len(conmat)*(len(conmat)-1)/2:', idx_count, len(conmat)*(len(conmat)-1)/2)
+#                for con_idx in range(len(conmat)):
+#                        conmat[con_idx] = conmat[con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
+#                        conmat[:,con_idx] = conmat[:,con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
               
               
               
