@@ -1835,7 +1835,7 @@ if True:
 
               for con_idx in range(len(conmat)):
                 node_colors_con = list(node_colors[con_idx])
-                node_colors_con = np.asarray(node_colors_con) * reliability[con_idx]
+                node_colors_con = np.asarray(node_colors_con) * (reliability[con_idx]/show_circle_cons_reliability_value)
                 node_colors[con_idx] = tuple(node_colors_con)
 #                print('node_colors[con_idx]:', node_colors[con_idx])
                 
