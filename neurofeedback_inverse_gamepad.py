@@ -627,7 +627,7 @@ if True:
 #            if False:
               psds = sensor_psd.get_data()
 #            psds = stc.data.T
-            if show_gamepad_inverse_peaks_stc_iapf:
+            if show_gamepad_inverse_peaks_stc_iapf or show_gamepad_inverse_peaks_stc_iapf_circle_cons:
 #            if True:
               psds = stc.data
 #            print(f'\nPSDs shape: {psds.shape}')
@@ -644,12 +644,236 @@ if True:
                 peak_index_maxs.append(peak_index_max)
                 peak_freq_maxs.append(fmin+(peak_index_max/len(x0))*(fmax-fmin))
 #                print(f'\npeak_loc, peak_mag: {peak_loc}, {peak_mag}')
-            if show_gamepad_inverse_peaks_stc_iapf:
+            if show_gamepad_inverse_peaks_stc_iapf or show_gamepad_inverse_peaks_stc_iapf_circle_cons:
 #            if True:
               peak_freq_maxs_ar = np.asarray(peak_freq_maxs)
 #            print(f'\npeak_freq_maxs_ar shape: {peak_freq_maxs_ar.shape}')
               peak_freq_maxs_ar_rs=peak_freq_maxs_ar.reshape(len(stc.data),1)
               stc.data = peak_freq_maxs_ar_rs
+
+
+
+
+
+
+
+
+
+
+
+
+
+            if show_gamepad_inverse_peaks_stc_iapf_circle_cons:
+
+              stcs = apply_inverse_epochs(
+#                    epochs[0][ji:ji+1], 
+#                    epochs[0][ji:ji+n_jobs],
+                    epochs[0][ji:ji+epochs_inverse_con],
+                    inv, lambda2, inv_method,
+                                          pick_ori=None, return_generator=True, verbose=False)
+
+              # Average the source estimates within each label of the cortical parcellation
+              # and each sub-structure contained in the source space.
+              # When mode = 'mean_flip', this option is used only for the cortical labels.
+              src = inv['src']
+
+              label_ts = mne.extract_label_time_course(
+                  stcs, labels_parc, src, mode='mean_flip', 
+                  allow_empty=False,
+#                  allow_empty=True,
+                  return_generator=True, verbose=False)
+
+              # We compute the connectivity in the alpha band and plot it using a circular
+              # graph layout
+#              fmin = 8.
+#              fmin = 10.
+#              fmax = 13.
+              fmin=bands[0][0]
+              fmax=bands[0][1]
+              sfreq = epochs[0].info['sfreq']  # the sampling frequency
+              
+#              print('label_ts:',label_ts)
+              con = spectral_connectivity_epochs(
+                  label_ts, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
+                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=False)
+
+              if True:
+#              if False:
+              # We create a list of Label containing also the sub structures
+                labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
+              
+              
+                labels = labels_parc + labels_aseg
+                
+#              labels = labels_parc
+#              print('len(labels), labels:', len(labels), labels)
+
+              # read colors
+              node_colors = [label.color for label in labels]
+
+              # We reorder the labels based on their location in the left hemi
+              label_names = [label.name for label in labels]
+              lh_labels = [name for name in label_names if name.endswith('lh')]
+              rh_labels = [name for name in label_names if name.endswith('rh')]
+#              print('len(lh_labels), lh_labels:', len(lh_labels), lh_labels)
+#              print('len(rh_labels), rh_labels:', len(rh_labels), rh_labels)
+
+              # Get the y-location of the label
+              label_ypos_lh = list()
+              for name in lh_labels:
+                  idx = label_names.index(name)
+                  ypos = np.mean(labels[idx].pos[:, 1])
+                  label_ypos_lh.append(ypos)
+              try:
+                  idx = label_names.index('Brain-Stem')
+              except ValueError:
+                  pass
+              else:
+                  ypos = np.mean(labels[idx].pos[:, 1])
+                  lh_labels.append('Brain-Stem')
+                  label_ypos_lh.append(ypos)
+
+              # Reorder the labels based on their location
+              lh_labels = [label for (yp, label) in sorted(zip(label_ypos_lh, lh_labels))]
+
+              # For the right hemi
+              if lh_labels[0].startswith('L_'):
+                  rh_labels = ['R_'+label[2:-2] + 'rh' for label in lh_labels
+                           if label != 'Brain-Stem' and 'R_'+label[2:-2] + 'rh' in rh_labels]
+              else:
+                  rh_labels = [label[:-2] + 'rh' for label in lh_labels
+                           if label != 'Brain-Stem' and label[:-2] + 'rh' in rh_labels]
+#              lh_labels = ['L_'+label[2:-2] + 'rh' for label in lh_labels
+#                           if label != 'Brain-Stem' and 'L_'+label[2:-2] + 'rh' in lh_labels]
+
+              # Save the plot order
+              node_order = lh_labels[::-1] + rh_labels
+#              print('rh_labels: ', rh_labels)
+              
+#              print('len(label_names), len(node_order), label_names, node_order:', len(label_names), len(node_order), label_names, node_order)
+
+              node_angles = circular_layout(label_names, node_order, start_pos=90,
+                                            group_boundaries=[0, len(label_names) // 2])
+
+              # Plot the graph using node colors from the FreeSurfer parcellation. We only
+              # show the 300 strongest connections.
+              conmat = con.get_data(output='dense')[:, :, 0]
+#              fig, ax = plt.subplots(figsize=(8, 8), facecolor='black',
+#                                     subplot_kw=dict(polar=True))
+
+              con_sort=np.sort(np.abs(conmat).ravel())[::-1]
+              n_lines=np.argmax(con_sort<vmin)
+              
+              
+              
+              if True:
+                cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
+                                             colors=show_inverse_peaks_circle_cons_colors, N=len(x0))
+#                                             colors=['g', 'y', 'r'], N=len(x0))
+                                             
+    #            print('cmap_circle:',cmap.resampled(len(x0)))
+                cmap_circle=cmap
+    #            cmap_circle=cmap.resampled(len(x0))
+                node_colors=[]
+
+    #        if show_gamepad_peaks_sensor_iapf_circle_cons:
+            
+                for con_idx in range(len(conmat)):
+                  node_colors.append(cmap_circle(peak_index_maxs[con_idx]))
+    #              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
+                for con_idx in range(len(conmat)):
+                        conmat[con_idx] = conmat[con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
+                        conmat[:,con_idx] = conmat[:,con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
+              
+              
+              
+#              input_fname_name
+#              title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(n_generate)+'/'+str(ji)
+              px = 1/plt.rcParams['figure.dpi']  # pixel in inches
+#              fig = plt.figure(figsize=(1024*px, 1024*px))
+#              fig, ax = plt.subplots(figsize=(800*px, 800*px), facecolor='black',
+              fig, ax = plt.subplots(figsize=(1500*px, 1500*px), facecolor='black',
+#              fig, ax = plt.subplots(figsize=(1400*px, 1400*px), facecolor='black',
+#              fig, ax = plt.subplots(figsize=(1024*px, 1024*px), facecolor='black',
+                       subplot_kw=dict(polar=True))
+#              fig = plt.figure(figsize=(800*px, 800*px))
+              title=input_fname_name+'_inverse_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'_'+'parc-'+inverse_parc+'_'+'epochs-'+str(epochs_inverse_con)+'\n'+f'{ji_fps:.2f}'
+              fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, title=title, 
+                                             show = False, vmin=vmin, vmax=1, 
+#                                             fontsize_names=4,
+                                             fontsize_names=5,
+#                                             fontsize_names=5.5,
+#                                             fontsize_names=6,
+#                                             fontsize_names=8,
+#                                       node_height = 0.5,
+                                       padding=1.2,
+                                       ax=ax,
+                                       node_angles=node_angles, node_colors=node_colors)
+#              plot_connectivity_circle(conmat, label_names, n_lines=300,
+#                                       node_angles=node_angles, node_colors=node_colors,
+#                                       title='All-to-All Connectivity left-Auditory '
+#                                       'Condition (PLI)')#, ax=ax)#, fig=fig)
+#              fig.tight_layout()            
+#              plt.savefig('inverse_coh.png', facecolor='black', format='png')
+
+              fig.canvas.draw()
+ 
+            #image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+              image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+              image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+
+              size1=16*8
+##              size = 592+size1
+              size = 1024
+              
+            #im3 = im1.resize((576, 576), Image.ANTIALIAS)
+#              left=348-int(size/2)+int(size1/2)
+#              top=404-int(size/2)+int(size1/16)
+              left=150
+              top=240
+#              left=150
+#              top=240
+
+              image_crop=image[top:top+size,left:left+size]   
+              image=image_crop
+#              image=image.resize((800, 800), Image.ANTIALIAS)
+            #im2 = im1.crop((left, top, left+size, top+size))
+
+#              if FLAGS.rotate:
+#                image_rot90 = np.rot90(image_crop)
+#                image=image_rot90
+#              screen.update(image_rot90)
+#              else:
+#                image=image_crop
+#            image_rot90 = np.rot90(image)
+
+#            screen.update(image)
+#              screen.update(image_crop)
+
+#              if write_video:
+#                video_out.append_data(image)
+#                video_out.close()
+#              image = image[:,:,::-1]
+#              screen5.update(image)
+
+              plt.close(fig)
+              del fig
+              out_shows_ji_images.append([shows_inverse_circle,ji,image])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #            if show_gamepad_inverse_peaks_stc_iapf:
@@ -702,7 +926,8 @@ if True:
 #            if True:
                 fig, ax = plt.subplots(figsize=(5, 5))
                 cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
-                                         colors=['g', 'y', 'r'], N=256)
+                                         colors=show_inverse_peaks_circle_cons_colors, N=256)
+#                                         colors=['g', 'y', 'r'], N=256)
                 im, cn = mne.viz.plot_topomap(peak_freq_maxs, epochs[0].info,
 #                                          vlim=(1, None),
                                           show=False,
@@ -763,7 +988,9 @@ if True:
               clim = {'kind': 'value', 'lims': [fmin,fmid,fmax]}
 #              clim = {'kind': 'value', 'pos_lims': [fmin,fmid,fmax]}
               cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
-                                         colors=['g', 'y', 'r'], N=256)
+                                         colors=show_inverse_peaks_circle_cons_colors, N=256)
+#                                         colors=['g', 'y', 'r'], N=256)
+                                         
 #                                         colors=['y', 'r'], N=256)
 #              cmap = 'inferno'
 #              cmap = 'auto'
@@ -884,7 +1111,7 @@ if True:
         from mne_connectivity.viz import plot_connectivity_circle
         import matplotlib.pyplot as plt
         
-        print('worker_(ji):',ji)
+#        print('worker_(ji):',ji)
 #        for i in range(100):
 #            time.sleep(1)
 
@@ -972,11 +1199,8 @@ if True:
               fmax=bands[0][1]
               sfreq = epochs[0].info['sfreq']  # the sampling frequency
 
-            if show_gamepad_inverse_peaks:
-
-
-              
-
+            if False:
+#            if show_gamepad_inverse_peaks_stc_iapf_circle_cons:
               epo_spectrum = stcs.compute_psd(
                 'welch',
 #                n_fft=int(sfreq * (tmax - tmin)),
@@ -1004,7 +1228,8 @@ if True:
                 peak_index_maxs.append(peak_index_max)
                 peak_freq_maxs.append(fmin+(peak_index_max/len(x0))*(fmax-fmin))
 #                print(f'\npeak_loc, peak_mag: {peak_loc}, {peak_mag}')
-
+               
+            if False:
             #fig = epo_spectrum.plot(show=False)
 #            fig = epochs[0].compute_psd(
 #                method='welch',
@@ -1114,6 +1339,29 @@ if True:
 
               con_sort=np.sort(np.abs(conmat).ravel())[::-1]
               n_lines=np.argmax(con_sort<vmin)
+              
+              
+              
+              if False:
+#              if show_gamepad_inverse_peaks_stc_iapf_circle_cons:
+                cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
+                                             colors=['g', 'y', 'r'], N=len(x0))
+    #            print('cmap_circle:',cmap.resampled(len(x0)))
+                cmap_circle=cmap
+    #            cmap_circle=cmap.resampled(len(x0))
+                node_colors=[]
+
+    #        if show_gamepad_peaks_sensor_iapf_circle_cons:
+            
+                for con_idx in range(len(conmat)):
+                  node_colors.append(cmap_circle(peak_index_maxs[con_idx]))
+    #              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
+                for con_idx in range(len(conmat)):
+                        conmat[con_idx] = conmat[con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
+                        conmat[:,con_idx] = conmat[:,con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
+              
+              
+              
 #              input_fname_name
 #              title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+str(n_generate)+'/'+str(ji)
               px = 1/plt.rcParams['figure.dpi']  # pixel in inches
@@ -1318,7 +1566,9 @@ if True:
 #            if False:
               fig, ax = plt.subplots(figsize=(5, 5))
               cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
-                                         colors=['g', 'y', 'r'], N=256)
+                                         colors=show_peaks_circle_cons_colors, N=256)
+#                                         colors=['g', 'y', 'r'], N=256)
+                                         
               im, cn = mne.viz.plot_topomap(peak_freq_maxs, epochs[0].info,
 #                                          vlim=(1, None),
                                           show=False,
@@ -1439,11 +1689,6 @@ if True:
 #            print(freqs)
 #            if not(from_bdf is None):
 #              ji_fps = ji/fps
-            cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
-                                         colors=['g', 'y', 'r'], N=256)
-#            print('cmap_circle:',cmap.resampled(len(x0)))
-            cmap_circle=cmap.resampled(len(x0))
-            node_colors=[]
 
 #  flags.DEFINE_list('ch_names',
 #['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz',
@@ -1509,6 +1754,13 @@ if True:
             if vjoy_gamepad_peaks_sensor_iapf:
               return(scores)
 
+            cmap = LinearSegmentedColormap.from_list(name='IAPF_cmap',
+                                         colors=show_peaks_circle_cons_colors, N=len(x0))
+#                                         colors=['g', 'y', 'r'], N=len(x0))
+#            print('cmap_circle:',cmap.resampled(len(x0)))
+            cmap_circle=cmap
+#            cmap_circle=cmap.resampled(len(x0))
+            node_colors=[]
 
 #        if show_gamepad_peaks_sensor_iapf_circle_cons:
             
@@ -1516,9 +1768,13 @@ if True:
               node_colors.append(cmap_circle(peak_index_maxs[con_idx]))
 #              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
             for con_idx in range(len(conmat)):
-                if peak_index_maxs[con_idx]<len(x0)-1:
-                    conmat[con_idx] = 0
-                    conmat[:,con_idx] = 0
+                    conmat[con_idx] = conmat[con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
+                    conmat[:,con_idx] = conmat[:,con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
+#                    conmat[:,con_idx] = 0
+#                if peak_index_maxs[con_idx]<len(x0)-1:
+#                    conmat[con_idx] = 0
+#                    conmat[:,con_idx] = 0
+                    
 #                elif peak_index_maxs[con_idx]<len(x0)-1:
 #                    conmat[con_idx] = vmin+0.001
 #                    conmat[:,con_idx] = vmin+0.001
@@ -1531,11 +1787,73 @@ if True:
 #            print('node_colors:',node_colors)
             #node_colors=color1*(0+(peak_index_max/len(x0))*(256))
             
+            if show_circle_cons_reliability:
+              fmin_beta=13
+              fmax_beta=28
+              fmin_raw=1
+              fmax_raw=sfreq/2
+              ji0=ji
+              epo_spectrum_beta = epochs[0][ji0:ji0+1].compute_psd(
+                  'welch',
+                  n_fft=int(sfreq * (tmax - tmin)),
+                  n_overlap=0,
+  #                n_per_seg=100,
+                  tmin=tmin, tmax=tmax,
+                  fmin=fmin_beta, fmax=fmax_beta,
+                  window='boxcar',
+                  verbose=False
+                  )
+              epo_spectrum_raw = epochs[0][ji0:ji0+1].compute_psd(
+                  'welch',
+                  n_fft=int(sfreq * (tmax - tmin)),
+                  n_overlap=0,
+  #                n_per_seg=100,
+                  tmin=tmin, tmax=tmax,
+                  fmin=fmin_raw, fmax=fmax_raw,
+                  window='boxcar',
+                  verbose=False
+                  )
+              psds_beta, freqs_beta = epo_spectrum_beta.get_data(return_freqs=True)
+              psds_raw, freqs_raw = epo_spectrum_raw.get_data(return_freqs=True)
+#            print(f'\npsds_beta shape: {psds_beta.shape}')
+#            print(f'\npsds_raw shape: {psds_raw.shape}')
+              psds_beta_average=np.average(psds_beta[0], axis=1)
+#            print('psds_beta, psds_beta_average:', psds_beta, psds_beta_average)
+              psds_raw_average=np.average(psds_raw[0], axis=1)
+              reliability = psds_beta_average / psds_raw_average
+              for idx0 in range(len(reliability)):
+                if reliability[idx0] > show_circle_cons_reliability_value:
+                    reliability[idx0] = show_circle_cons_reliability_value
+            #print(f'\nreliability_average shape: {reliability_average.shape}')
+
+              cmap = LinearSegmentedColormap.from_list(name='reliability_cmap',
+                                         colors=show_circle_cons_reliability_colors, N=256)
+#            print('cmap_circle:',cmap.resampled(len(x0)))
+              cmap_circle=cmap
+#            cmap_circle=cmap.resampled(len(conmat))
+#              node_colors=[]
+
+              for con_idx in range(len(conmat)):
+                node_colors_con = list(node_colors[con_idx])
+                node_colors_con = np.asarray(node_colors_con) * reliability[con_idx]
+                node_colors[con_idx] = tuple(node_colors_con)
+#                print('node_colors[con_idx]:', node_colors[con_idx])
+                
+#                node_colors.append(cmap_circle(int(reliability[con_idx]*(256-1)/show_circle_cons_reliability_value)))
+#              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
+              for con_idx in range(len(conmat)):
+                  if reliability[con_idx]<show_circle_cons_reliability_value:
+                    conmat[con_idx] = 0
+                    conmat[:,con_idx] = 0
+#                elif peak_index_maxs[con_idx]<len(x0)-1:
+#                    conmat[con_idx] = vmin+0.001
+#                    conmat[:,con_idx] = vmin+0.001
+
             fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names, n_lines=n_lines, 
 #            fig,ax = plot_connectivity_circle(con[:, :, 0], label_names,# n_lines=300, 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2), 
-                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+f'{ji_fps:.2f}', 
+                title=input_fname_name+'_peaks_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'\n'+f'{ji_fps:.2f}', 
 #                title=input_fname_name+'_circle_'+methods[0]+'_'+f'{freqs[0][0]:.1f}'+'-'+f'{freqs[0][len(freqs[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin), 
 #               title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+'vmin'+str(vmin)+str(len(epochs[0].events)-2)+'\n'+str(ji), 
 #                                             title=input_fname_name+'_circle_'+methods[0]+'_'+str(int(bands[0][0]))+'-'+str(int(bands[0][1]))+'hz_'+str(len(epochs[0].events)-2)+'_'+str(ji),
@@ -1614,7 +1932,7 @@ if True:
         import matplotlib.pyplot as plt
         from matplotlib.colors import LinearSegmentedColormap
 
-        print('worker_(ji):',ji)
+#        print('worker_(ji):',ji)
 #        for i in range(100):
 #            time.sleep(1)
 
@@ -3192,12 +3510,13 @@ if True:
 #flags.DEFINE_string('fps', '30', 'fps')
   flags.DEFINE_string('overlap', None, 'if None, used: duration-1/fps')
   flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
-  flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
-#  flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
+#  flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
+  flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
   flags.DEFINE_boolean('show_circle_cons_reliability', True, '')
 #  flags.DEFINE_boolean('show_circle_cons_reliability', False, '')
   flags.DEFINE_string('show_circle_cons_reliability_value', '1.0', 'beta/raw spectrum')
-  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#77ff77','#00ff00'], 'from 0 to reliability_value')
+  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#33aa33','#00ff00'], 'from 0 to reliability_value')
+#  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#77ff77','#00ff00'], 'from 0 to reliability_value')
 #  flags.DEFINE_boolean('show_spectrum_cons', True, 'show_spectrum_cons')
   flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
   flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
@@ -3289,13 +3608,6 @@ if True:
   flags.DEFINE_string('inverse_parc', 'HCPMMP1', 'aparc.a2005s, aparc.a2009s, aparc, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
   flags.DEFINE_string('inverse_standard_montage', 'standard_1005', 'EGI_256, GSN-HydroCel-128, GSN-HydroCel-129, GSN-HydroCel-256, GSN-HydroCel-257, GSN-HydroCel-32, GSN-HydroCel-64_1.0, GSN-HydroCel-65_1.0, artinis-brite23, artinis-octamon, biosemi128, biosemi16, biosemi160, biosemi256, biosemi32, biosemi64, brainproducts-RNP-BA-128, easycap-M1, easycap-M10, mgh60, mgh70, standard_1005, standard_1020, standard_alphabetic, standard_postfixed, standard_prefixed, standard_primed')
 #  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
-#  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
-  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
-  flags.DEFINE_string('epochs_peaks', '1', 'epochs_peaks')
-#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', True, '')
-  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', False, '')
-#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf', True, '')
-  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf', False, '')
 
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
   flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
@@ -3303,25 +3615,35 @@ if True:
 #  flags.DEFINE_string('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', False, '')
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', True, '')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', False, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', False, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_psd', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_psd', False, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf', False, '')
-
-  flags.DEFINE_boolean('gamepad_inverse_peaks_stc_iapf_transparent', False, '')
 #  flags.DEFINE_boolean('gamepad_inverse_peaks_stc_iapf_transparent', True, '')
+  flags.DEFINE_boolean('gamepad_inverse_peaks_stc_iapf_transparent', False, '')
   flags.DEFINE_list('gamepad_inverse_peaks_stc_iapf_background', [0,0,0], '')
 #  flags.DEFINE_list('gamepad_inverse_peaks_stc_iapf_background', [1,1,1], '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', True, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', False, '')
+  flags.DEFINE_list('show_inverse_peaks_circle_cons_colors', ['#00ff00', '#00ff77', '#00ffff', '#0077ff', '#0000ff'], 'from 0 to reliability_value')
 
-  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', True, '')
-#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', False, '')
-
-  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', True, '')
-#  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', False, '')
+  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
+#  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
+  flags.DEFINE_string('epochs_peaks', '1', 'epochs_peaks')
+#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', True, '')
+  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', False, '')
+#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf', True, '')
+  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf', False, '')
+#  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', True, '')
+  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', False, '')
 #  flags.DEFINE_boolean('vjoy_gamepad_inverse_peaks_sensor_iapf', True, '')
   flags.DEFINE_boolean('vjoy_gamepad_inverse_peaks_sensor_iapf', False, '')
+  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', True, '')
+#  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', False, '')
+  flags.DEFINE_list('show_peaks_circle_cons_colors', ['#00ff00', '#00ff77', '#00ffff', '#0077ff', '#0000ff'], 'from 0 to reliability_value')
+
 
 
 #flags.mark_flag_as_required('input')
@@ -3346,6 +3668,12 @@ if True:
 
   write_video=FLAGS.write_video
   stable_fps=FLAGS.stable_fps
+
+  
+  show_inverse_peaks_circle_cons_colors = FLAGS.show_inverse_peaks_circle_cons_colors
+  show_peaks_circle_cons_colors = FLAGS.show_peaks_circle_cons_colors
+
+  show_gamepad_inverse_peaks_stc_iapf_circle_cons = FLAGS.show_gamepad_inverse_peaks_stc_iapf_circle_cons
 
   show_circle_cons_reliability_colors = FLAGS.show_circle_cons_reliability_colors
   show_circle_cons_reliability_value = float(FLAGS.show_circle_cons_reliability_value)
@@ -6021,7 +6349,7 @@ if True:
 #        if show_inverse_3d or show_inverse_circle_cons:
 #          datas[0].set_montage(montage)
           datas[0].set_montage(mon)
-        if show_inverse_3d or show_inverse_circle_cons:
+        if show_inverse_3d or show_inverse_circle_cons or show_gamepad_inverse_peaks:
           datas[0].set_eeg_reference(projection=True).apply_proj()
 #          datas[0].set_eeg_reference().apply_proj()
           
@@ -6218,7 +6546,7 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
-            if ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
+            if vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
               scores = message
               vjoy.data.lButtons = 0
               for idx0 in range(8):
@@ -6231,7 +6559,7 @@ if True:
               vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
               vjoy.data.wAxisZRot = round(0x8000 * scores[9])
               vjoy.update()
-            if not((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)) and stable_fps:
+            if not (vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
               image_show = message[:,:,::-1]
               screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
@@ -6251,9 +6579,9 @@ if True:
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if not((shows_idx == shows_gamepad_peaks) or (shows_idx == shows_gamepad_inverse_peaks)) and write_video:
+            if not(vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and write_video:
               video_outs[shows_idx].append_data(image)
-            if not((shows_idx == shows_gamepad_peaks) or (shows_idx == shows_gamepad_inverse_peaks)) and not stable_fps:
+            if not(vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #          screens[image_idx].update(image)
@@ -6295,7 +6623,7 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
-            if ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
+            if vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
               scores = message
               vjoy.data.lButtons = 0
               for idx0 in range(8):
@@ -6308,7 +6636,7 @@ if True:
               vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
               vjoy.data.wAxisZRot = round(0x8000 * scores[9])
               vjoy.update()
-            if not((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)) and stable_fps:
+            if not (vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
               image_show = message[:,:,::-1]
               screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
@@ -6335,9 +6663,9 @@ if True:
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if not((shows_idx == shows_gamepad_peaks) or (shows_idx == shows_gamepad_inverse_peaks)) and write_video:
+            if not(vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and write_video:
               video_outs[shows_idx].append_data(image)
-            if not((shows_idx == shows_gamepad_peaks) or (shows_idx == shows_gamepad_inverse_peaks)) and not stable_fps:
+            if not(vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
@@ -6356,7 +6684,7 @@ if True:
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
-            if ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
+            if vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
               scores = message
               vjoy.data.lButtons = 0
               for idx0 in range(8):
@@ -6369,7 +6697,7 @@ if True:
               vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
               vjoy.data.wAxisZRot = round(0x8000 * scores[9])
               vjoy.update()
-            if not((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)) and stable_fps:
+            if not(vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
               image_show = message[:,:,::-1]
               screens[shows_ids[ready_id]].update(image_show)
             ready_ji_ids.append(ji_ids[ready_id])
@@ -6396,9 +6724,9 @@ if True:
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if not((shows_idx == shows_gamepad_peaks) or (shows_idx == shows_gamepad_inverse_peaks)) and write_video:
+            if not(vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and write_video:
               video_outs[shows_idx].append_data(image)
-            if not((shows_idx == shows_gamepad_peaks) or (shows_idx == shows_gamepad_inverse_peaks)) and not stable_fps:
+            if not(vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
