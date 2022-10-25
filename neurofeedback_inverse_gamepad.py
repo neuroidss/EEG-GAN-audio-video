@@ -1769,20 +1769,105 @@ if True:
           #fmax=13.
             fmin=bands[band][0]
             fmax=bands[band][1]
+
+
+
+
+
+
+            if True:
+              if not (gamepad_peaks_labels0 is None):
+#               if gamepad_peaks_indices0 in None:
+#                print(gamepad_peaks_labels0)
+                gamepad_peaks_indices0 = []
+                for idx0 in range(len(label_names)):
+                  for idx1 in range(len(gamepad_peaks_labels0)):
+                    if label_names[idx0] == gamepad_peaks_labels0[idx1]:
+                      gamepad_peaks_indices0.append(idx0)
+#                print(gamepad_peaks_indices0)
+                if (gamepad_peaks_labels1 is None):
+                  gamepad_peaks_indices1 = gamepad_peaks_indices0
+              if gamepad_peaks_indices0 is None:
+                gamepad_peaks_indices0 = range(len(label_names))
+              if not (gamepad_peaks_labels1 is None):
+#               if gamepad_peaks_indices1 in None:
+#                print(gamepad_peaks_labels1)
+                gamepad_peaks_indices1 = []
+                for idx0 in range(len(label_names)):
+                  for idx1 in range(len(gamepad_peaks_labels1)):
+                    if label_names[idx0] == gamepad_peaks_labels1[idx1]:
+                      gamepad_peaks_indices1.append(idx0)
+#                print(gamepad_peaks_indices1)
+              if gamepad_peaks_indices1 is None:
+                gamepad_peaks_indices1 = range(len(label_names))
+
+            if not show_circle_iapf_cons_multiply:
+#              conmats=[]
+              conmat=None
+#              gamepad_inverse_peaks_indices0 = [52]
+#              gamepad_inverse_peaks_indices1 = [53]
+              if not (gamepad_peaks_indices0 is None):
+#             if not (gamepad_inverse_peaks_label_names in None):
+             
+#              label_names = None
+#              label_names = gamepad_inverse_peaks_label_names
+#                indices0 = np.arange(len(gamepad_inverse_peaks_indices0)*len(gamepad_inverse_peaks_indices1))
+#                indices1 = indices0.copy()
+                for idx0 in range(len(gamepad_peaks_indices0)):
+                    for idx1 in range(len(gamepad_peaks_indices1)):
+#                      indices0[idx0*len(gamepad_inverse_peaks_indices0)+idx1] = gamepad_inverse_peaks_indices0[idx0]
+#                      indices1[idx0*len(gamepad_inverse_peaks_indices0)+idx1] = gamepad_inverse_peaks_indices1[idx1]
+#                      indices=([indices0],[indices1])
+                     if not(gamepad_peaks_indices0[idx0] == gamepad_peaks_indices1[idx1]):
+                      index0 = gamepad_peaks_indices0[idx0]
+                      index1 = gamepad_peaks_indices1[idx1]
+#                      index0 = idx0
+#                      index1 = idx1
+                      indices=([index0],[index1])
+                      fmin=(peak_freq_maxs[index0]+peak_freq_maxs[index1])/2
+                      fmax=fmin+3
+                      mne.set_log_level('CRITICAL')
+                      con = spectral_connectivity_epochs(
+                        epochs[band][ji:ji+epochs_con], indices=indices, method=methods[method_idx], mode='multitaper', sfreq=sfreq, fmin=fmin,
+                        fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose='CRITICAL')
+                      conmat_part = con.get_data(output='dense')[:, :, 0]
+#                      print('conmat_part.shape:', conmat_part.shape)
+#                      conmat_part = np.nan_to_num(conmat_part)
+#                      print('conmat_part, idx0, idx1:', conmat_part, idx0, idx1)
+                      if conmat is None:
+                        conmat = conmat_part
+                      else:
+#                        conmat = conmat + conmat_part
+#                        print('conmat_part[index0][index1]:', conmat_part[index0][index1])
+#                        print('conmat_part[index1][index0]:', conmat_part[index1][index0])
+                        conmat[index0][index1] = conmat_part[index0][index1]
+                        conmat[index1][index0] = conmat_part[index1][index0]
+            else:
+                indices=None
+#              print('label_ts:',label_ts)
+                mne.set_log_level('CRITICAL')
+                con = spectral_connectivity_epochs(
+                  epochs[band][ji:ji+epochs_con], indices=indices, method=methods[method_idx], mode='multitaper', sfreq=sfreq, fmin=fmin,
+                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose='CRITICAL')
+
+              # Plot the graph using node colors from the FreeSurfer parcellation. We only
+              # show the 300 strongest connections.
+                conmat = con.get_data(output='dense')[:, :, 0]
+
           
 #          if band == 0:
-            mne.set_log_level('CRITICAL')
-            con = spectral_connectivity_epochs(
+#                mne.set_log_level('CRITICAL')
+#                con = spectral_connectivity_epochs(
 #          con, freqs, times, n_epochs, n_tapers = spectral_connectivity(
 #            epochs[0], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
 #            epochs[0][ji:ji+4], method=methods[method], mode='multitaper', sfreq=sfreq, fmin=fmin,
 #            np_array, method=methods[method], n_epochs_used=len(np_array), mode='multitaper', sfreq=sfreq, freqs=freqs,
 #            n_nodes=len(epochs[band][0].get_data()), faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=50)
-              epochs[band][ji:ji+epochs_con], method=methods[method_idx], mode='multitaper', sfreq=sfreq, fmin=fmin,
-              fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose='CRITICAL')
+#                  epochs[band][ji:ji+epochs_con], method=methods[method_idx], mode='multitaper', sfreq=sfreq, fmin=fmin,
+#                  fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose='CRITICAL')
 #          cons=np.roll(cons,1,axis=0)
+#                conmat = con.get_data(output='dense')[:, :, 0]
             cons=np.roll(cons,1,axis=0)
-            conmat = con.get_data(output='dense')[:, :, 0]
 #          print(conmat.shape)
 #          cons[1:,:] = cons[:len(cons),:]
             cons[0]=conmat[(cohs_tril_indices[0],cohs_tril_indices[1])].flatten('F')
@@ -1863,24 +1948,31 @@ if True:
 #            score_peaks=[0,1,2,3]
             score_peak_pair_names=[
 #                [['PO3','O1','Oz','O2','PO4'],['PO3','O1','Oz','O2','PO4']],
-                [['P3'],['PO3','O1','Oz','O2','PO4']],
-                [['P4'],['PO3','O1','Oz','O2','PO4']],
-                [['PO3'],['PO3','O1','Oz','O2','PO4']],
-                [['O1'],['PO3','O1','Oz','O2','PO4']],
-                [['Oz'],['PO3','O1','Oz','O2','PO4']],
-                [['O2'],['PO3','O1','Oz','O2','PO4']],
-                [['PO4'],['PO3','O1','Oz','O2','PO4']],
-                [['Pz'],['PO3','O1','Oz','O2','PO4']],
-                [['PO3','O1','Oz','O2','PO4'],['PO3']],
-                [['PO3','O1','Oz','O2','PO4'],['O1']],
-                [['PO3','O1','Oz','O2','PO4'],['O2']],
-                [['PO3','O1','Oz','O2','PO4'],['PO4']],
-                [['PO3','O1','Oz','O2','PO4'],['Oz']],
-                [['PO3','O1','Oz','O2','PO4'],['Pz']],
-                [['PO3','O1','Oz','O2','PO4'],['P3']],
-                [['PO3','O1','Oz','O2','PO4'],['P4']],
-                [['PO3','O1','Oz','O2','PO4'],['P7']],
-                [['PO3','O1','Oz','O2','PO4'],['P8']],
+                [['Pz'],['Pz']],
+                [['Cz','Pz'],['Cz','Pz']],
+                [['FC1','FC2','C3','Cz','C4','CP1','CP2','Pz'],['FC1','FC2','C3','Cz','C4','CP1','CP2','Pz']],
+                [['F3','Fz','F4','FC1','FC2','C3','Cz','C4','CP1','CP2','P3','Pz','P4'],['F3','Fz','F4','FC1','FC2','C3','Cz','C4','CP1','CP2','P3','Pz','P4']],
+                [['O1','O2','P7','P3','Pz','P4','P8'],['O1','O2','P7','P3','Pz','P4','P8']],
+#                [['F3','Fz','F4','FC1','FCz','FC2','C3','C1','Cz','C2','C4','CP1','CPz','CP2','P3','Pz','P4'],['F3','Fz','F4','FC1','FCz','FC2','C3','C1','Cz','C2','C4','CP1','CPz','CP2','P3','Pz','P4']],
+#                [['FCz','Cz','CPz','Pz'],['FCz','Cz','CPz','Pz']],
+#                [['P3'],['PO3','O1','Oz','O2','PO4']],
+#                [['P4'],['PO3','O1','Oz','O2','PO4']],
+#                [['PO3'],['PO3','O1','Oz','O2','PO4']],
+#                [['O1'],['PO3','O1','Oz','O2','PO4']],
+#                [['Oz'],['PO3','O1','Oz','O2','PO4']],
+#                [['O2'],['PO3','O1','Oz','O2','PO4']],
+#                [['PO4'],['PO3','O1','Oz','O2','PO4']],
+#                [['Pz'],['PO3','O1','Oz','O2','PO4']],
+#               [['PO3','O1','Oz','O2','PO4'],['PO3']],
+#                [['PO3','O1','Oz','O2','PO4'],['O1']],
+#                [['PO3','O1','Oz','O2','PO4'],['O2']],
+#                [['PO3','O1','Oz','O2','PO4'],['PO4']],
+#                [['PO3','O1','Oz','O2','PO4'],['Oz']],
+#                [['PO3','O1','Oz','O2','PO4'],['Pz']],
+#                [['PO3','O1','Oz','O2','PO4'],['P3']],
+#                [['PO3','O1','Oz','O2','PO4'],['P4']],
+#                [['PO3','O1','Oz','O2','PO4'],['P7']],
+#                [['PO3','O1','Oz','O2','PO4'],['P8']],
 #                [['Fz','Cz'],['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz',
 #                'PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4',
 #                'Fp2','Fz','Cz']],
@@ -1934,7 +2026,8 @@ if True:
             for con_idx in range(len(conmat)):
               node_colors.append(cmap_circle(peak_index_maxs[con_idx]))
 #              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
-            for con_idx in range(len(conmat)):
+            if show_circle_iapf_cons_multiply:
+              for con_idx in range(len(conmat)):
                     conmat[con_idx] = conmat[con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
                     conmat[:,con_idx] = conmat[:,con_idx] * (peak_index_maxs[con_idx]/(len(x0)-1))
 #                    conmat[:,con_idx] = 0
@@ -2274,7 +2367,10 @@ if True:
             node_colors=[]
 
             for con_idx in range(len(conmat)):
-              node_colors.append(cmap_circle(int(reliability[con_idx]*(256-1)/show_circle_cons_reliability_value)))
+              color_index = (reliability[con_idx]*(256-1)/show_circle_cons_reliability_value)
+              if np.isnan(color_index):
+                color_index=0
+              node_colors.append(cmap_circle(int(color_index)))
 #              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
             for con_idx in range(len(conmat)):
                 if reliability[con_idx]<show_circle_cons_reliability_value:
@@ -3679,11 +3775,6 @@ if True:
   flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
 #  flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
   flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
-  flags.DEFINE_boolean('show_circle_cons_reliability', True, '')
-#  flags.DEFINE_boolean('show_circle_cons_reliability', False, '')
-  flags.DEFINE_string('show_circle_cons_reliability_value', '1.0', 'beta/raw spectrum')
-  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#33aa33','#00ff00'], 'from 0 to reliability_value')
-#  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#77ff77','#00ff00'], 'from 0 to reliability_value')
 #  flags.DEFINE_boolean('show_spectrum_cons', True, 'show_spectrum_cons')
   flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
   flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
@@ -3776,8 +3867,8 @@ if True:
   flags.DEFINE_string('inverse_standard_montage', 'standard_1005', 'EGI_256, GSN-HydroCel-128, GSN-HydroCel-129, GSN-HydroCel-256, GSN-HydroCel-257, GSN-HydroCel-32, GSN-HydroCel-64_1.0, GSN-HydroCel-65_1.0, artinis-brite23, artinis-octamon, biosemi128, biosemi16, biosemi160, biosemi256, biosemi32, biosemi64, brainproducts-RNP-BA-128, easycap-M1, easycap-M10, mgh60, mgh70, standard_1005, standard_1020, standard_alphabetic, standard_postfixed, standard_prefixed, standard_primed')
 #  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
 
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
   flags.DEFINE_list('gamepad_inverse_peaks_label_names', None, 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
   flags.DEFINE_string('gamepad_inverse_peaks_label', None, 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
@@ -3807,8 +3898,8 @@ if True:
   flags.DEFINE_list('gamepad_inverse_peaks_indices1', None, 'None for gamepad_inverse_peaks_indices0')
   
 
-#  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
-  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
+  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
+#  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
   flags.DEFINE_string('epochs_peaks', '1', 'epochs_peaks')
 #  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', True, '')
   flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', False, '')
@@ -3822,6 +3913,19 @@ if True:
 #  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', False, '')
   flags.DEFINE_list('show_peaks_circle_cons_colors', ['#00ff00', '#00ff77', '#00ffff', '#0077ff', '#0000ff'], 'from 0 to reliability_value')
 
+  flags.DEFINE_list('gamepad_peaks_labels0', ['O1','O2','P7','P3','Pz','P4','P8'], 'None for all')
+#  flags.DEFINE_list('gamepad_peaks_labels0', None, 'None for all')
+  flags.DEFINE_list('gamepad_peaks_labels1', None, 'None for gamepad_inverse_peaks_labels0')
+  flags.DEFINE_list('gamepad_peaks_indices0', None, 'None for all')
+  flags.DEFINE_list('gamepad_peaks_indices1', None, 'None for gamepad_inverse_peaks_indices0')
+#  flags.DEFINE_boolean('show_circle_iapf_cons_multiply', True, '')
+  flags.DEFINE_boolean('show_circle_iapf_cons_multiply', False, '')
+
+#  flags.DEFINE_boolean('show_circle_cons_reliability', True, '')
+  flags.DEFINE_boolean('show_circle_cons_reliability', False, '')
+  flags.DEFINE_string('show_circle_cons_reliability_value', '1.0', 'beta/raw spectrum')
+  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#33aa33','#00ff00'], 'from 0 to reliability_value')
+#  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#77ff77','#00ff00'], 'from 0 to reliability_value')
 
 
 #flags.mark_flag_as_required('input')
@@ -3843,6 +3947,22 @@ if True:
 
   if FLAGS.help:
     exit()
+    
+  show_circle_iapf_cons_multiply = FLAGS.show_circle_iapf_cons_multiply
+
+  gamepad_peaks_labels0 = FLAGS.gamepad_peaks_labels0
+  gamepad_peaks_labels1 = FLAGS.gamepad_peaks_labels1
+
+  gamepad_peaks_indices0 = FLAGS.gamepad_peaks_indices0
+  if not (gamepad_peaks_indices0 is None):
+    for idx in range(len(gamepad_peaks_indices0)):
+      gamepad_peaks_indices0[idx] = int(gamepad_peaks_indices0[idx])
+  gamepad_peaks_indices1 = FLAGS.gamepad_peaks_indices1
+  if gamepad_peaks_indices1 is None:
+    gamepad_peaks_indices1 = gamepad_peaks_indices0
+  if not (gamepad_peaks_indices1 is None):
+    for idx in range(len(gamepad_peaks_indices1)):
+      gamepad_peaks_indices1[idx] = int(gamepad_peaks_indices1[idx])
 
   write_video=FLAGS.write_video
   stable_fps=FLAGS.stable_fps
