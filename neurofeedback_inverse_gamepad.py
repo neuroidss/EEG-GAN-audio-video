@@ -678,13 +678,69 @@ if True:
               # When mode = 'mean_flip', this option is used only for the cortical labels.
               src = inv['src']
 
+#              if False:
+              if not (gamepad_inverse_peaks_indices0 is None):
+#                print('label_ts:', label_ts)
+#                print('label_ts[0]:', label_ts[0])
+#                print('len(label_ts):', len(label_ts))
+#                print('len(label_ts[0]):', len(label_ts[0]))
+#                label_ts_gen = label_ts
+#                print('len(labels_parc):', len(labels_parc))
+#                print('labels_parc:', labels_parc)
+#                label_ts = [[{}]*len(labels_parc)]
+#                label_ts = [{}]*len(label_ts)
+                
+                label_indices = []
+                for idx0 in range(len(gamepad_inverse_peaks_indices0)):
+                  label_indices.append(gamepad_inverse_peaks_indices0[idx0])
+#                  label_ts[0][gamepad_inverse_peaks_indices0[idx0]] = label_ts_gen[0][gamepad_inverse_peaks_indices0[idx0]]
+                for idx1 in range(len(gamepad_inverse_peaks_indices1)):
+                  label_indix_add = gamepad_inverse_peaks_indices1[idx1]
+                  for idx0 in range(len(gamepad_inverse_peaks_indices0)):
+                    if (gamepad_inverse_peaks_indices0[idx0] == gamepad_inverse_peaks_indices1[idx1]):
+                      label_indix_add = None
+                  if not (label_indix_add is None):
+                    label_indices.append(gamepad_inverse_peaks_indices1[idx1])
+#                    label_ts[0][gamepad_inverse_peaks_indices1[idx1]] = label_ts_gen[0][gamepad_inverse_peaks_indices1[idx1]]
+
+                labels_parc_full = labels_parc
+                labels_parc = []
+                for idx0 in range(len(gamepad_inverse_peaks_indices0)):
+                  labels_parc.append(labels_parc_full[gamepad_inverse_peaks_indices0[idx0]])
+
               label_ts = mne.extract_label_time_course(
                   stcs, labels_parc, src, mode='mean_flip', 
                   allow_empty=False,
 #                  allow_empty=True,
-#                  return_generator=False, 
-                  return_generator=True, 
+                  return_generator=False, 
+#                  return_generator=True, 
                   verbose=False)
+
+              if False:
+#              if not (gamepad_inverse_peaks_indices0 is None):
+                print('label_ts:', label_ts)
+                print('label_ts[0]:', label_ts[0])
+                print('len(label_ts):', len(label_ts))
+                print('len(label_ts[0]):', len(label_ts[0]))
+                label_ts_gen = label_ts
+                print('len(labels_parc):', len(labels_parc))
+#                print('labels_parc:', labels_parc)
+                label_ts = [[{}]*len(labels_parc)]
+#                label_ts = [{}]*len(label_ts)
+                
+                label_indices = []
+                for idx0 in range(len(gamepad_inverse_peaks_indices0)):
+                  label_indices.append(gamepad_inverse_peaks_indices0[idx0])
+                  label_ts[0][gamepad_inverse_peaks_indices0[idx0]] = label_ts_gen[0][gamepad_inverse_peaks_indices0[idx0]]
+                for idx1 in range(len(gamepad_inverse_peaks_indices1)):
+                  label_indix_add = gamepad_inverse_peaks_indices1[idx1]
+                  for idx0 in range(len(gamepad_inverse_peaks_indices0)):
+                    if (gamepad_inverse_peaks_indices0[idx0] == gamepad_inverse_peaks_indices1[idx1]):
+                      label_indix_add = None
+                  if not (label_indix_add is None):
+                    label_indices.append(gamepad_inverse_peaks_indices1[idx1])
+                    label_ts[0][gamepad_inverse_peaks_indices1[idx1]] = label_ts_gen[0][gamepad_inverse_peaks_indices1[idx1]]
+                  
 
               # We compute the connectivity in the alpha band and plot it using a circular
               # graph layout
@@ -700,37 +756,107 @@ if True:
 #             if (gamepad_inverse_peaks_label_names in None):
 #                label_names = gamepad_inverse_peaks_label_names
 
-              indices=None
+#              conmats=[]
+              conmat=None
+#              gamepad_inverse_peaks_indices0 = [52]
+#              gamepad_inverse_peaks_indices1 = [53]
               if not (gamepad_inverse_peaks_indices0 is None):
 #             if not (gamepad_inverse_peaks_label_names in None):
              
 #              label_names = None
 #              label_names = gamepad_inverse_peaks_label_names
-                indices0 = np.arange(len(gamepad_inverse_peaks_indices0)*len(gamepad_inverse_peaks_indices1))
-                indices1 = indices0.copy()
+#                indices0 = np.arange(len(gamepad_inverse_peaks_indices0)*len(gamepad_inverse_peaks_indices1))
+#                indices1 = indices0.copy()
                 for idx0 in range(len(gamepad_inverse_peaks_indices0)):
                     for idx1 in range(len(gamepad_inverse_peaks_indices1)):
-                      indices0[idx0*len(gamepad_inverse_peaks_indices0)+idx1] = gamepad_inverse_peaks_indices0[idx0]
-                      indices1[idx0*len(gamepad_inverse_peaks_indices0)+idx1] = gamepad_inverse_peaks_indices1[idx1]
-                indices=(indices0,indices1)
-#              node_angles = None
+#                      indices0[idx0*len(gamepad_inverse_peaks_indices0)+idx1] = gamepad_inverse_peaks_indices0[idx0]
+#                      indices1[idx0*len(gamepad_inverse_peaks_indices0)+idx1] = gamepad_inverse_peaks_indices1[idx1]
+#                      indices=([indices0],[indices1])
+                     if not(gamepad_inverse_peaks_indices0[idx0] == gamepad_inverse_peaks_indices1[idx1]):
+#                      index0 = gamepad_inverse_peaks_indices0[idx0]
+#                      index1 = gamepad_inverse_peaks_indices1[idx1]
+                      index0 = idx0
+                      index1 = idx1
+                      indices=([index0],[index1])
+                      fmin=(peak_freq_maxs[index0]+peak_freq_maxs[index1])/2
+                      fmax=fmin+3
+                      con = spectral_connectivity_epochs(
+                        label_ts, indices=indices, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
+                        fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=False)
+                      conmat_part = con.get_data(output='dense')[:, :, 0]
+#                      print('conmat_part.shape:', conmat_part.shape)
+#                      conmat_part = np.nan_to_num(conmat_part)
+#                      print('conmat_part, idx0, idx1:', conmat_part, idx0, idx1)
+                      if conmat is None:
+                        conmat = conmat_part
+                      else:
+#                        conmat = conmat + conmat_part
+#                        print('conmat_part[index0][index1]:', conmat_part[index0][index1])
+#                        print('conmat_part[index1][index0]:', conmat_part[index1][index0])
+                        conmat[index0][index1] = conmat_part[index0][index1]
+                        conmat[index1][index0] = conmat_part[index1][index0]
+#                      conmats.append(conmat)
+#                conmats = np.asarray(conmats)
+#                conmat = np.sum(conmats, axis=0)
 
-              
+#                conmat=None
+                if False: 
+                  for idx0 in range(len(gamepad_inverse_peaks_indices0)):
+                    for idx1 in range(len(gamepad_inverse_peaks_indices1)):
+#                      indices0[idx0*len(gamepad_inverse_peaks_indices0)+idx1] = gamepad_inverse_peaks_indices0[idx0]
+#                      indices1[idx0*len(gamepad_inverse_peaks_indices0)+idx1] = gamepad_inverse_peaks_indices1[idx1]
+#                      indices=([indices0],[indices1])
+                      index0 = gamepad_inverse_peaks_indices0[idx0]
+                      index1 = gamepad_inverse_peaks_indices1[idx1]
+                      indices=([index0],[index1])
+                      fmin=bands[0][0]
+                      fmax=bands[0][1]
+                      con = spectral_connectivity_epochs(
+                        label_ts, indices=indices, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
+                        fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=False)
+                      conmat_part = con.get_data(output='dense')[:, :, 0]
+#                      print('conmat_part.shape:', conmat_part.shape)
+#                      conmat_part = np.nan_to_num(conmat_part)
+#                      print('conmat_part, idx0, idx1:', conmat_part, idx0, idx1)
+                      if conmat is None:
+                        conmat = conmat_part
+                      else:
+#                        conmat = conmat + conmat_part
+#                        print('conmat[index0][index1]:', conmat[index0][index1])
+#                        print('conmat[index1][index0]:', conmat[index1][index0])
+#                        print('conmat_part[index0][index1]:', conmat_part[index0][index1])
+#                        print('conmat_part[index1][index0]:', conmat_part[index1][index0])
+                        if not np.isnan(conmat_part[index0][index1]):
+                          conmat[index0][index1] = 0.5+conmat[index0][index1]-conmat_part[index0][index1]
+                          if conmat[index0][index1]<0:
+                            conmat[index0][index1]=0
+                          if conmat[index0][index1]>1:
+                            conmat[index0][index1]=1
+                        if not np.isnan(conmat_part[index1][index0]):
+                          conmat[index1][index0] = 0.5+conmat[index1][index0]-conmat_part[index1][index0]
+                          if conmat[index1][index0]<0:
+                            conmat[index1][index0]=0
+                          if conmat[index1][index0]>1:
+                            conmat[index1][index0]=1
+#                        conmat[index0][index1] = conmat_part[index0][index1]
+#                        conmat[index1][index0] = conmat_part[index1][index0]
+
+#              node_angles = None
+              else:
+                indices=None
 #              print('label_ts:',label_ts)
-              con = spectral_connectivity_epochs(
+                con = spectral_connectivity_epochs(
                   label_ts, indices=indices, method=methods[0], mode='multitaper', sfreq=sfreq, fmin=fmin,
                   fmax=fmax, faverage=True, mt_adaptive=True, n_jobs=n_jobs, verbose=False)
 
               # Plot the graph using node colors from the FreeSurfer parcellation. We only
               # show the 300 strongest connections.
-              conmat = con.get_data(output='dense')[:, :, 0]
+                conmat = con.get_data(output='dense')[:, :, 0]
 
               if True:
 #              if False:
               # We create a list of Label containing also the sub structures
                 labels_aseg = mne.get_volume_labels_from_src(src, subject, subjects_dir)
-              
-              
                 labels = labels_parc + labels_aseg
                 
 #              labels = labels_parc
@@ -780,8 +906,12 @@ if True:
               
 #              print('len(label_names), len(node_order), label_names, node_order:', len(label_names), len(node_order), label_names, node_order)
 
-              node_angles = circular_layout(label_names, node_order, start_pos=90,
+              if not (gamepad_inverse_peaks_indices0 is None):
+                node_angles = circular_layout(label_names, node_order, start_pos=90)
+              else:
+                node_angles = circular_layout(label_names, node_order, start_pos=90,
                                             group_boundaries=[0, len(label_names) // 2])
+              
 #             if True:
 
 #              fig, ax = plt.subplots(figsize=(8, 8), facecolor='black',
@@ -806,6 +936,7 @@ if True:
                   node_colors.append(cmap_circle(peak_index_maxs[con_idx]))
     #              node_colors.append(cmap((peak_index_maxs[con_idx]/len(x0))*256))
 #                idx_count=0
+              if (gamepad_inverse_peaks_indices0 is None):
                 for con_idx0 in range(len(conmat)-1):
                   for con_idx1 in range(con_idx0+1,len(conmat)):
 #                    print('conmat[con_idx0][con_idx1]:', conmat[con_idx0][con_idx1])
@@ -829,13 +960,17 @@ if True:
                        subplot_kw=dict(polar=True))
 #              fig = plt.figure(figsize=(800*px, 800*px))
               title=input_fname_name+'_inverse_peaks_circle_'+methods[0]+'_'+f'{bands[0][0]:.1f}'+'-'+f'{bands[0][len(bands[0])-1]:.1f}'+'hz_'+'vmin'+str(vmin)+'_'+'parc-'+inverse_parc+'_'+'epochs-'+str(epochs_inverse_con)+'\n'+f'{ji_fps:.2f}'
+              fontsize_names=5.5
+              if not (gamepad_inverse_peaks_indices0 is None):
+                fontsize_names=8
               fig,ax = plot_connectivity_circle(conmat, label_names, n_lines=n_lines, title=title, 
                                              show = False, vmin=vmin, vmax=1, 
 #                                             fontsize_names=4,
-                                             fontsize_names=5,
+##                                             fontsize_names=5,
 #                                             fontsize_names=5.5,
 #                                             fontsize_names=6,
 #                                             fontsize_names=8,
+                                              fontsize_names=fontsize_names,
 #                                       node_height = 0.5,
                                        padding=1.2,
                                        ax=ax,
@@ -3662,7 +3797,12 @@ if True:
   flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', True, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', False, '')
   flags.DEFINE_list('show_inverse_peaks_circle_cons_colors', ['#00ff00', '#00ff77', '#00ffff', '#0077ff', '#0000ff'], 'from 0 to reliability_value')
-  
+
+#--gamepad_inverse_peaks_labels0=L_2_ROI-lh,L_3a_ROI-lh,L_45_ROI-lh,L_47l_ROI-lh,L_A1_ROI-lh,L_5mv_ROI-lh,L_MST_ROI-lh,L_V8_ROI-lh
+#--gamepad_inverse_peaks_indices0=52,53,75,76,24,37,2,7
+  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['L_2_ROI-lh','L_3a_ROI-lh','L_45_ROI-lh','L_47l_ROI-lh','L_A1_ROI-lh','L_5mv_ROI-lh','L_MST_ROI-lh','L_V8_ROI-lh'], 'None for all')
+#  flags.DEFINE_list('gamepad_inverse_peaks_labels0', None, 'None for all')
+  flags.DEFINE_list('gamepad_inverse_peaks_labels1', None, 'None for gamepad_inverse_peaks_labels0')
   flags.DEFINE_list('gamepad_inverse_peaks_indices0', None, 'None for all')
   flags.DEFINE_list('gamepad_inverse_peaks_indices1', None, 'None for gamepad_inverse_peaks_indices0')
   
@@ -3707,9 +3847,8 @@ if True:
   write_video=FLAGS.write_video
   stable_fps=FLAGS.stable_fps
 
-#--gamepad_inverse_peaks_label_names=L_2_ROI-lh,L_3a_ROI-lh,L_45_ROI-lh,L_47l_ROI-lh,L_A1_ROI-lh,L_5mv_ROI-lh,L_MST_ROI-lh,L_V8_ROI-lh
-#52,53,75,76,24,37,2,7
-  
+  gamepad_inverse_peaks_labels0 = FLAGS.gamepad_inverse_peaks_labels0
+  gamepad_inverse_peaks_labels1 = FLAGS.gamepad_inverse_peaks_labels1
 
   gamepad_inverse_peaks_indices0 = FLAGS.gamepad_inverse_peaks_indices0
   if not (gamepad_inverse_peaks_indices0 is None):
@@ -3721,6 +3860,7 @@ if True:
   if not (gamepad_inverse_peaks_indices1 is None):
     for idx in range(len(gamepad_inverse_peaks_indices1)):
       gamepad_inverse_peaks_indices1[idx] = int(gamepad_inverse_peaks_indices1[idx])
+      
   show_inverse_peaks_circle_cons_colors = FLAGS.show_inverse_peaks_circle_cons_colors
   show_peaks_circle_cons_colors = FLAGS.show_peaks_circle_cons_colors
 
@@ -4777,6 +4917,25 @@ if True:
                     labels_parc.remove(label)
                     remove_unknown_label = True
 #              print('labels_parc:',labels_parc)
+
+              if not (gamepad_inverse_peaks_labels0 is None):
+                print(gamepad_inverse_peaks_labels0)
+                gamepad_inverse_peaks_indices0 = []
+                for idx0 in range(len(labels_parc)):
+                  for idx1 in range(len(gamepad_inverse_peaks_labels0)):
+                    if labels_parc[idx0].name == gamepad_inverse_peaks_labels0[idx1]:
+                      gamepad_inverse_peaks_indices0.append(idx0)
+                print(gamepad_inverse_peaks_indices0)
+                if (gamepad_inverse_peaks_labels1 is None):
+                  gamepad_inverse_peaks_indices1 = gamepad_inverse_peaks_indices0
+              if not (gamepad_inverse_peaks_labels1 is None):
+                print(gamepad_inverse_peaks_labels1)
+                gamepad_inverse_peaks_indices1 = []
+                for idx0 in range(len(labels_parc)):
+                  for idx1 in range(len(gamepad_inverse_peaks_labels1)):
+                    if labels_parc[idx0].name == gamepad_inverse_peaks_labels1[idx1]:
+                      gamepad_inverse_peaks_indices1.append(idx0)
+                print(gamepad_inverse_peaks_indices1)
 
     if True:
           if not (gamepad_inverse_peaks_label is None):  
