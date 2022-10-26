@@ -909,44 +909,46 @@ if True:
 #              print('len(lh_labels), lh_labels:', len(lh_labels), lh_labels)
 #              print('len(rh_labels), rh_labels:', len(rh_labels), rh_labels)
 
-              # Get the y-location of the label
-              label_ypos_lh = list()
-              for name in lh_labels:
-                  idx = label_names.index(name)
-                  ypos = np.mean(labels[idx].pos[:, 1])
-                  label_ypos_lh.append(ypos)
-              try:
-                  idx = label_names.index('Brain-Stem')
-              except ValueError:
-                  pass
+              if not (gamepad_inverse_peaks_indices0 is None):
+                node_order = lh_labels[::-1] + rh_labels
+                node_angles = circular_layout(label_names, node_order, start_pos=90)
               else:
-                  ypos = np.mean(labels[idx].pos[:, 1])
-                  lh_labels.append('Brain-Stem')
-                  label_ypos_lh.append(ypos)
+              # Get the y-location of the label
+                label_ypos_lh = list()
+                for name in lh_labels:
+                    idx = label_names.index(name)
+                    ypos = np.mean(labels[idx].pos[:, 1])
+                    label_ypos_lh.append(ypos)
+                try:
+                    idx = label_names.index('Brain-Stem')
+                except ValueError:
+                    pass
+                else:
+                    ypos = np.mean(labels[idx].pos[:, 1])
+                    lh_labels.append('Brain-Stem')
+                    label_ypos_lh.append(ypos)
 
               # Reorder the labels based on their location
-              lh_labels = [label for (yp, label) in sorted(zip(label_ypos_lh, lh_labels))]
+                lh_labels = [label for (yp, label) in sorted(zip(label_ypos_lh, lh_labels))]
 
               # For the right hemi
-              if (len(lh_labels) > 0) and lh_labels[0].startswith('L_'):
+                if lh_labels[0].startswith('L_'):
+#                if (len(lh_labels) > 0) and lh_labels[0].startswith('L_'):
                   rh_labels = ['R_'+label[2:-2] + 'rh' for label in lh_labels
                            if label != 'Brain-Stem' and 'R_'+label[2:-2] + 'rh' in rh_labels]
-              else:
+                else:
                   rh_labels = [label[:-2] + 'rh' for label in lh_labels
                            if label != 'Brain-Stem' and label[:-2] + 'rh' in rh_labels]
 #              lh_labels = ['L_'+label[2:-2] + 'rh' for label in lh_labels
 #                           if label != 'Brain-Stem' and 'L_'+label[2:-2] + 'rh' in lh_labels]
 
               # Save the plot order
-              node_order = lh_labels[::-1] + rh_labels
+                node_order = lh_labels[::-1] + rh_labels
 #              print('rh_labels: ', rh_labels)
               
 #              print('len(label_names), len(node_order), label_names, node_order:', len(label_names), len(node_order), label_names, node_order)
 
-              if not (gamepad_inverse_peaks_indices0 is None):
-                node_angles = None
-#                node_angles = circular_layout(label_names, node_order, start_pos=90)
-              else:
+#                node_angles = None
                 node_angles = circular_layout(label_names, node_order, start_pos=90,
                                             group_boundaries=[0, len(label_names) // 2])
               
@@ -3865,11 +3867,12 @@ if True:
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', False, '')
   flags.DEFINE_list('show_inverse_peaks_circle_cons_colors', ['#00ff00', '#00ff77', '#00ffff', '#0077ff', '#0000ff'], 'from 0 to reliability_value')
 
-#  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_DMN.json','inverse/Right_DMN.json','inverse/Left_FPN.json','inverse/Right_FPN.json','inverse/Left_CON.json','inverse/Right_CON.json'], 'None for all')
+  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_DMN.json','inverse/Right_DMN.json','inverse/Left_FPN.json','inverse/Right_FPN.json','inverse/Left_CON.json','inverse/Right_CON.json'], 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_DMN.json', ["R_SFL_ROI-rh","R_a24_ROI-rh","R_p32_ROI-rh","R_10r_ROI-rh","R_47m_ROI-rh","R_8Ad_ROI-rh","R_9m_ROI-rh","R_8BL_ROI-rh","R_9p_ROI-rh","R_10d_ROI-rh","R_45_ROI-rh","R_47l_ROI-rh","R_9a_ROI-rh","R_10v_ROI-rh","R_47s_ROI-rh","R_25_ROI-rh","R_s32_ROI-rh"], "L_8BM_ROI-lh","L_8C_ROI-lh","L_a47r_ROI-lh","L_IFJa_ROI-lh","L_IFJp_ROI-lh","L_IFSa_ROI-lh","L_p9-46v_ROI-lh","L_a9-46v_ROI-lh","L_a10p_ROI-lh","L_11l_ROI-lh","L_13l_ROI-lh","L_i6-8_ROI-lh","L_s6-8_ROI-lh","L_AVI_ROI-lh","L_AAIC_ROI-lh","L_pOFC_ROI-lh","L_p10p_ROI-lh","L_p47r_ROI-lh", 'inverse/Right_FPN.json'], 'None for all, or: json, label, labels list')
 #  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_DMN.json'], 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ["L_55b_ROI-lh","L_SFL_ROI-lh","L_a24_ROI-lh","L_p32_ROI-lh","L_10r_ROI-lh","L_47m_ROI-lh","L_8Av_ROI-lh","L_8Ad_ROI-lh","L_9m_ROI-lh","L_8BL_ROI-lh","L_9p_ROI-lh","L_10d_ROI-lh","L_44_ROI-lh","L_45_ROI-lh","L_47l_ROI-lh","L_IFSp_ROI-lh","L_9a_ROI-lh","L_10v_ROI-lh","L_47s_ROI-lh","L_25_ROI-lh","L_s32_ROI-lh"], 'None for all')
-  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_DMN.json','inverse/Right_DMN.json'], 'None for all')
+#  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_DMN.json','inverse/Right_DMN.json'], 'None for all')
+#  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_DMN.json','inverse/Right_FPN.json'], 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Right_DMN.json'], 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ["R_SFL_ROI-rh","R_a24_ROI-rh","R_p32_ROI-rh","R_10r_ROI-rh","R_47m_ROI-rh","R_8Ad_ROI-rh","R_9m_ROI-rh","R_8BL_ROI-rh","R_9p_ROI-rh","R_10d_ROI-rh","R_45_ROI-rh","R_47l_ROI-rh","R_9a_ROI-rh","R_10v_ROI-rh","R_47s_ROI-rh","R_25_ROI-rh","R_s32_ROI-rh"], 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_FPN.json'], 'None for all')
