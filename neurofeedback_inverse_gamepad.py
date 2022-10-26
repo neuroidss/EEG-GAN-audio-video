@@ -3833,6 +3833,7 @@ if True:
   flags.DEFINE_string('epochs_con', '10', 'epochs_con')
   flags.DEFINE_string('epochs_inverse_con', '1', 'epochs_inverse_con')
   flags.DEFINE_string('epochs_inverse_cov', '165', 'epochs_inverse_cov')
+  flags.DEFINE_string('inverse_subject', 'fsaverage', '')
   flags.DEFINE_string('inverse_snr', '1.0', 'use smaller SNR for raw data')
   flags.DEFINE_string('inverse_method', 'dSPM', 'MNE, dSPM, sLORETA, eLORETA')
 #  flags.DEFINE_string('inverse_parc', 'aparc', 'aparc.a2005s, aparc.a2009s, aparc, aparc_sub, HCPMMP1, HCPMMP1_combined, oasis.chubs, PALS_B12_Brodmann, PALS_B12_Lobes, PALS_B12_OrbitoFrontal, PALS_B12_Visuotopic, Yeo2011_7Networks_N1000, Yeo2011_17Networks_N1000')
@@ -3953,6 +3954,8 @@ if True:
 
   if FLAGS.help:
     exit()
+
+  inverse_subject = FLAGS.inverse_subject
 
   show_gamepad_peaks_sensor_iapf_scores = FLAGS.show_gamepad_peaks_sensor_iapf_scores
       
@@ -4416,10 +4419,14 @@ if True:
        if True:
 #       if False:
          # The files live in:
-         subject = 'fsaverage'
-         trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
-         src = op.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
-         bem = op.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+         subject = inverse_subject
+         trans = inverse_subject  # MNE has a built-in fsaverage transformation
+         src = op.join(fs_dir, 'bem', subject+'-ico-5-src.fif')
+         bem = op.join(fs_dir, 'bem', subject+'-5120-5120-5120-bem-sol.fif')
+#         subject = 'fsaverage'
+#         trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
+#         src = op.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
+#         bem = op.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
        
 
        ##############################################################################
