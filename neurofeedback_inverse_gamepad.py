@@ -4153,6 +4153,8 @@ if True:
 #  flags.DEFINE_boolean('vjoy_gamepad_psd', False, '')
 
   
+  flags.DEFINE_boolean('from_bdf_repeat', True, '')
+  flags.DEFINE_boolean('from_bdf_realtime', True, '')
 
 
 #flags.mark_flag_as_required('input')
@@ -4175,6 +4177,8 @@ if True:
   if FLAGS.help:
     exit()
 
+  from_bdf_realtime = FLAGS.from_bdf_realtime
+  from_bdf_repeat = FLAGS.from_bdf_repeat
   vjoy_gamepad_psd = FLAGS.vjoy_gamepad_psd
 
   gamepad_inverse_peaks_frequency_average = FLAGS.gamepad_inverse_peaks_frequency_average
@@ -4268,10 +4272,10 @@ if True:
     import pyvjoy
     vjoy = pyvjoy.VJoyDevice(1)
 
-    print('vjoy.data:', vjoy.data)
-    vjoy.reset()
-    vjoy.reset_buttons()
-    vjoy.reset_povs()
+#    print('vjoy.data:', vjoy.data)
+#    vjoy.reset()
+#    vjoy.reset_buttons()
+#    vjoy.reset_povs()
   
   show_gamepad_peaks_sensor_iapf_circle_cons = FLAGS.show_gamepad_peaks_sensor_iapf_circle_cons
   show_gamepad_peaks_sensor_psd = FLAGS.show_gamepad_peaks_sensor_psd
@@ -6946,7 +6950,8 @@ if True:
         datas.append(raw.pick(ch_names_pick))
 
 #        if not (FLAGS.from_bdf_file is None):
-        raw = None
+        if not ((not (FLAGS.from_bdf is None)) and from_bdf_repeat):
+          raw = None
  
         epochs = []
 #        for method in range(len(methods)):
@@ -7056,6 +7061,9 @@ if True:
 #     if not show_inverse:
      if True:
 
+      if from_bdf_realtime:
+          bdf_start = time.time()
+  
       part_len=1
       n_generate=len(epochs[0].events)-2
       n_parts = n_generate//part_len
@@ -7070,6 +7078,11 @@ if True:
 
       for j in range(n_parts): # display separate audio for each break
        n_parts_now = n_parts_now + 1
+       if from_bdf_realtime:
+         bdf_step = time.time()
+         while (bdf_step-bdf_start) < (n_parts_now/fps):
+           bdf_step = time.time()
+
 #       if n_parts_now > 100:#n_parts_one_time:
        if n_parts_now > n_parts_one_time:
         break
@@ -7145,11 +7158,34 @@ if True:
 #        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
         
 #  if False:
+        def vjoy_gamepad_psd_update(vjoy, scores, score_shifts, score_norms, score_after_shifts):
+                print('scores[0],scores[1],scores[2]:',scores[0],scores[1],scores[2])
+                vjoy.data.lButtons = 0
+#                for idx0 in range(8):
+#                  idx1=10
+#                  vjoy.data.lButtons = vjoy.data.lButtons + round(scores[idx0+idx1])*(2**(idx0))
+                vjoy.data.wAxisX = round(0x8000/2)
+                vjoy.data.wAxisY = round(0x8000/2 + (0x8000 * ((scores[1] + score_shifts[1]) * score_norms[1]) + score_after_shifts[1]))
+#                vjoy.data.wAxisX = round(0x8000/2 + (0x8000 * (scores[0] + score_shifts[0]) * score_norms[0]))
+#                vjoy.data.wAxisY = round(0x8000/2 + (0x8000 * (scores[1] + score_shifts[1]) * score_norms[1]))
+#                vjoy.data.wAxisZ = round(0x8000 - (0x8000 * scores[2] / 200))
+#                vjoy.data.wAxisXRot = round(0x8000/2 - (0x8000 * scores[2] / score_norms[2]))
+                vjoy.data.wAxisXRot = round(0x8000/2 + (0x8000 * ((scores[0] + score_shifts[0]) * score_norms[0]) + score_after_shifts[0]))
+                vjoy.data.wAxisYRot = round(0x8000/2 + (0x8000 * ((scores[2] + score_shifts[2]) * score_norms[2]) + score_after_shifts[2]))
+#                vjoy.data.wAxisXRot = round(0x8000/2)
+#                vjoy.data.wAxisYRot = round(0x8000/2 + (0x8000 * (scores[2] + score_shifts[2]) * score_norms[2]))
+#                vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
+#                vjoy.data.wAxisZRot = round(0x8000 * scores[9])
+                vjoy.update()
+
         new_images = []
         new_shows_ids = []
         new_ji_ids = []
-        score_norms=[0.005,0.5,10000000000]
-        score_shifts=[0,-0.5,0]
+        score_norms=[0.036125,-0.5,5000000000]
+        score_shifts=[0,0,0]
+        score_after_shifts=[0,0.125,0.0125]
+#        score_norms=[0,0,0]
+#        score_shifts=[0,0,0]
         for ready_ref in ready_refs:
           message = ray.get(ready_ref)
           if not(message is None):
@@ -7159,20 +7195,7 @@ if True:
             if vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
               scores = message
               if vjoy_gamepad_psd:
-                print('scores[0],scores[1],scores[2]:',scores[0],scores[1],scores[2])
-                vjoy.data.lButtons = 0
-#                for idx0 in range(8):
-#                  idx1=10
-#                  vjoy.data.lButtons = vjoy.data.lButtons + round(scores[idx0+idx1])*(2**(idx0))
-                vjoy.data.wAxisX = round(0x8000/2 + (0x8000 * (scores[0] + score_shifts[0]) * score_norms[0]))
-                vjoy.data.wAxisY = round(0x8000/2 + (0x8000 * (scores[1] + score_shifts[1]) * score_norms[1]))
-#                vjoy.data.wAxisZ = round(0x8000 - (0x8000 * scores[2] / 200))
-#                vjoy.data.wAxisXRot = round(0x8000/2 - (0x8000 * scores[2] / score_norms[2]))
-                vjoy.data.wAxisXRot = round(0x8000/2)
-                vjoy.data.wAxisYRot = round(0x8000/2 + (0x8000 * (scores[2] + score_shifts[2]) * score_norms[2]))
-#                vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
-#                vjoy.data.wAxisZRot = round(0x8000 * scores[9])
-                vjoy.update()
+                  vjoy_gamepad_psd_update(vjoy, scores, score_shifts, score_norms, score_after_shifts)
               else:
                 vjoy.data.lButtons = 0
                 for idx0 in range(8):
@@ -7252,20 +7275,7 @@ if True:
             if vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
               scores = message
               if vjoy_gamepad_psd:
-                print('scores[0],scores[1],scores[2]:',scores[0],scores[1],scores[2])
-                vjoy.data.lButtons = 0
-#                for idx0 in range(8):
-#                  idx1=10
-#                  vjoy.data.lButtons = vjoy.data.lButtons + round(scores[idx0+idx1])*(2**(idx0))
-                vjoy.data.wAxisX = round(0x8000/2 + (0x8000 * (scores[0] + score_shifts[0]) * score_norms[0]))
-                vjoy.data.wAxisY = round(0x8000/2 + (0x8000 * (scores[1] + score_shifts[1]) * score_norms[1]))
-#                vjoy.data.wAxisZ = round(0x8000 - (0x8000 * scores[2] / 200))
-#                vjoy.data.wAxisXRot = round(0x8000/2 - (0x8000 * scores[2] / score_norms[2]))
-                vjoy.data.wAxisXRot = round(0x8000/2)
-                vjoy.data.wAxisYRot = round(0x8000/2 + (0x8000 * (scores[2] + score_shifts[2]) * score_norms[2]))
-#                vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
-#                vjoy.data.wAxisZRot = round(0x8000 * scores[9])
-                vjoy.update()
+                  vjoy_gamepad_psd_update(vjoy, scores, score_shifts, score_norms, score_after_shifts)
               else:
                 vjoy.data.lButtons = 0
                 for idx0 in range(8):
@@ -7329,20 +7339,7 @@ if True:
             if vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
               scores = message
               if vjoy_gamepad_psd:
-                print('scores[0],scores[1],scores[2]:',scores[0],scores[1],scores[2])
-                vjoy.data.lButtons = 0
-#                for idx0 in range(8):
-#                  idx1=10
-#                  vjoy.data.lButtons = vjoy.data.lButtons + round(scores[idx0+idx1])*(2**(idx0))
-                vjoy.data.wAxisX = round(0x8000/2 + (0x8000 * (scores[0] + score_shifts[0]) * score_norms[0]))
-                vjoy.data.wAxisY = round(0x8000/2 + (0x8000 * (scores[1] + score_shifts[1]) * score_norms[1]))
-#                vjoy.data.wAxisZ = round(0x8000 - (0x8000 * scores[2] / 200))
-#                vjoy.data.wAxisXRot = round(0x8000/2 - (0x8000 * scores[2] / score_norms[2]))
-                vjoy.data.wAxisXRot = round(0x8000/2)
-                vjoy.data.wAxisYRot = round(0x8000/2 + (0x8000 * (scores[2] + score_shifts[2]) * score_norms[2]))
-#                vjoy.data.wAxisYRot = round(0x8000 * (0.5-scores[7]/2+scores[8]/2))
-#                vjoy.data.wAxisZRot = round(0x8000 * scores[9])
-                vjoy.update()
+                  vjoy_gamepad_psd_update(vjoy, scores, score_shifts, score_norms, score_after_shifts)
               else:
                 vjoy.data.lButtons = 0
                 for idx0 in range(8):
