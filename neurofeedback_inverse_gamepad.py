@@ -1639,7 +1639,7 @@ if True:
 
 
     @ray.remote
-    def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps):
+    def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps, score_bands_names):
 #        import pyvjoy
         out_shows_ji_images=[]
         import numpy as np
@@ -1710,7 +1710,8 @@ if True:
 #            mne.set_config('MNE_BROWSE_RAW_SIZE', f'{1008*px},{352*px}')
             
             ji0=ji
-            epo_spectrum = epochs[0][ji0:ji0+1].compute_psd(
+            epo_spectrum = epochs[0][ji0:ji0+100].compute_psd(
+#            epo_spectrum = epochs[0][ji0:ji0+1].compute_psd(
                 'welch',
                 n_fft=int(sfreq * (tmax - tmin)),
                 n_overlap=0,
@@ -1725,9 +1726,44 @@ if True:
             peak_freq_maxs=[]
             psds, freqs = epo_spectrum.get_data(return_freqs=True)
 #            peak_index_maxs = np.average(psds[0]*freqs,1)/np.average(psds[0],1)
-#            print(f'\nPSDs shape: {psds[0].shape}, freqs shape: {freqs.shape}')
+#            print(f'\nPSDs shape: {psds.shape}, freqs shape: {freqs.shape}')
 
-            if vjoy_gamepad_psd:
+            if gamepad_peak_finder:
+              for x0 in psds[0]:
+                peak_loc, peak_mag = mne.preprocessing.peak_finder(x0, thresh=None, extrema=1, verbose=False)
+#                peak_mag_max_value = max(peak_mag)
+#                peak_mag_max_index = peak_mag.index(peak_mag_max_value)
+                #print('peak_mag:', peak_mag)
+                if len(peak_mag)>0:
+                  peak_mag_max_index = np.argmax(peak_mag, axis=0)
+                  peak_index_max = peak_loc[peak_mag_max_index]
+                else:
+                  peak_index_max = 0
+                peak_max=x0[peak_index_max]
+#                print(f'\npeak_max: {peak_max}')
+                peak_maxs.append(peak_max)
+                peak_index_maxs.append(peak_index_max)
+                peak_freq_maxs.append(fmin+(peak_index_max/len(x0))*(fmax-fmin))
+#                print(f'\npeak_loc, peak_mag: {peak_loc}, {peak_mag}')
+            else:
+#             print('freqs:', freqs)
+#              iapf_band=['7.','14.']
+#              iapf_band=[7,14]
+              iapf_band_indices = [None,None]
+              for idx0 in range(len(freqs)):
+                if iapf_band_indices[0] is None:
+                  if freqs[idx0]>=iapf_band[0]:
+                    iapf_band_indices[0]=idx0
+                if freqs[idx0]<=iapf_band[1]:
+                  iapf_band_indices[1]=idx0
+              for x0 in psds[0]:
+                peak_freq_maxs.append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
+                peak_freq_maxs_array=np.asarray(peak_freq_maxs)
+#                peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
+#                peak_freq_maxs_array=np.asarray(peak_freq_maxs)
+#              print('peak_freq_maxs:',peak_freq_maxs)
+
+            if vjoy_gamepad_psd or show_gamepad_scores:
               score_bands_names=[
                   [[[['8.','12.'],['F4']],[['13.','28.'],['F4']]],[[['8.','12.'],['F3']],[['13.','28.'],['F3']]]],
                   [[[['13.','28.'],['AF3','AF4','F3','F4']],[['8.','12.'],['AF3','AF4','F3','F4']]]],
@@ -1767,7 +1803,7 @@ if True:
 #              scores=copy.deepcopy(score_controls)
 
 #              score_calcs=copy.deepcopy(score_bands_names)
-              if vjoy_gamepad_psd:
+              if vjoy_gamepad_psd or show_gamepad_scores:
 #                score_ns=score_controls.copy()
 #                print('len(score_indexes):',len(score_indexes))
                 for idx0 in range(len(score_indexes)):#scores
@@ -1816,30 +1852,204 @@ if True:
 #                      score_ns[idx0] = score_ns[idx0] + 1
 #                      print('scores[idx0]:',scores[idx0])
 #                  scores[idx0] = scores[idx0] / score_ns[idx0]
-                return(scores)
+
+                if vjoy_gamepad_psd:
+                  return(scores)
+                if show_gamepad_scores:
+                
+                  score_norms=[0.036125,-0.5,5000000000]
+                  score_shifts=[0,0,0]
+                  score_after_shifts=[0,0.125,0.0125]
+                  scores_shiftes_normed = scores.copy()
+                  for idx0 in range(len(scores)):
+                    scores_shiftes_normed[idx0] = ((scores[idx0] + score_shifts[idx0]) * score_norms[idx0]) + score_after_shifts[idx0]
+                  fig, ax = plt.subplots()
+                  plt.bar(range(len(scores_shiftes_normed)), scores_shiftes_normed)
+                  plt.ylim(-1, 1)
+#                  plt.plot(range(len(scores)), scores)
+#                  counts = scores
+#                  bins = range(len(scores))
+#                  plt.hist(bins, bins, weights=counts)
+#                  plt.stairs(range(len(scores)), scores)
+                  fig.canvas.draw()
+                        
+                  image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+                  image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+                  plt.close(fig)
+                  del fig
+                  
 
 
-            if gamepad_peak_finder:
-              for x0 in psds[0]:
-                peak_loc, peak_mag = mne.preprocessing.peak_finder(x0, thresh=None, extrema=1, verbose=False)
-#                peak_mag_max_value = max(peak_mag)
-#                peak_mag_max_index = peak_mag.index(peak_mag_max_value)
-                #print('peak_mag:', peak_mag)
-                if len(peak_mag)>0:
-                  peak_mag_max_index = np.argmax(peak_mag, axis=0)
-                  peak_index_max = peak_loc[peak_mag_max_index]
-                else:
-                  peak_index_max = 0
-                peak_max=x0[peak_index_max]
-#                print(f'\npeak_max: {peak_max}')
-                peak_maxs.append(peak_max)
-                peak_index_maxs.append(peak_index_max)
-                peak_freq_maxs.append(fmin+(peak_index_max/len(x0))*(fmax-fmin))
-#                print(f'\npeak_loc, peak_mag: {peak_loc}, {peak_mag}')
-            else:
-#             print('freqs:', freqs)
-             for x0 in psds[0]:
-                peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
+            if show_gamepad_scores_baselined:
+#            if vjoy_gamepad_psd_baselined or show_gamepad_scores_baselined:
+#              score_bands_names=[
+#                  [[[['8.','12.'],['F4']],[['13.','28.'],['F4']]],[[['8.','12.'],['F3']],[['13.','28.'],['F3']]]],
+#                  [[[['13.','28.'],['AF3','AF4','F3','F4']],[['8.','12.'],['AF3','AF4','F3','F4']]]],
+#                  [[[['8.','12.'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+#                  ]
+#              score_bands_names=[
+#                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
+#                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
+#                  [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+#                  [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+#                  ]
+#              score_controls=list(range(len(score_bands_names)))
+              scoress=list(range(len(score_bands_names)))
+              scores=list(range(len(score_bands_names)))
+              import copy
+              score_indexes=copy.deepcopy(score_bands_names)
+              for idx0 in range(len(score_bands_names)):#scores
+                for idx1 in range(len(score_bands_names[idx0])):#x/y,-x/y
+                  for idx2 in range(len(score_bands_names[idx0][idx1])):#x,1/y
+                    for idx3 in reversed(range(len(score_bands_names[idx0][idx1][idx2]))):#names,bands
+#                    for idx3 in range(len(score_bands_names[idx0][idx1][idx2])):#bands,names
+                      if idx3==0:#bands
+#                        print('score_indexes[idx0][idx1][idx2][1]:',score_indexes[idx0][idx1][idx2][1])
+#                        print('np.asarray(score_indexes[idx0][idx1][idx2][1]):',np.asarray(score_indexes[idx0][idx1][idx2][1]))
+#                        print('peak_freq_maxs[np.asarray([26])]:',peak_freq_maxs[np.asarray([26])])
+#                        print('peak_freq_maxs[np.asarray(score_indexes[idx0][idx1][idx2][1])]:',peak_freq_maxs[np.asarray(score_indexes[idx0][idx1][idx2][1])])
+#                        print('np.asarray(peak_freq_maxs[np.asarray(score_indexes[idx0][idx1][idx2][1])]):',np.asarray(peak_freq_maxs[np.asarray(score_indexes[idx0][idx1][idx2][1])]))
+                        iapf = np.average(peak_freq_maxs_array[score_indexes[idx0][idx1][idx2][1]])
+#                        print('iapf:',iapf)
+                        for idx4 in range(len(score_bands_names[idx0][idx1][idx2][idx3])):
+                          if idx4==0:#bands from
+                            score_indexes[idx0][idx1][idx2][idx3][idx4] = None
+#                            print('idx0,idx1,idx2,idx3,idx4:',idx0,idx1,idx2,idx3,idx4)
+#                            print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                            for freqs_idx, freq in enumerate(freqs):
+#                              if (score_indexes[idx0][idx1][idx2][idx3][idx4] is None) and (freq>=float(score_bands_names[idx0][idx1][idx2][idx3][idx4])):
+#                                score_indexes[idx0][idx1][idx2][idx3][idx4]=freqs_idx
+                              if (score_indexes[idx0][idx1][idx2][idx3][idx4] is None):
+#                                print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                                if score_bands_names[idx0][idx1][idx2][idx3][idx4].find('IAPF') == 0:
+#                                  freq_from=iapf+float(score_bands_names[idx0][idx1][idx2][idx3][idx4][4:])
+#                                  print('freq_from:',freq_from)
+                                  if (freq>=iapf+float(score_bands_names[idx0][idx1][idx2][idx3][idx4][4:])):
+                                    score_indexes[idx0][idx1][idx2][idx3][idx4] = freqs_idx
+                                else:
+                                  if (freq>=float(score_bands_names[idx0][idx1][idx2][idx3][idx4])):
+                                    score_indexes[idx0][idx1][idx2][idx3][idx4] = freqs_idx
+                          else:#bands to
+                            score_indexes[idx0][idx1][idx2][idx3][idx4] = None
+                            for freqs_idx, freq in enumerate(freqs):
+#                              if (freq<=float(score_bands_names[idx0][idx1][idx2][idx3][idx4])):
+#                                score_indexes[idx0][idx1][idx2][idx3][idx4]=freqs_idx
+#                              print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                              if score_bands_names[idx0][idx1][idx2][idx3][idx4].find('IAPF') == 0:
+#                                freq_to=iapf+float(score_bands_names[idx0][idx1][idx2][idx3][idx4][4:])
+#                                print('freq_to:',freq_to)
+                                if (freq<=iapf+float(score_bands_names[idx0][idx1][idx2][idx3][idx4][4:])):
+                                  score_indexes[idx0][idx1][idx2][idx3][idx4] = freqs_idx
+                              else:
+                                if (freq<=float(score_bands_names[idx0][idx1][idx2][idx3][idx4])):
+                                  score_indexes[idx0][idx1][idx2][idx3][idx4] = freqs_idx
+#                          print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+#                          print('score_bands_names[idx0][idx1][idx2][idx3][idx4],score_indexes[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4],score_indexes[idx0][idx1][idx2][idx3][idx4])
+                      else:#names
+                        for idx4 in range(len(score_bands_names[idx0][idx1][idx2][idx3])):
+                          score_indexes[idx0][idx1][idx2][idx3][idx4]=label_names.index(score_bands_names[idx0][idx1][idx2][idx3][idx4])
+#                          print('score_bands_names[idx0][idx1][idx2][idx3][idx4],score_indexes[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4],score_indexes[idx0][idx1][idx2][idx3][idx4])
+                      freq_from=score_indexes[idx0][idx1][idx2][0][0]
+                      freq_to=score_indexes[idx0][idx1][idx2][0][1]
+#                      print('idx0,idx1,idx2,idx4,freq_from,freq_to:',idx0,idx1,idx2,idx4,freq_from,freq_to)
+#              scores=copy.deepcopy(score_controls)
+
+#              score_calcs=copy.deepcopy(score_bands_names)
+              if show_gamepad_scores_baselined:
+#              if vjoy_gamepad_psd_baselined or show_gamepad_scores_baselined:
+#                score_ns=score_controls.copy()
+#                print('len(score_indexes):',len(score_indexes))
+                for idx0 in range(len(score_indexes)):#scores
+#                  print('len(score_indexes[idx0]):',len(score_indexes[idx0]))
+#                  score_ns[idx0]=0
+                  scoress[idx0]=np.zeros(len(psds))
+                  scores[idx0]=0
+                  for idx1 in range(len(score_indexes[idx0])):#x/y,-x/y
+                    scores_calc_mult = None
+                    for idx2 in range(len(score_indexes[idx0][idx1])):#x,1/y
+                      scores_calc_bufs = np.zeros(len(psds))
+                      scores_calc_buf = 0
+#                      score_calcs[idx0][idx1][idx2] = None
+#                      print('len(score_indexes[idx0][idx1][idx2]):',len(score_indexes[idx0][idx1][idx2]))
+                      if True:
+#                      if len(score_indexes[idx0][idx1][idx2])>1:
+                        freq_from=score_indexes[idx0][idx1][idx2][0][0]
+                        freq_to=score_indexes[idx0][idx1][idx2][0][1]
+#                        names_range=score_indexes[idx0][idx1][idx2][1]
+#                        print('names_range:',names_range)
+#                        scores_calc_buf = np.average(psds[0][names_range][freq_from:freq_to])
+                        for idx4 in range(len(score_indexes[idx0][idx1][idx2][1])):#names
+#                          score_calcs[idx0][idx1][idx2] = (np.average(psd[0][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))/(np.max(psd[:][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))
+                          for idx5 in range(len(scores_calc_bufs)):
+                            scores_calc_bufs[idx5] = scores_calc_bufs[idx5] + np.average(psds[idx5][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+                          scores_calc_buf = scores_calc_buf + np.average(psds[0][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+#                          score_calcs[idx0][idx1][idx2] = np.average(psds[0][idx4][freq_from:freq_to])
+#                          print('score_calcs[idx0][idx1][idx2]:',score_calcs[idx0][idx1][idx2])
+#                          print('scores_calc_buf:',scores_calc_buf)
+#                          print('idx0,idx1,idx2,idx4,freq_from,freq_to:',idx0,idx1,idx2,idx4,freq_from,freq_to)
+#                          print('idx0,idx1,idx2,idx4,freq_from,freq_to,scores_calc_buf:',idx0,idx1,idx2,idx4,freq_from,freq_to,scores_calc_buf)
+                        scores_calc_bufs = scores_calc_bufs / len(score_indexes[idx0][idx1][idx2][1])
+                        scores_calc_buf = scores_calc_buf / len(score_indexes[idx0][idx1][idx2][1])
+#                        print('idx0,idx1,idx2,freq_from,freq_to,scores_calc_buf:',idx0,idx1,idx2,freq_from,freq_to,scores_calc_buf)
+                        if scores_calc_mult is None:
+                          scores_calc_mults = np.ones(len(psds))
+                          scores_calc_mult = 1
+                        if idx2%2==0:#x
+#                          if score_calcs[idx0][idx1][idx2] is None:
+#                            score_calcs[idx0][idx1][idx2] = 1
+                          scores_calc_mults = scores_calc_mults * scores_calc_bufs
+                          scores_calc_mult = scores_calc_mult * scores_calc_buf
+#                          scores_calc_mult = scores_calc_mult * score_calcs[idx0][idx1][idx2]
+                        else:#1/y
+                          scores_calc_mults = scores_calc_mults / scores_calc_bufs
+                          scores_calc_mult = scores_calc_mult / scores_calc_buf
+#                          scores_calc_mult = scores_calc_mult / score_calcs[idx0][idx1][idx2]
+                    if not (scores_calc_mult is None):
+#                      print('idx0,idx1,scores_calc_mult:',idx0,idx1,scores_calc_mult)
+                      if idx1%2==0:#x/y
+                        scoress[idx0] = scoress[idx0] + scores_calc_mults
+                        scores[idx0] = scores[idx0] + scores_calc_mult
+                      else:#-x/y
+                        scoress[idx0] = scoress[idx0] - scores_calc_mults
+                        scores[idx0] = scores[idx0] - scores_calc_mult
+#                      score_ns[idx0] = score_ns[idx0] + 1
+#                      print('scores[idx0]:',scores[idx0])
+#                  scores[idx0] = scores[idx0] / score_ns[idx0]
+
+#                if vjoy_gamepad_psd_baselined:
+#                  return(scores)
+                if show_gamepad_scores_baselined:
+                
+#                  score_norms=[0.036125,-0.5,5000000000]
+#                  score_shifts=[0,0,0]
+#                  score_after_shifts=[0,0.125,0.0125]
+#                  scores_shiftes_normed = scores.copy()
+#                  for idx0 in range(len(scores)):
+#                    scores_shiftes_normed[idx0] = ((scores[idx0] + score_shifts[idx0]) * score_norms[idx0]) + score_after_shifts[idx0]
+                  scores_shifts_baselined = scores.copy()
+                  for idx0 in range(len(scoress)):
+#                    print('scoress[idx0]:', scoress[idx0])
+                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+                    scores_shifts_baselined[idx0] = scores_shifts_baselined[idx0] * 2 - 1
+#                    scores_shiftes_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+                  fig, ax = plt.subplots()
+                  plt.bar(range(len(scores_shifts_baselined)), scores_shifts_baselined)
+#                  plt.bar(range(len(scores_shiftes_normed)), scores_shiftes_normed)
+                  plt.ylim(-1, 1)
+#                  plt.plot(range(len(scores)), scores)
+#                  counts = scores
+#                  bins = range(len(scores))
+#                  plt.hist(bins, bins, weights=counts)
+#                  plt.stairs(range(len(scores)), scores)
+                  fig.canvas.draw()
+                        
+                  image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+                  image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+                  plt.close(fig)
+                  del fig
+
+
+
 
             if show_gamepad_peaks_sensor_psd:
 #            if False:
@@ -2134,7 +2344,7 @@ if True:
                     score_peak_pair_indexes[idx0][idx1][idx2]=label_names.index(score_peak_pair_names[idx0][idx1][idx2])
               scores=score_controls.copy()
 
-              if vjoy_gamepad_psd:
+              if vjoy_gamepad_psd or show_gamepad_scores:
                 score_ns=score_controls.copy()
                 for idx0 in range(len(score_peak_pair_indexes)):
                   score_ns[idx0]=0
@@ -3930,7 +4140,9 @@ if True:
 #flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
-  flags.DEFINE_list('bands', [8.,28.], 'bands')
+#  flags.DEFINE_list('bands', [8.,28.], 'bands')
+  flags.DEFINE_list('bands', [1.,28.], 'bands')
+#  flags.DEFINE_list('bands', [4.,28.], 'bands')
 #  flags.DEFINE_list('bands', [7.,14.], 'bands')
 #  flags.DEFINE_list('bands', [8.,12.], 'bands')
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
@@ -4106,10 +4318,12 @@ if True:
   flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', False, '')
 #  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf', True, '')
   flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf', False, '')
-  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', True, '')
-#  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', False, '')
+  
+#  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', True, '')
+  flags.DEFINE_boolean('vjoy_gamepad_peaks_sensor_iapf', False, '')
 #  flags.DEFINE_boolean('vjoy_gamepad_inverse_peaks_sensor_iapf', True, '')
   flags.DEFINE_boolean('vjoy_gamepad_inverse_peaks_sensor_iapf', False, '')
+  
 #  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', True, '')
   flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_circle_cons', False, '')
 #  flags.DEFINE_boolean('show_gamepad_peaks_sensor_iapf_scores', True, '')
@@ -4149,12 +4363,23 @@ if True:
 
   flags.DEFINE_boolean('gamepad_peak_finder', False, '')
 
-  flags.DEFINE_boolean('vjoy_gamepad_psd', True, '')
-#  flags.DEFINE_boolean('vjoy_gamepad_psd', False, '')
-
+#  flags.DEFINE_boolean('vjoy_gamepad_psd', True, '')
+  flags.DEFINE_boolean('vjoy_gamepad_psd', False, '')
   
   flags.DEFINE_boolean('from_bdf_repeat', True, '')
   flags.DEFINE_boolean('from_bdf_realtime', True, '')
+#  flags.DEFINE_boolean('show_gamepad_scores', True, '')
+  flags.DEFINE_boolean('show_gamepad_scores', False, '')
+  flags.DEFINE_boolean('show_gamepad_scores_baselined', True, '')
+#  flags.DEFINE_boolean('show_gamepad_scores_baselined', False, '')
+
+  flags.DEFINE_list('score_bands_names', [
+                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
+                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
+                  [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+                  [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+                  ], '')
+  flags.DEFINE_list('iapf_band', ['7.','14.'], '')
 
 
 #flags.mark_flag_as_required('input')
@@ -4177,6 +4402,10 @@ if True:
   if FLAGS.help:
     exit()
 
+  iapf_band=[float(FLAGS.iapf_band[0]),float(FLAGS.iapf_band[1])]
+  score_bands_names = FLAGS.score_bands_names
+  show_gamepad_scores_baselined = FLAGS.show_gamepad_scores_baselined
+  show_gamepad_scores = FLAGS.show_gamepad_scores
   from_bdf_realtime = FLAGS.from_bdf_realtime
   from_bdf_repeat = FLAGS.from_bdf_repeat
   vjoy_gamepad_psd = FLAGS.vjoy_gamepad_psd
@@ -6794,6 +7023,7 @@ if True:
         vmin_id = ray.put(vmin)
         from_bdf_id = ray.put(from_bdf)
         fps_id = ray.put(fps)
+        score_bands_names_id = ray.put(score_bands_names)
   if show_inverse_3d or show_inverse_circle_cons or show_gamepad_inverse_peaks:
         overlap_id = ray.put(overlap)
         fwd_id = ray.put(fwd)
@@ -7122,7 +7352,7 @@ if True:
         if show_gamepad_peaks:
           duration_id = ray.put(duration)
           cohs_tril_indices_id = ray.put(cohs_tril_indices)
-          object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id)
+          object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id)
           shows_ids.append(shows_gamepad_peaks)
           ji_ids.append(ji0)
           object_refs.append(object_ref)
