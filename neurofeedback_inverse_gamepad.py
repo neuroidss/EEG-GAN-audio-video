@@ -637,7 +637,8 @@ if True:
 #            print(f'\nPSDs shape: {psds.shape}')
 #            print(f'\nstc.data shape: {stc.data.shape}')
 
-              if gamepad_peak_finder:
+              if False:
+#              if gamepad_peak_finder:
                 for x0 in psds:
                   peak_loc, peak_mag = mne.preprocessing.peak_finder(x0, thresh=None, extrema=1, verbose=False)
 #                peak_mag_max_value = max(peak_mag)
@@ -1639,7 +1640,7 @@ if True:
 
 
     @ray.remote
-    def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps, score_bands_names):
+    def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps, score_bands_names, epochs_baseline, iapf_band, vjoy_gamepad_psd, show_gamepad_scores, show_gamepad_scores_baselined, label_names, sfreq, ch_names_pick, raws_hstack_cut, overlap):
 #        import pyvjoy
         out_shows_ji_images=[]
         import numpy as np
@@ -1654,6 +1655,16 @@ if True:
 
         import mne
         from mne import io
+
+        ch_types_pick = ['eeg'] * len(ch_names_pick)
+        info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
+        raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose='ERROR')
+        
+        epochs = []
+        epochs.append(mne.make_fixed_length_epochs(raw, 
+                                            duration=duration, preload=True, overlap=overlap, 
+                                            verbose='ERROR'))
+        
 #        tmin = 1.
 #        tmax = 20.
         eeg_step=0
@@ -1662,7 +1673,7 @@ if True:
         tmin, tmax = 0+(eeg_step/fps), duration+(eeg_step/fps)  # use the first 120s of data
         fmin = 1.
         fmax = 90.
-        sfreq = epochs[0].info['sfreq']
+#        sfreq = epochs[0].info['sfreq']
         for band in range(len(bands)):
           #fmin=8.
           #fmax=13.
@@ -1728,7 +1739,8 @@ if True:
 #            peak_index_maxs = np.average(psds[0]*freqs,1)/np.average(psds[0],1)
 #            print(f'\nPSDs shape: {psds.shape}, freqs shape: {freqs.shape}')
 
-            if gamepad_peak_finder:
+            if False:
+#            if gamepad_peak_finder:
               for x0 in psds[0]:
                 peak_loc, peak_mag = mne.preprocessing.peak_finder(x0, thresh=None, extrema=1, verbose=False)
 #                peak_mag_max_value = max(peak_mag)
@@ -2047,6 +2059,20 @@ if True:
                   image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
                   plt.close(fig)
                   del fig
+                  
+                  del scores
+                  del scoress
+                  del scores_calc_bufs
+                  del scores_calc_mults
+                  del score_indexes
+                  del peak_freq_maxs
+                  del epo_spectrum
+                  del psds
+                  del freqs
+                  import gc
+                  gc.collect()
+                  
+                  return image
 
 
 
@@ -4071,8 +4097,9 @@ if False:
 
 
 #async 
-#def main():
-if True:
+def main():
+#if True:
+  import time
   start_0 = time.time()
 
 
@@ -4361,7 +4388,7 @@ if True:
   flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#33aa33','#00ff00'], 'from 0 to reliability_value')
 #  flags.DEFINE_list('show_circle_cons_reliability_colors', ['#777777','#77ff77','#00ff00'], 'from 0 to reliability_value')
 
-  flags.DEFINE_boolean('gamepad_peak_finder', False, '')
+#  flags.DEFINE_boolean('gamepad_peak_finder', False, '')
 
 #  flags.DEFINE_boolean('vjoy_gamepad_psd', True, '')
   flags.DEFINE_boolean('vjoy_gamepad_psd', False, '')
@@ -4420,7 +4447,7 @@ if True:
 
   show_gamepad_peaks_sensor_iapf_scores = FLAGS.show_gamepad_peaks_sensor_iapf_scores
       
-  gamepad_peak_finder=FLAGS.gamepad_peak_finder
+#  gamepad_peak_finder=FLAGS.gamepad_peak_finder
     
   show_circle_iapf_cons_multiply = FLAGS.show_circle_iapf_cons_multiply
 
@@ -7016,12 +7043,20 @@ if True:
         ready_shows_ids = []
         ready_ji_ids = []
         ji0=-1
+        rotate_id = ray.put(FLAGS.rotate)
+        cons_id = ray.put(cons)
         
         epochs_ids = []
         raws_ids = []
 
         duration_id = ray.put(duration)
         cohs_tril_indices_id = ray.put(cohs_tril_indices)
+        epochs_baseline_id = ray.put(epochs_baseline)
+        iapf_band_id = ray.put(iapf_band)
+        vjoy_gamepad_psd_id = ray.put(vjoy_gamepad_psd)
+        show_gamepad_scores_id = ray.put(show_gamepad_scores)
+        show_gamepad_scores_baselined_id = ray.put(show_gamepad_scores_baselined)
+        label_names_id = ray.put(label_names)
 
         cuda_jobs_id = ray.put(cuda_jobs)
         n_jobs_id = ray.put(n_jobs)
@@ -7208,10 +7243,12 @@ if True:
                                             duration=duration, preload=True, overlap=overlap, 
                                             verbose='ERROR'))
 
-        epochs_id = ray.put(epochs)
-        epochs_ids.append(epochs_id)
-        raws_id = ray.put(datas)
-        raws_ids.append(raws_id)
+#        epochs_ids.append(ray.put(epochs))
+#        raws_ids.append(ray.put(datas))
+#        epochs_id = ray.put(epochs)
+#        epochs_ids.append(epochs_id)
+#        raws_id = ray.put(datas)
+#        raws_ids.append(raws_id)
 
 
 #        epochs_id = ray.put(epochs)
@@ -7316,6 +7353,25 @@ if True:
         n_parts=1
         part_len=1
 
+#      epochs_ndarray = np.asarray(epochs)
+#      epochs_id = ray.put(epochs_ndarray)
+      epochs_id = None
+#      raws_ndarray = np.asarray(raws)
+#      raws_id = ray.put(raws_ndarray)
+      ch_names_pick_id = ray.put(ch_names_pick)
+      raws_hstack_cut_ndarray = np.asarray(raws_hstack_cut)
+      raws_hstack_cut_id = ray.put(raws_hstack_cut_ndarray)
+      overlap_id = ray.put(overlap)
+      
+#      raws_id = ray.put(datas)
+#      del epochs_ndarray
+#      del raws_ndarray
+      sfreq = epochs[0].info['sfreq']
+      sfreq_id = ray.put(sfreq)
+
+      del epochs
+      del datas
+
       for j in range(n_parts): # display separate audio for each break
        n_parts_now = n_parts_now + 1
        if from_bdf_realtime:
@@ -7340,8 +7396,6 @@ if True:
 #        worker_.remote(actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps)
 #        worker_.remote(message_actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps)
         ji_id = ray.put(ji)
-        rotate_id = ray.put(FLAGS.rotate)
-        cons_id = ray.put(cons)
         if from_bdf is None:
 #          ji_fps_id = ray.put(ji0/fps)
           ji_fps = time.time() - start
@@ -7360,7 +7414,9 @@ if True:
           object_refs.append(object_ref)
 
         if show_gamepad_peaks:
-          object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id)
+#          object_ref = worker_gamepad_peaks.remote(epochs_ids[len(epochs_ids)-1], ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id, epochs_baseline_id, iapf_band_id, vjoy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id)
+          object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id, epochs_baseline_id, iapf_band_id, vjoy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, raws_hstack_cut_id, overlap_id)
+          del epochs_id
           shows_ids.append(shows_gamepad_peaks)
           ji_ids.append(ji0)
           object_refs.append(object_ref)
@@ -7455,9 +7511,10 @@ if True:
             shows_ids.pop(ready_id)
             ji_ids.pop(ready_id)
 #            del epochs_ids[ready_id]
-            epochs_ids.pop(ready_id)
+#            print(epochs_ids[ready_id])
+#            epochs_ids.pop(ready_id)
 #            del raws_ids[ready_id]
-            raws_ids.pop(ready_id)
+#            raws_ids.pop(ready_id)
           import gc
           del ready_ref
 #          print('ref count to result_id {}'.format(len(gc.get_referrers(ready_ref)))) 
@@ -7645,7 +7702,7 @@ if True:
   print("duration with startup = ", time.time() - start_0)
 
 #asyncio.run(
-#main()
+main()
 #)
 
 if False:    
