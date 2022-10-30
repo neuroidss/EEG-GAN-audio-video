@@ -1710,7 +1710,7 @@ if True:
 #            mne.set_config('MNE_BROWSE_RAW_SIZE', f'{1008*px},{352*px}')
             
             ji0=ji
-            epo_spectrum = epochs[0][ji0:ji0+100].compute_psd(
+            epo_spectrum = epochs[0][ji0:ji0+epochs_baseline].compute_psd(
 #            epo_spectrum = epochs[0][ji0:ji0+1].compute_psd(
                 'welch',
                 n_fft=int(sfreq * (tmax - tmin)),
@@ -4380,6 +4380,8 @@ if True:
                   [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
                   ], '')
   flags.DEFINE_list('iapf_band', ['7.','14.'], '')
+  flags.DEFINE_string('epochs_baseline', '100', '')
+  
 
 
 #flags.mark_flag_as_required('input')
@@ -4402,6 +4404,7 @@ if True:
   if FLAGS.help:
     exit()
 
+  epochs_baseline=int(FLAGS.epochs_baseline)
   iapf_band=[float(FLAGS.iapf_band[0]),float(FLAGS.iapf_band[1])]
   score_bands_names = FLAGS.score_bands_names
   show_gamepad_scores_baselined = FLAGS.show_gamepad_scores_baselined
@@ -7416,8 +7419,9 @@ if True:
         score_after_shifts=[0,0.125,0.0125]
 #        score_norms=[0,0,0]
 #        score_shifts=[0,0,0]
-        for ready_ref in ready_refs:
+        for ready_ref_idx, ready_ref in enumerate(ready_refs):
           message = ray.get(ready_ref)
+          del ready_refs[ready_ref_idx]
           if not(message is None):
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
@@ -7495,8 +7499,9 @@ if True:
 #        new_images = []
 #        new_shows_ids = []
 #        new_ji_ids = []
-        for ready_ref in ready_refs:
+        for ready_ref_idx, ready_ref in enumerate(ready_refs):
           message = ray.get(ready_ref)
+          del ready_refs[ready_ref_idx]
           if not(message is None):
 #            print('message:', message)
             ready_images.append(message)
@@ -7559,8 +7564,9 @@ if True:
 #        new_images = []
 #        new_shows_ids = []
 #        new_ji_ids = []
-        for ready_ref in ready_refs:
+        for ready_ref_idx, ready_ref in enumerate(ready_refs):
           message = ray.get(ready_ref)
+          del ready_refs[ready_ref_idx]
           if not(message is None):
 #            print('message:', message)
             ready_images.append(message)
