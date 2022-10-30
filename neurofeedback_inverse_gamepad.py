@@ -7016,7 +7016,12 @@ if True:
         ready_shows_ids = []
         ready_ji_ids = []
         ji0=-1
+        
+        epochs_ids = []
+        raws_ids = []
 
+        duration_id = ray.put(duration)
+        cohs_tril_indices_id = ray.put(cohs_tril_indices)
 
         cuda_jobs_id = ray.put(cuda_jobs)
         n_jobs_id = ray.put(n_jobs)
@@ -7204,7 +7209,9 @@ if True:
                                             verbose='ERROR'))
 
         epochs_id = ray.put(epochs)
+        epochs_ids.append(epochs_id)
         raws_id = ray.put(datas)
+        raws_ids.append(raws_id)
 
 
 #        epochs_id = ray.put(epochs)
@@ -7353,8 +7360,6 @@ if True:
           object_refs.append(object_ref)
 
         if show_gamepad_peaks:
-          duration_id = ray.put(duration)
-          cohs_tril_indices_id = ray.put(cohs_tril_indices)
           object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id)
           shows_ids.append(shows_gamepad_peaks)
           ji_ids.append(ji0)
@@ -7419,9 +7424,8 @@ if True:
         score_after_shifts=[0,0.125,0.0125]
 #        score_norms=[0,0,0]
 #        score_shifts=[0,0,0]
-        for ready_ref_idx, ready_ref in enumerate(ready_refs):
+        for ready_ref in ready_refs:
           message = ray.get(ready_ref)
-          del ready_refs[ready_ref_idx]
           if not(message is None):
             ready_images.append(message)
             ready_id = object_refs.index(ready_ref)
@@ -7449,6 +7453,14 @@ if True:
             object_refs.pop(ready_id)
             shows_ids.pop(ready_id)
             ji_ids.pop(ready_id)
+#            del epochs_ids[ready_id]
+            epochs_ids.pop(ready_id)
+#            del raws_ids[ready_id]
+            raws_ids.pop(ready_id)
+          import gc
+          del ready_ref
+#          print('ref count to result_id {}'.format(len(gc.get_referrers(ready_ref)))) 
+#          print('Total number of ref counts in a ray cluster. {}'.format(ray.worker.global_worker.core_worker.get_all_reference_counts())) 
         if len(ready_images)>0:
 #          print('enumerate(ready_images):', enumerate(ready_images))
 #          print('ready_images:', ready_images)
@@ -7499,9 +7511,9 @@ if True:
 #        new_images = []
 #        new_shows_ids = []
 #        new_ji_ids = []
-        for ready_ref_idx, ready_ref in enumerate(ready_refs):
+        for ready_ref in ready_refs:
           message = ray.get(ready_ref)
-          del ready_refs[ready_ref_idx]
+#          free(ready_refs[ready_ref_idx])
           if not(message is None):
 #            print('message:', message)
             ready_images.append(message)
@@ -7536,6 +7548,7 @@ if True:
 #          ready_ji_ids.append(new_ji_ids)
 #          print('ready_shows_ids:', ready_shows_ids)
 #          print('ready_ji_ids:', ready_ji_ids)
+          del ready_ref
         if len(ready_images)>0:
 #          print('enumerate(ready_images):', enumerate(ready_images))
 #          print('ready_images:', ready_images)
@@ -7564,9 +7577,8 @@ if True:
 #        new_images = []
 #        new_shows_ids = []
 #        new_ji_ids = []
-        for ready_ref_idx, ready_ref in enumerate(ready_refs):
+        for ready_ref in ready_refs:
           message = ray.get(ready_ref)
-          del ready_refs[ready_ref_idx]
           if not(message is None):
 #            print('message:', message)
             ready_images.append(message)
@@ -7601,6 +7613,7 @@ if True:
 #          ready_ji_ids.append(new_ji_ids)
 #          print('ready_shows_ids:', ready_shows_ids)
 #          print('ready_ji_ids:', ready_ji_ids)
+          del ready_ref
         if len(ready_images)>0:
 #          print('enumerate(ready_images):', enumerate(ready_images))
 #          print('ready_images:', ready_images)
