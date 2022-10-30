@@ -7394,6 +7394,7 @@ if True:
 #  if False:
         ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
 #        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
+        print("len(ready_refs), len(remaining_refs):", len(ready_refs), len(remaining_refs))
         
 #  if False:
         def vjoy_gamepad_psd_update(vjoy, scores, score_shifts, score_norms, score_after_shifts):
