@@ -1720,7 +1720,18 @@ if True:
 #            mne.set_config('MNE_BROWSE_RAW_SIZE', '16,9', setenv=False)
 #            mne.set_config('MNE_BROWSE_RAW_SIZE', f'{1008*px},{352*px}')
             
-            ji0=ji
+            ji0 = ji
+            if ji0 == -1:
+              ji0 = len(epochs[0]) - epochs_baseline
+            if ji0 + epochs_baseline >= len(epochs[0]):
+              ji0 = len(epochs[0]) - epochs_baseline
+            if ji0 < 0:
+              ji0 = 0
+            ji1 = ji
+            if ji1 == -1:
+              ji1 = epochs_baseline - 1
+            if ji1 >= epochs_baseline:
+              ji1 = epochs_baseline - 1
             epo_spectrum = epochs[0][ji0:ji0+epochs_baseline].compute_psd(
 #            epo_spectrum = epochs[0][ji0:ji0+1].compute_psd(
                 'welch',
@@ -1738,6 +1749,8 @@ if True:
             psds, freqs = epo_spectrum.get_data(return_freqs=True)
 #            peak_index_maxs = np.average(psds[0]*freqs,1)/np.average(psds[0],1)
 #            print(f'\nPSDs shape: {psds.shape}, freqs shape: {freqs.shape}')
+            if ji1 >= len(psds):
+              ji1 = len(psds) - 1
 
             if False:
 #            if gamepad_peak_finder:
@@ -1768,7 +1781,7 @@ if True:
                     iapf_band_indices[0]=idx0
                 if freqs[idx0]<=iapf_band[1]:
                   iapf_band_indices[1]=idx0
-              for x0 in psds[0]:
+              for x0 in psds[ji1]:
                 peak_freq_maxs.append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
                 peak_freq_maxs_array=np.asarray(peak_freq_maxs)
 #                peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
@@ -1837,7 +1850,7 @@ if True:
 #                        scores_calc_buf = np.average(psds[0][names_range][freq_from:freq_to])
                         for idx4 in range(len(score_indexes[idx0][idx1][idx2][1])):#names
 #                          score_calcs[idx0][idx1][idx2] = (np.average(psd[0][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))/(np.max(psd[:][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))
-                          scores_calc_buf = scores_calc_buf + np.average(psds[0][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+                          scores_calc_buf = scores_calc_buf + np.average(psds[ji1][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
 #                          score_calcs[idx0][idx1][idx2] = np.average(psds[0][idx4][freq_from:freq_to])
 #                          print('score_calcs[idx0][idx1][idx2]:',score_calcs[idx0][idx1][idx2])
 #                          print('scores_calc_buf:',scores_calc_buf)
@@ -1994,7 +2007,7 @@ if True:
 #                          score_calcs[idx0][idx1][idx2] = (np.average(psd[0][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))/(np.max(psd[:][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))
                           for idx5 in range(len(scores_calc_bufs)):
                             scores_calc_bufs[idx5] = scores_calc_bufs[idx5] + np.average(psds[idx5][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
-                          scores_calc_buf = scores_calc_buf + np.average(psds[0][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+                          scores_calc_buf = scores_calc_buf + np.average(psds[ji1][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
 #                          score_calcs[idx0][idx1][idx2] = np.average(psds[0][idx4][freq_from:freq_to])
 #                          print('score_calcs[idx0][idx1][idx2]:',score_calcs[idx0][idx1][idx2])
 #                          print('scores_calc_buf:',scores_calc_buf)
@@ -6884,6 +6897,13 @@ def main():
     
     eeg_channels=ch_names
 
+    raw_picks=[{}]*1
+    raw_picks[0] = raw_pick
+    raws_for_hstack=[{}]*1
+    raws_for_hstack[0] = raw_picks[0][:][0]
+
+    raws_hstack = np.hstack(raws_for_hstack)
+    raws_hstack_cut = raws_hstack[:,:]
 
   if (FLAGS.write_video):
     from datetime import datetime
@@ -7359,14 +7379,16 @@ def main():
 #      raws_ndarray = np.asarray(raws)
 #      raws_id = ray.put(raws_ndarray)
       ch_names_pick_id = ray.put(ch_names_pick)
-      raws_hstack_cut_ndarray = np.asarray(raws_hstack_cut)
+#      print('raws_hstack_cut.dtype:',raws_hstack_cut.dtype)
+      raws_hstack_cut_ndarray = np.asarray(raws_hstack_cut, dtype=np.float64)
       raws_hstack_cut_id = ray.put(raws_hstack_cut_ndarray)
       overlap_id = ray.put(overlap)
+#      epochs_id = ray.put(raws_hstack_cut_ndarray)
       
 #      raws_id = ray.put(datas)
 #      del epochs_ndarray
 #      del raws_ndarray
-      sfreq = epochs[0].info['sfreq']
+#      sfreq = epochs[0].info['sfreq']
       sfreq_id = ray.put(sfreq)
 
       del epochs
@@ -7385,6 +7407,8 @@ def main():
        for i in range(part_len): # display separate audio for each break
         ji = j * part_len + i
         ji0 = ji0 + 1
+        if from_bdf is None:
+          ji0 = -1
         
 #        if (i==0) and (n_generate-ji<part_len):
 #            psd_array=np.random.rand((n_generate-ji), dim) 
@@ -7415,6 +7439,7 @@ def main():
 
         if show_gamepad_peaks:
 #          object_ref = worker_gamepad_peaks.remote(epochs_ids[len(epochs_ids)-1], ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id, epochs_baseline_id, iapf_band_id, vjoy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id)
+          epochs_id = None
           object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id, epochs_baseline_id, iapf_band_id, vjoy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, raws_hstack_cut_id, overlap_id)
           del epochs_id
           shows_ids.append(shows_gamepad_peaks)
