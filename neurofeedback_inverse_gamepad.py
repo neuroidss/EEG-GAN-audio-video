@@ -389,6 +389,7 @@ if True:
         from mne_connectivity.viz import plot_connectivity_circle
         import matplotlib.pyplot as plt
 
+        mne.set_log_level('CRITICAL')
         ch_types_pick = ['eeg'] * len(ch_names_pick)
         info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
         raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose='ERROR')
@@ -414,11 +415,11 @@ if True:
         if True:
 #   if False:
 #        if show_inverse_3d or show_inverse_circle_cons:
-            mne.set_log_level('CRITICAL')
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
 #            cov = mne.compute_covariance(epochs[0][ji:ji+75], tmax=0., n_jobs=cuda_jobs, verbose=False)
             if ji+epochs_inverse_cov>len(epochs[0]):
-              cov = mne.compute_covariance(epochs[0][:-epochs_inverse_cov], tmax=0., n_jobs=cuda_jobs, verbose='CRITICAL')
+              cov = mne.compute_covariance(epochs[0][-epochs_inverse_cov:], tmax=0., n_jobs=cuda_jobs, verbose='CRITICAL')
+#              cov = mne.compute_covariance(epochs[0][:-epochs_inverse_cov], tmax=0., n_jobs=cuda_jobs, verbose='CRITICAL')
             else:
               cov = mne.compute_covariance(epochs[0][ji:ji+epochs_inverse_cov], tmax=0., n_jobs=cuda_jobs, verbose='CRITICAL')
 #            cov = mne.compute_covariance(epochs[0][ji:ji+10], tmin=0.0, tmax=0.1, n_jobs=10)
@@ -2046,6 +2047,8 @@ if True:
 #            mne.set_config('MNE_BROWSE_RAW_SIZE', '16,9', setenv=False)
 #            mne.set_config('MNE_BROWSE_RAW_SIZE', f'{1008*px},{352*px}')
             
+            if not(vjoy_gamepad_scores_baselined or show_gamepad_scores_baselined):
+                epochs_baseline = 1
             ji0 = ji
             if ji0 == -1:
               ji0 = len(epochs[0]) - epochs_baseline
@@ -2188,9 +2191,107 @@ if True:
 #                      print('idx0,idx1,idx2,idx4,freq_from,freq_to:',idx0,idx1,idx2,idx4,freq_from,freq_to)
 #              scores=copy.deepcopy(score_controls)
 
+              if vjoy_gamepad_scores or show_gamepad_scores:
+#              if vjoy_gamepad_scores_baselined or show_gamepad_scores_baselined:
+#                score_ns=score_controls.copy()
+#                print('len(score_indexes):',len(score_indexes))
+                for idx0 in range(len(score_indexes)):#scores
+#                  print('len(score_indexes[idx0]):',len(score_indexes[idx0]))
+#                  score_ns[idx0]=0
+##                  scoress[idx0]=np.zeros(len(psds))
+                  scores[idx0]=0
+                  for idx1 in range(len(score_indexes[idx0])):#x/y,-x/y
+                    scores_calc_mult = None
+                    for idx2 in range(len(score_indexes[idx0][idx1])):#x,1/y
+##                      scores_calc_bufs = np.zeros(len(psds))
+                      scores_calc_buf = 0
+#                      score_calcs[idx0][idx1][idx2] = None
+#                      print('len(score_indexes[idx0][idx1][idx2]):',len(score_indexes[idx0][idx1][idx2]))
+                      if True:
+#                      if len(score_indexes[idx0][idx1][idx2])>1:
+                        freq_from=score_indexes[idx0][idx1][idx2][0][0]
+                        freq_to=score_indexes[idx0][idx1][idx2][0][1]
+#                        names_range=score_indexes[idx0][idx1][idx2][1]
+#                        print('names_range:',names_range)
+#                        scores_calc_buf = np.average(psds[0][names_range][freq_from:freq_to])
+                        for idx4 in range(len(score_indexes[idx0][idx1][idx2][1])):#names
+#                          score_calcs[idx0][idx1][idx2] = (np.average(psd[0][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))/(np.max(psd[:][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))
+##                          for idx5 in range(len(scores_calc_bufs)):
+##                            scores_calc_bufs[idx5] = scores_calc_bufs[idx5] + np.average(psds[idx5][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+                          scores_calc_buf = scores_calc_buf + np.average(psds[ji1][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+#                          score_calcs[idx0][idx1][idx2] = np.average(psds[0][idx4][freq_from:freq_to])
+#                          print('score_calcs[idx0][idx1][idx2]:',score_calcs[idx0][idx1][idx2])
+#                          print('scores_calc_buf:',scores_calc_buf)
+#                          print('idx0,idx1,idx2,idx4,freq_from,freq_to:',idx0,idx1,idx2,idx4,freq_from,freq_to)
+#                          print('idx0,idx1,idx2,idx4,freq_from,freq_to,scores_calc_buf:',idx0,idx1,idx2,idx4,freq_from,freq_to,scores_calc_buf)
+##                        scores_calc_bufs = scores_calc_bufs / len(score_indexes[idx0][idx1][idx2][1])
+                        scores_calc_buf = scores_calc_buf / len(score_indexes[idx0][idx1][idx2][1])
+#                        print('idx0,idx1,idx2,freq_from,freq_to,scores_calc_buf:',idx0,idx1,idx2,freq_from,freq_to,scores_calc_buf)
+                        if scores_calc_mult is None:
+                          scores_calc_mults = np.ones(len(psds))
+                          scores_calc_mult = 1
+                        if idx2%2==0:#x
+#                          if score_calcs[idx0][idx1][idx2] is None:
+#                            score_calcs[idx0][idx1][idx2] = 1
+##                          scores_calc_mults = scores_calc_mults * scores_calc_bufs
+                          scores_calc_mult = scores_calc_mult * scores_calc_buf
+#                          scores_calc_mult = scores_calc_mult * score_calcs[idx0][idx1][idx2]
+                        else:#1/y
+##                          scores_calc_mults = scores_calc_mults / scores_calc_bufs
+                          scores_calc_mult = scores_calc_mult / scores_calc_buf
+#                          scores_calc_mult = scores_calc_mult / score_calcs[idx0][idx1][idx2]
+                    if not (scores_calc_mult is None):
+#                      print('idx0,idx1,scores_calc_mult:',idx0,idx1,scores_calc_mult)
+                      if idx1%2==0:#x/y
+##                        scoress[idx0] = scoress[idx0] + scores_calc_mults
+                        scores[idx0] = scores[idx0] + scores_calc_mult
+                      else:#-x/y
+##                        scoress[idx0] = scoress[idx0] - scores_calc_mults
+                        scores[idx0] = scores[idx0] - scores_calc_mult
+#                      score_ns[idx0] = score_ns[idx0] + 1
+#                      print('scores[idx0]:',scores[idx0])
+#                  scores[idx0] = scores[idx0] / score_ns[idx0]
+#                  score_norms=[0.036125,-0.5,5000000000]
+#                  score_shifts=[0,0,0]
+#                  score_after_shifts=[0,0.125,0.0125]
+#                  scores_shiftes_normed = scores.copy()
+#                  for idx0 in range(len(scores)):
+#                    scores_shiftes_normed[idx0] = ((scores[idx0] + score_shifts[idx0]) * score_norms[idx0]) + score_after_shifts[idx0]
+##                scores_shifts_baselined = scores.copy()
+##                for idx0 in range(len(scoress)):
+#                    print('scoress[idx0]:', scoress[idx0])
+##                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+##                    scores_shifts_baselined[idx0] = scores_shifts_baselined[idx0]# * 2 - 1
+#                    scores_shiftes_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+
+                if vjoy_gamepad_scores:
+                  return(scores)
+
+                if show_gamepad_scores:
+                  fig, ax = plt.subplots()
+                  plt.bar(vjoy_gamepad_scores_data, scores)
+#                  plt.bar(range(len(scores_shifts_baselined)), scores_shifts_baselined)
+#                  plt.bar(range(len(scores_shiftes_normed)), scores_shiftes_normed)
+#                  plt.ylim(-1, 1)
+#                  plt.ylim(0, 1)
+#                  plt.plot(range(len(scores)), scores)
+#                  counts = scores
+#                  bins = range(len(scores))
+#                  plt.hist(bins, bins, weights=counts)
+#                  plt.stairs(range(len(scores)), scores)
+                  fig.canvas.draw()
+                        
+                  image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+                  image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+                  plt.close(fig)
+                  del fig
+                  return image
+
+
+
 #              score_calcs=copy.deepcopy(score_bands_names)
 #              if show_gamepad_scores_baselined:
-              if vjoy_gamepad_scores_baselined or show_gamepad_scores_baselined or vjoy_gamepad_scores or show_gamepad_scores:
+              if vjoy_gamepad_scores_baselined or show_gamepad_scores_baselined:
 #              if vjoy_gamepad_scores_baselined or show_gamepad_scores_baselined:
 #                score_ns=score_controls.copy()
 #                print('len(score_indexes):',len(score_indexes))
@@ -2263,30 +2364,8 @@ if True:
                     scores_shifts_baselined[idx0] = scores_shifts_baselined[idx0]# * 2 - 1
 #                    scores_shiftes_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
 
-                if vjoy_gamepad_scores:
-                  return(scores)
                 if vjoy_gamepad_scores_baselined:
                   return(scores_shifts_baselined)
-
-                if show_gamepad_scores:
-                  fig, ax = plt.subplots()
-                  plt.bar(vjoy_gamepad_scores_data, scores)
-#                  plt.bar(range(len(scores_shifts_baselined)), scores_shifts_baselined)
-#                  plt.bar(range(len(scores_shiftes_normed)), scores_shiftes_normed)
-#                  plt.ylim(-1, 1)
-#                  plt.ylim(0, 1)
-#                  plt.plot(range(len(scores)), scores)
-#                  counts = scores
-#                  bins = range(len(scores))
-#                  plt.hist(bins, bins, weights=counts)
-#                  plt.stairs(range(len(scores)), scores)
-                  fig.canvas.draw()
-                        
-                  image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
-                  image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-                  plt.close(fig)
-                  del fig
-                  return image
              
                 if show_gamepad_scores_baselined:
                   fig, ax = plt.subplots()
@@ -2320,6 +2399,7 @@ if True:
 #                  gc.collect()
                   
                   return image
+
 
 
 
@@ -4428,8 +4508,9 @@ def main():
 #  flags.DEFINE_string('duration', '10', 'duration: if None, used: 5*1/bands[0]')
 #  flags.DEFINE_string('duration', '2', 'if None, used: 5*1/bands[0]')
   flags.DEFINE_string('duration', None, 'if None, used: 5*1/bands[0]')
-#  flags.DEFINE_string('fps', '3', 'fps')
 #  flags.DEFINE_string('fps', '1.6', 'fps')
+#  flags.DEFINE_string('fps', '2', 'fps')
+#  flags.DEFINE_string('fps', '3', 'fps')
   flags.DEFINE_string('fps', '10', 'fps')
 #flags.DEFINE_string('fps', '20', 'fps')
 #flags.DEFINE_string('fps', '30', 'fps')
@@ -4517,6 +4598,7 @@ def main():
 #                  views='sagittal', #From the right side.
 #                  views='coronal', #From the rear.                  
   
+#  flags.DEFINE_boolean('stable_fps', False, 'stable_fps')
   flags.DEFINE_boolean('stable_fps', True, 'stable_fps')
   flags.DEFINE_string('epochs_con', '10', 'epochs_con')
   flags.DEFINE_string('epochs_inverse_con', '1', 'epochs_inverse_con')
@@ -4530,8 +4612,8 @@ def main():
   flags.DEFINE_string('inverse_standard_montage', 'standard_1005', 'EGI_256, GSN-HydroCel-128, GSN-HydroCel-129, GSN-HydroCel-256, GSN-HydroCel-257, GSN-HydroCel-32, GSN-HydroCel-64_1.0, GSN-HydroCel-65_1.0, artinis-brite23, artinis-octamon, biosemi128, biosemi16, biosemi160, biosemi256, biosemi32, biosemi64, brainproducts-RNP-BA-128, easycap-M1, easycap-M10, mgh60, mgh70, standard_1005, standard_1020, standard_alphabetic, standard_postfixed, standard_prefixed, standard_primed')
 #  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
 
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
   flags.DEFINE_list('gamepad_inverse_peaks_label_names', None, 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
   flags.DEFINE_string('gamepad_inverse_peaks_label', None, 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
@@ -4652,31 +4734,34 @@ def main():
 #  flags.DEFINE_boolean('vjoy_gamepad_scores_baselined', True, '')
   flags.DEFINE_boolean('vjoy_gamepad_scores_baselined', False, '')
 
-  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+#  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
   flags.DEFINE_list('gamepad_score_bands_names', [
                   [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
                   [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
                   [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
                   [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
-                  [[[['IAPF+3','IAPF+13'],['F3','F4']]]],
-                  [[[['IAPF-4','IAPF+3'],['F3','F4']]]],
+#                  [[[['IAPF+3','IAPF+13'],['F3','F4']]]],
+#                  [[[['IAPF-4','IAPF+3'],['F3','F4']]]],
                   ], '')
 
 #  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1', 'lButton5', 'lButton6', 'lButton7', 'lButton8'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+#  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1', 'lButton5', 'lButton6', 'lButton7', 'lButton8'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+#  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
   flags.DEFINE_list('gamepad_inverse_score_bands_names', [
-#                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
-#                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
-                  [[[['IAPF-4','IAPF+3'],['R_47m_ROI-rh']],[['IAPF+3','IAPF+13'],['R_47m_ROI-rh']]],[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh']],[['IAPF+3','IAPF+13'],['L_47m_ROI-lh']]]],
-                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']],[['IAPF-4','IAPF+3'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']]]],
+                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
+                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
+#                  [[[['IAPF-4','IAPF+3'],['R_47m_ROI-rh']],[['IAPF+3','IAPF+13'],['R_47m_ROI-rh']]],[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh']],[['IAPF+3','IAPF+13'],['L_47m_ROI-lh']]]],
+#                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']],[['IAPF-4','IAPF+3'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']]]],
                   [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
                   [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
-                  [[[['IAPF+3','IAPF+13'],['F3','F4']]]],
-                  [[[['IAPF-4','IAPF+3'],['F3','F4']]]],
-                  [[[['IAPF+3','IAPF+13'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
-                  [[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
+#                  [[[['IAPF+3','IAPF+13'],['F3','F4']]]],
+#                  [[[['IAPF-4','IAPF+3'],['F3','F4']]]],
+#                  [[[['IAPF+3','IAPF+13'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
+#                  [[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
                   ], '')
   flags.DEFINE_list('gamepad_inverse_iapf_band', ['7.','14.'], '')
   flags.DEFINE_string('gamepad_inverse_epochs_baseline', '100', '')
@@ -4704,7 +4789,7 @@ def main():
 #  flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_baselined', True, '')
   flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_baselined', False, '')
 
-  flags.DEFINE_string('ray_max_remaining_refs', '10', '')
+  flags.DEFINE_string('ray_max_remaining_refs', '1000', '')
   
 #flags.mark_flag_as_required('input')
   import sys
@@ -7578,12 +7663,13 @@ def main():
 #         for band in range(len(bands)):
         # epochs.append(mne.make_fixed_length_epochs(datas[band], 
 #                                            duration=0.1, preload=False))
+        mne.set_log_level('CRITICAL')
         if True:
 #        if show_inverse_3d or show_inverse_circle_cons:
 #          datas[0].set_montage(montage)
           datas[0].set_montage(mon)
         if show_inverse_3d or show_inverse_circle_cons or show_gamepad_inverse_peaks:
-          datas[0].set_eeg_reference(projection=True).apply_proj()
+          datas[0].set_eeg_reference(projection=True, verbose='ERROR').apply_proj(verbose='ERROR')
 #          datas[0].set_eeg_reference().apply_proj()
           
         epochs.append(mne.make_fixed_length_epochs(datas[0], 
@@ -8106,14 +8192,22 @@ def main():
 #            if vjoy_gamepad_peaks_sensor_iapf and ((shows_ids[ready_id] == shows_gamepad_peaks) or (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
             if ((vjoy_gamepad_scores and (shows_ids[ready_id] == shows_gamepad_peaks)) or (vjoy_gamepad_inverse_scores and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))):
               scores = message
-              print('scores:',scores)
-              if vjoy_gamepad_scores:
-                gamepad_scores_baselines.append(scores)
-                gamepad_inverse_scores_baselines = gamepad_inverse_scores_baselines[-gamepad_inverse_epochs_baseline:]
-                scoress=np.asarray(gamepad_inverse_scores_baselines)
+              if (vjoy_gamepad_scores and (shows_ids[ready_id] == shows_gamepad_peaks)):
+                scoress = []
+                for idx0 in range(len(scores)):
+#                  print('len(gamepad_scores_baselines), len(scores), idx0: ', len(gamepad_scores_baselines), len(scores), idx0)
+                  gamepad_scores_baselines[idx0].append(scores[idx0])
+                  gamepad_scores_baselines[idx0] = gamepad_scores_baselines[idx0][-gamepad_epochs_baseline:]
+                  scoress.append(np.asarray(gamepad_scores_baselines[idx0]))
+#                scoress=np.asarray(gamepad_scores_baselines)
+#                np.moveaxis(scoress, 0, -1)
                 scores_shifts_baselined = scores.copy()
-                for idx0, gamepad_data in enumerate(vjoy_gamepad_inverse_scores_data):
-                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
+                for idx0, gamepad_data in enumerate(scores):
+#                    print('scoress:',scoress)
+#                    print('scoress[idx0]:',scoress[idx0])
+#                    print('scoress[:][idx0]:',scoress[:][idx0])
+                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+#                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if not vjoy_gamepad_scores_no_vjoy:
                   vjoy.data.lButtons = 0
                   for idx0, gamepad_data in enumerate(scores):
@@ -8135,7 +8229,7 @@ def main():
                   vjoy.update()
                 if not vjoy_gamepad_scores_no_image:
                   fig, ax = plt.subplots()
-                  plt.bar(vjoy_gamepad_scores_data, scores)
+                  plt.bar(vjoy_gamepad_scores_data, scores_shifts_baselined)
                   plt.ylim(0, 1)
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
@@ -8144,13 +8238,21 @@ def main():
                   del fig
                   message = image
 #                  message = vjoy_gamepad_scores_update(vjoy, scores)
-              if vjoy_gamepad_inverse_scores:
-                gamepad_inverse_scores_baselines.append(scores)
-                gamepad_inverse_scores_baselines = gamepad_inverse_scores_baselines[:-gamepad_inverse_epochs_baseline]
-                scoress=np.asarray(gamepad_inverse_scores_baselines)
+              if (vjoy_gamepad_inverse_scores and (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
+                scoress = []
+                for idx0 in range(len(scores)):
+#                  print('len(gamepad_inverse_scores_baselines), len(scores), idx0: ', len(gamepad_inverse_scores_baselines), len(scores), idx0)
+                  gamepad_inverse_scores_baselines[idx0].append(scores[idx0])
+                  gamepad_inverse_scores_baselines[idx0] = gamepad_inverse_scores_baselines[idx0][-gamepad_inverse_epochs_baseline:]
+                  scoress.append(np.asarray(gamepad_inverse_scores_baselines[idx0]))
+#                scoress=np.asarray(gamepad_inverse_scores_baselines)
                 scores_shifts_baselined = scores.copy()
-                for idx0, gamepad_data in enumerate(vjoy_gamepad_inverse_scores_data):
+                for idx0, gamepad_data in enumerate(scores):
+#                    print('scoress:',scoress)
+#                    print('scoress[idx0]:',scoress[idx0])
+#                    print('scoress[:][idx0]:',scoress[:][idx0])
                     scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+#                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if not vjoy_gamepad_inverse_scores_no_vjoy:
                   vjoy.data.lButtons = 0
                   for idx0, gamepad_data in enumerate(scores):
@@ -8172,7 +8274,7 @@ def main():
                   vjoy.update()
                 if not vjoy_gamepad_inverse_scores_no_image:
                   fig, ax = plt.subplots()
-                  plt.bar(vjoy_gamepad_scores_data, scores)
+                  plt.bar(vjoy_gamepad_inverse_scores_data, scores_shifts_baselined)
                   plt.ylim(0, 1)
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
@@ -8181,6 +8283,7 @@ def main():
                   del fig
                   message = image
 #                  message = vjoy_gamepad_inverse_scores_update(vjoy, scores)
+#            if not((vjoy_gamepad_scores and (shows_ids[ready_id] == shows_gamepad_peaks)) or (vjoy_gamepad_inverse_scores and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
             ready_images.append(message)
             if not((vjoy_gamepad_scores and vjoy_gamepad_scores_no_image and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
                    (vjoy_gamepad_inverse_scores and vjoy_gamepad_inverse_scores_no_image and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
@@ -8235,14 +8338,22 @@ def main():
             ready_shows_ids.append(shows_ids[ready_id])
             if ((vjoy_gamepad_scores and (shows_ids[ready_id] == shows_gamepad_peaks)) or (vjoy_gamepad_inverse_scores and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))):
               scores = message
-              print('scores:',scores)
-              if vjoy_gamepad_scores:
-                gamepad_scores_baselines.append(scores)
-                gamepad_scores_baselines = gamepad_scores_baselines[:-gamepad_epochs_baseline]
-                scoress=np.asarray(gamepad_scores_baselines)
+              if (vjoy_gamepad_scores and (shows_ids[ready_id] == shows_gamepad_peaks)):
+                scoress = []
+                for idx0 in range(len(scores)):
+#                  print('len(gamepad_scores_baselines), len(scores), idx0: ', len(gamepad_scores_baselines), len(scores), idx0)
+                  gamepad_scores_baselines[idx0].append(scores[idx0])
+                  gamepad_scores_baselines[idx0] = gamepad_scores_baselines[idx0][-gamepad_epochs_baseline:]
+                  scoress.append(np.asarray(gamepad_scores_baselines[idx0]))
+#                scoress=np.asarray(gamepad_scores_baselines)
+#                np.moveaxis(scoress, 0, -1)
                 scores_shifts_baselined = scores.copy()
-                for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data):
+                for idx0, gamepad_data in enumerate(scores):
+#                    print('scoress:',scoress)
+#                    print('scoress[idx0]:',scoress[idx0])
+#                    print('scoress[:][idx0]:',scoress[:][idx0])
                     scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+#                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if not vjoy_gamepad_scores_no_vjoy:
                   vjoy.data.lButtons = 0
                   for idx0, gamepad_data in enumerate(scores):
@@ -8264,7 +8375,7 @@ def main():
                   vjoy.update()
                 if not vjoy_gamepad_scores_no_image:
                   fig, ax = plt.subplots()
-                  plt.bar(vjoy_gamepad_scores_data, scores)
+                  plt.bar(vjoy_gamepad_scores_data, scores_shifts_baselined)
                   plt.ylim(0, 1)
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
@@ -8273,13 +8384,21 @@ def main():
                   del fig
                   message = image
 #                  message = vjoy_gamepad_scores_update(vjoy, scores)
-              if vjoy_gamepad_inverse_scores:
-                gamepad_inverse_scores_baselines.append(scores)
-                gamepad_inverse_scores_baselines = gamepad_inverse_scores_baselines[:-gamepad_inverse_epochs_baseline]
-                scoress=np.asarray(gamepad_inverse_scores_baselines)
+              if (vjoy_gamepad_inverse_scores and (shows_ids[ready_id] == shows_gamepad_inverse_peaks)):
+                scoress = []
+                for idx0 in range(len(scores)):
+#                  print('len(gamepad_inverse_scores_baselines), len(scores), idx0: ', len(gamepad_inverse_scores_baselines), len(scores), idx0)
+                  gamepad_inverse_scores_baselines[idx0].append(scores[idx0])
+                  gamepad_inverse_scores_baselines[idx0] = gamepad_inverse_scores_baselines[idx0][-gamepad_inverse_epochs_baseline:]
+                  scoress.append(np.asarray(gamepad_inverse_scores_baselines[idx0]))
+#                scoress=np.asarray(gamepad_inverse_scores_baselines)
                 scores_shifts_baselined = scores.copy()
-                for idx0, gamepad_data in enumerate(vjoy_gamepad_inverse_scores_data):
+                for idx0, gamepad_data in enumerate(scores):
+#                    print('scoress:',scoress)
+#                    print('scoress[idx0]:',scoress[idx0])
+#                    print('scoress[:][idx0]:',scoress[:][idx0])
                     scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+#                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if not vjoy_gamepad_inverse_scores_no_vjoy:
                   vjoy.data.lButtons = 0
                   for idx0, gamepad_data in enumerate(scores):
@@ -8301,7 +8420,7 @@ def main():
                   vjoy.update()
                 if not vjoy_gamepad_inverse_scores_no_image:
                   fig, ax = plt.subplots()
-                  plt.bar(vjoy_gamepad_scores_data, scores)
+                  plt.bar(vjoy_gamepad_inverse_scores_data, scores_shifts_baselined)
                   plt.ylim(0, 1)
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
@@ -8310,6 +8429,7 @@ def main():
                   del fig
                   message = image
 #                  message = vjoy_gamepad_inverse_scores_update(vjoy, scores)
+#            if not((vjoy_gamepad_scores and (shows_ids[ready_id] == shows_gamepad_peaks)) or (vjoy_gamepad_inverse_scores and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
             ready_images.append(message)
             if not((vjoy_gamepad_scores and vjoy_gamepad_scores_no_image and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
                    (vjoy_gamepad_inverse_scores and vjoy_gamepad_inverse_scores_no_image and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
