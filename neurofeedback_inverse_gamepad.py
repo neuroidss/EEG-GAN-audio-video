@@ -364,7 +364,13 @@ if True:
 
     @ray.remote
 #    def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
-    def worker_gamepad_inverse_peaks(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps, ji_fps, raws, label, overlap):
+    def worker_gamepad_inverse_peaks(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps, ji_fps, 
+                                     raws, label, overlap, score_bands_names, epochs_baseline, iapf_band, vjoy_gamepad_inverse_psd, 
+                                     show_gamepad_inverse_scores, show_gamepad_inverse_scores_baselined, label_names, sfreq, ch_names_pick, raws_hstack_cut, 
+                                     vjoy_gamepad_inverse_scores_baselined, vjoy_gamepad_inverse_scores_data, duration, epochs_inverse_cov, show_gamepad_inverse_peaks_stc_psd, 
+                                     show_gamepad_inverse_peaks_sensor_psd, show_gamepad_inverse_peaks_sensor_iapf, show_gamepad_inverse_peaks_stc_iapf, 
+                                     show_gamepad_inverse_peaks_stc_iapf_circle_cons, show_circle_iapf_cons_multiply, gamepad_inverse_peaks_indices0, gamepad_inverse_peaks_indices1, 
+                                     gamepad_inverse_peaks_frequency_average, mon, epochs_inverse_con, show_inverse_peaks_circle_cons_colors, inverse_parc, shows_inverse_circle):
 
 
         from mne.minimum_norm import compute_source_psd_epochs
@@ -381,6 +387,21 @@ if True:
         from mne.viz import circular_layout
         from mne_connectivity.viz import plot_connectivity_circle
         import matplotlib.pyplot as plt
+
+        ch_types_pick = ['eeg'] * len(ch_names_pick)
+        info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
+        raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose='ERROR')
+
+        raws = [raw]
+
+        raws[0].set_montage(mon)
+        raws[0].set_eeg_reference(projection=True).apply_proj()
+        
+        epochs = []
+        epochs.append(mne.make_fixed_length_epochs(raw, 
+                                            duration=duration, preload=True, overlap=overlap, 
+                                            verbose='ERROR'))
+        
         
 #        print('worker_(ji):',ji)
 #        for i in range(100):
@@ -530,8 +551,19 @@ if True:
                                              )
             if False:
 #            if True:
-              n_epochs_use=2
-              stcs = compute_source_psd_epochs(epochs[0][ji:ji+(n_epochs_use-1)],
+              ji0 = ji
+              if ji0 == -1:
+                ji0 = len(epochs[0]) - epochs_baseline
+              if ji0 + epochs_baseline >= len(epochs[0]):
+                ji0 = len(epochs[0]) - epochs_baseline
+              if ji0 < 0:
+                ji0 = 0
+              ji1 = ji
+              if ji1 == -1:
+                ji1 = epochs_baseline - 1
+              if ji1 >= epochs_baseline:
+                ji1 = epochs_baseline - 1
+              stcs,sensor_psds = compute_source_psd_epochs(epochs[0][ji:ji+epochs_baseline],
 #            stc = compute_source_psd(raw,
 #              stc,sensor_psd = compute_source_psd(raw,
                                      inverse_operator,
@@ -548,20 +580,24 @@ if True:
 #                                     overlap=0.1,
 #                                     overlap=0,
 #                                     return_sensor = False,
-#                                     return_sensor = True,
+                                     return_sensor = True,
 #                         dB=True
 #                                             return_generator=False
 #                                             return_generator=True
                                           verbose='CRITICAL'
                                              )
             # compute average PSD over the first 10 epochs
-              psd_avg = 0.
-              for i, stc in enumerate(stcs):
-                psd_avg += stc.data
-              psd_avg /= n_epochs_use
+#              psd_avg = 0.
+#              for i, stc in enumerate(stcs):
+#                psd_avg += stc.data
+#              psd_avg /= n_epochs_use
 #              freqs = stc.times  # the frequencies are stored here
 #              stc = stcs[0]
-              stc.data = psd_avg
+#              stc.data = psd_avg
+              stc = stcs[len(stcs)-1]
+              sensor_psd = sensor_psds[len(sensor_psds)-1]
+#              for i, stc in enumerate(stcs):
+#                psd_avg += stc.data
 
             if show_gamepad_inverse_peaks_stc_psd:
 #            if False:
@@ -620,20 +656,21 @@ if True:
 #            cax = fig.colorbar(im, ax=ax)
 #            cax.set_label(r'IAPF (Hz)')
 
-
-            if show_gamepad_inverse_peaks_sensor_iapf or show_gamepad_inverse_peaks_stc_iapf or show_gamepad_inverse_peaks_stc_iapf_circle_cons:
+            if show_gamepad_inverse_peaks_sensor_iapf or show_gamepad_inverse_peaks_stc_iapf or show_gamepad_inverse_peaks_stc_iapf_circle_cons or show_gamepad_inverse_scores:
               peak_maxs=[]
               peak_index_maxs=[]
               peak_freq_maxs=[]
-              if show_gamepad_inverse_peaks_sensor_iapf:
+              if show_gamepad_inverse_peaks_sensor_iapf or show_gamepad_inverse_scores:
 #            if False:
-                psds = sensor_psd.get_data()
+                psds = sensor_psd.data
+#                psds = sensor_psd.get_data()
                 freqs = sensor_psd.times
 #            psds = stc.data.T
               if show_gamepad_inverse_peaks_stc_iapf or show_gamepad_inverse_peaks_stc_iapf_circle_cons:
 #            if True:
                 psds = stc.data
                 freqs = stc.times
+#              print('stc.times, sensor_psd.times: ', stc.times, sensor_psd.times)
 #            print(f'\nPSDs shape: {psds.shape}')
 #            print(f'\nstc.data shape: {stc.data.shape}')
 
@@ -656,12 +693,297 @@ if True:
                   peak_freq_maxs.append(fmin+(peak_index_max/len(x0))*(fmax-fmin))
 #                print(f'\npeak_loc, peak_mag: {peak_loc}, {peak_mag}')
               else:
-                for x0 in psds:
+#                for x0 in psds:
 #                duration/sfreq
 #                freqs = np.linspace(fmin, fmax, num=len(x0))
 #                freqs = np.linspace(fmin, fmax, num=len(x0))
 #                print('freqs:', freqs)
-                  peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
+#                  peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
+                iapf_band_indices = [None,None]
+                for idx0 in range(len(freqs)):
+                  if iapf_band_indices[0] is None:
+                    if freqs[idx0]>=iapf_band[0]:
+                      iapf_band_indices[0]=idx0
+                  if freqs[idx0]<=iapf_band[1]:
+                    iapf_band_indices[1]=idx0
+#                for x0 in psds:
+#                  peak_freq_maxs.append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
+                peak_freq_maxs=[[],[]]
+                for x0 in stc.data:
+                  peak_freq_maxs[0].append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
+                for x0 in sensor_psd.data:
+                  peak_freq_maxs[1].append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
+#                peak_freq_maxs_array=np.asarray(peak_freq_maxs)
+                peak_freq_maxs_array=[np.asarray(peak_freq_maxs[0]),np.asarray(peak_freq_maxs[1])]
+#                peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
+#                peak_freq_maxs_array=np.asarray(peak_freq_maxs)
+#              print('peak_freq_maxs:',peak_freq_maxs)
+
+
+            if show_gamepad_inverse_scores:
+#            if show_gamepad_scores_baselined:
+#            if vjoy_gamepad_scores_baselined or show_gamepad_scores_baselined:
+#              score_bands_names=[
+#                  [[[['8.','12.'],['F4']],[['13.','28.'],['F4']]],[[['8.','12.'],['F3']],[['13.','28.'],['F3']]]],
+#                  [[[['13.','28.'],['AF3','AF4','F3','F4']],[['8.','12.'],['AF3','AF4','F3','F4']]]],
+#                  [[[['8.','12.'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+#                  ]
+#              score_bands_names=[
+#                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
+#                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
+#                  [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+#                  [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+#                  ]
+#              score_controls=list(range(len(score_bands_names)))
+##              scoress=list(range(len(score_bands_names)))
+              scores=list(range(len(score_bands_names)))
+              import copy
+              score_indexes=copy.deepcopy(score_bands_names)
+              for idx0 in range(len(score_bands_names)):#scores
+                for idx1 in range(len(score_bands_names[idx0])):#x/y,-x/y
+                  for idx2 in range(len(score_bands_names[idx0][idx1])):#x,1/y
+                    for idx3 in reversed(range(len(score_bands_names[idx0][idx1][idx2]))):#names,bands
+#                    for idx3 in range(len(score_bands_names[idx0][idx1][idx2])):#bands,names
+                      if idx3==0:#bands
+#                        print('score_indexes[idx0][idx1][idx2][1]:',score_indexes[idx0][idx1][idx2][1])
+#                        print('np.asarray(score_indexes[idx0][idx1][idx2][1]):',np.asarray(score_indexes[idx0][idx1][idx2][1]))
+#                        print('peak_freq_maxs[np.asarray([26])]:',peak_freq_maxs[np.asarray([26])])
+#                        print('peak_freq_maxs[np.asarray(score_indexes[idx0][idx1][idx2][1])]:',peak_freq_maxs[np.asarray(score_indexes[idx0][idx1][idx2][1])])
+#                        print('np.asarray(peak_freq_maxs[np.asarray(score_indexes[idx0][idx1][idx2][1])]):',np.asarray(peak_freq_maxs[np.asarray(score_indexes[idx0][idx1][idx2][1])]))
+#                        iapf = np.average(peak_freq_maxs_array[score_indexes[idx0][idx1][idx2][1]])
+                        if len(score_indexes[idx0][idx1][idx2][1][0]) == 0:
+                          iapf = np.average(peak_freq_maxs_array[1][score_indexes[idx0][idx1][idx2][1][1]])
+                        if len(score_indexes[idx0][idx1][idx2][1][1]) == 0:
+#                          print('score_indexes[idx0][idx1][idx2][1][0]:',score_indexes[idx0][idx1][idx2][1][0])
+                          iapf = np.average(peak_freq_maxs_array[0][score_indexes[idx0][idx1][idx2][1][0]])
+                        if (len(score_indexes[idx0][idx1][idx2][1][0]) > 0) and (len(score_indexes[idx0][idx1][idx2][1][1]) > 0):
+                          iapf0 = np.average(peak_freq_maxs_array[0][score_indexes[idx0][idx1][idx2][1][0]])
+                          iapf1 = np.average(peak_freq_maxs_array[1][score_indexes[idx0][idx1][idx2][1][1]])
+                          iapf = (iapf0 + iapf1) / 2
+#                        print('iapf:',iapf)
+                        for idx4 in range(len(score_bands_names[idx0][idx1][idx2][idx3])):
+                          if idx4==0:#bands from
+                            score_indexes[idx0][idx1][idx2][idx3][idx4] = None
+#                            print('idx0,idx1,idx2,idx3,idx4:',idx0,idx1,idx2,idx3,idx4)
+#                            print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                            for freqs_idx, freq in enumerate(freqs):
+#                              if (score_indexes[idx0][idx1][idx2][idx3][idx4] is None) and (freq>=float(score_bands_names[idx0][idx1][idx2][idx3][idx4])):
+#                                score_indexes[idx0][idx1][idx2][idx3][idx4]=freqs_idx
+                              if (score_indexes[idx0][idx1][idx2][idx3][idx4] is None):
+#                                print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                                if score_bands_names[idx0][idx1][idx2][idx3][idx4].find('IAPF') == 0:
+#                                  freq_from=iapf+float(score_bands_names[idx0][idx1][idx2][idx3][idx4][4:])
+#                                  print('freq_from:',freq_from)
+                                  if (freq>=iapf+float(score_bands_names[idx0][idx1][idx2][idx3][idx4][4:])):
+                                    score_indexes[idx0][idx1][idx2][idx3][idx4] = freqs_idx
+                                else:
+                                  if (freq>=float(score_bands_names[idx0][idx1][idx2][idx3][idx4])):
+                                    score_indexes[idx0][idx1][idx2][idx3][idx4] = freqs_idx
+                          else:#bands to
+                            score_indexes[idx0][idx1][idx2][idx3][idx4] = None
+                            for freqs_idx, freq in enumerate(freqs):
+#                              if (freq<=float(score_bands_names[idx0][idx1][idx2][idx3][idx4])):
+#                                score_indexes[idx0][idx1][idx2][idx3][idx4]=freqs_idx
+#                              print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                              if score_bands_names[idx0][idx1][idx2][idx3][idx4].find('IAPF') == 0:
+#                                freq_to=iapf+float(score_bands_names[idx0][idx1][idx2][idx3][idx4][4:])
+#                                print('freq_to:',freq_to)
+                                if (freq<=iapf+float(score_bands_names[idx0][idx1][idx2][idx3][idx4][4:])):
+                                  score_indexes[idx0][idx1][idx2][idx3][idx4] = freqs_idx
+                              else:
+                                if (freq<=float(score_bands_names[idx0][idx1][idx2][idx3][idx4])):
+                                  score_indexes[idx0][idx1][idx2][idx3][idx4] = freqs_idx
+#                          print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+#                          print('score_bands_names[idx0][idx1][idx2][idx3][idx4],score_indexes[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4],score_indexes[idx0][idx1][idx2][idx3][idx4])
+                      else:#names
+#                        score_indexes[idx0][idx1][idx2][idx3][idx4]=label_names.index(score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                        if True:#sources&sensors  
+                          score_indexes[idx0][idx1][idx2][idx3] = [[],[]]
+                          for idx4 in range(len(score_bands_names[idx0][idx1][idx2][idx3])):
+                            label_parc_index = -1
+                            for label_idx, label in enumerate(labels_parc):
+                              if label.name.startswith(score_bands_names[idx0][idx1][idx2][idx3][idx4]):
+                                label_parc_index = label_idx
+                            if label_parc_index > -1:
+                              score_indexes[idx0][idx1][idx2][idx3][0].append(label_parc_index)
+                            label_names_index = -1
+                            for label_idx, label in enumerate(label_names):
+                              if label.startswith(score_bands_names[idx0][idx1][idx2][idx3][idx4]):
+                                label_names_index = label_idx
+#                            label_names_index = label_names.index(score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                            if label_names_index > -1:
+                              score_indexes[idx0][idx1][idx2][idx3][1].append(label_names_index)
+                            if (label_parc_index == -1) and (label_names_index == -1):
+                                print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4],idx0,idx1,idx2,idx3,idx4)
+#                          print('score_bands_names[idx0][idx1][idx2][idx3][idx4],score_indexes[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4],score_indexes[idx0][idx1][idx2][idx3][idx4])
+                          score_indexes[idx0][idx1][idx2][idx3][0] = np.asarray(score_indexes[idx0][idx1][idx2][idx3][0], np.int64).astype(int)
+                          score_indexes[idx0][idx1][idx2][idx3][1] = np.asarray(score_indexes[idx0][idx1][idx2][idx3][1], np.int64).astype(int)
+                      freq_from=score_indexes[idx0][idx1][idx2][0][0]
+                      freq_to=score_indexes[idx0][idx1][idx2][0][1]
+#                      print('idx0,idx1,idx2,idx4,freq_from,freq_to:',idx0,idx1,idx2,idx4,freq_from,freq_to)
+#              scores=copy.deepcopy(score_controls)
+
+#              score_calcs=copy.deepcopy(score_bands_names)
+            if show_gamepad_inverse_scores:
+#              if show_gamepad_scores_baselined:
+#              if vjoy_gamepad_scores_baselined or show_gamepad_scores_baselined:
+#                score_ns=score_controls.copy()
+#                print('len(score_indexes):',len(score_indexes))
+                for idx0 in range(len(score_indexes)):#scores
+#                  print('len(score_indexes[idx0]):',len(score_indexes[idx0]))
+#                  score_ns[idx0]=0
+##                  scoress[idx0]=np.zeros(len(psds))
+                  scores[idx0]=0
+                  for idx1 in range(len(score_indexes[idx0])):#x/y,-x/y
+                    scores_calc_mult = None
+                    for idx2 in range(len(score_indexes[idx0][idx1])):#x,1/y
+##                      scores_calc_bufs = np.zeros(len(psds))
+                      scores_calc_buf = 0
+#                      score_calcs[idx0][idx1][idx2] = None
+#                      print('len(score_indexes[idx0][idx1][idx2]):',len(score_indexes[idx0][idx1][idx2]))
+                      if True:
+#                      if len(score_indexes[idx0][idx1][idx2])>1:
+                        freq_from=score_indexes[idx0][idx1][idx2][0][0]
+                        freq_to=score_indexes[idx0][idx1][idx2][0][1]
+#                        names_range=score_indexes[idx0][idx1][idx2][1]
+#                        print('names_range:',names_range)
+#                        scores_calc_buf = np.average(psds[0][names_range][freq_from:freq_to])
+                        for idx4 in range(len(score_indexes[idx0][idx1][idx2][1][0])):#names
+                          scores_calc_buf = scores_calc_buf + np.average(stc.data[score_indexes[idx0][idx1][idx2][1][0][idx4]][freq_from:freq_to])
+                        for idx4 in range(len(score_indexes[idx0][idx1][idx2][1][1])):#names
+#                          score_calcs[idx0][idx1][idx2] = (np.average(psd[0][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))/(np.max(psd[:][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))
+##                          for idx5 in range(len(scores_calc_bufs)):
+##                            scores_calc_bufs[idx5] = scores_calc_bufs[idx5] + np.average(psds[idx5][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+#                          print('idx0,idx1,idx2,idx4,freq_from,freq_to:',idx0,idx1,idx2,idx4,freq_from,freq_to)
+#                          print('score_indexes[idx0][idx1][idx2][1][idx4]:',score_indexes[idx0][idx1][idx2][1][idx4])
+                          scores_calc_buf = scores_calc_buf + np.average(sensor_psd.data[score_indexes[idx0][idx1][idx2][1][1][idx4]][freq_from:freq_to])
+##                          scores_calc_buf = scores_calc_buf + np.average(psds[ji1][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+#                          score_calcs[idx0][idx1][idx2] = np.average(psds[0][idx4][freq_from:freq_to])
+#                          print('score_calcs[idx0][idx1][idx2]:',score_calcs[idx0][idx1][idx2])
+#                          print('scores_calc_buf:',scores_calc_buf)
+#                          print('idx0,idx1,idx2,idx4,freq_from,freq_to:',idx0,idx1,idx2,idx4,freq_from,freq_to)
+#                          print('idx0,idx1,idx2,idx4,freq_from,freq_to,scores_calc_buf:',idx0,idx1,idx2,idx4,freq_from,freq_to,scores_calc_buf)
+##                        scores_calc_bufs = scores_calc_bufs / len(score_indexes[idx0][idx1][idx2][1])
+                        scores_calc_buf = scores_calc_buf / len(score_indexes[idx0][idx1][idx2][1])
+#                        print('idx0,idx1,idx2,freq_from,freq_to,scores_calc_buf:',idx0,idx1,idx2,freq_from,freq_to,scores_calc_buf)
+                        if scores_calc_mult is None:
+##                          scores_calc_mults = np.ones(len(psds))
+                          scores_calc_mult = 1
+                        if idx2%2==0:#x
+#                          if score_calcs[idx0][idx1][idx2] is None:
+#                            score_calcs[idx0][idx1][idx2] = 1
+##                          scores_calc_mults = scores_calc_mults * scores_calc_bufs
+                          scores_calc_mult = scores_calc_mult * scores_calc_buf
+#                          scores_calc_mult = scores_calc_mult * score_calcs[idx0][idx1][idx2]
+                        else:#1/y
+##                          scores_calc_mults = scores_calc_mults / scores_calc_bufs
+                          scores_calc_mult = scores_calc_mult / scores_calc_buf
+#                          scores_calc_mult = scores_calc_mult / score_calcs[idx0][idx1][idx2]
+                    if not (scores_calc_mult is None):
+#                      print('idx0,idx1,scores_calc_mult:',idx0,idx1,scores_calc_mult)
+                      if idx1%2==0:#x/y
+##                        scoress[idx0] = scoress[idx0] + scores_calc_mults
+                        scores[idx0] = scores[idx0] + scores_calc_mult
+                      else:#-x/y
+##                        scoress[idx0] = scoress[idx0] - scores_calc_mults
+                        scores[idx0] = scores[idx0] - scores_calc_mult
+#                      score_ns[idx0] = score_ns[idx0] + 1
+#                      print('scores[idx0]:',scores[idx0])
+#                  scores[idx0] = scores[idx0] / score_ns[idx0]
+#                  score_norms=[0.036125,-0.5,5000000000]
+#                  score_shifts=[0,0,0]
+#                  score_after_shifts=[0,0.125,0.0125]
+#                  scores_shiftes_normed = scores.copy()
+#                  for idx0 in range(len(scores)):
+#                    scores_shiftes_normed[idx0] = ((scores[idx0] + score_shifts[idx0]) * score_norms[idx0]) + score_after_shifts[idx0]
+##                scores_shifts_baselined = scores.copy()
+##                for idx0 in range(len(scoress)):
+#                    print('scoress[idx0]:', scoress[idx0])
+##                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+##                    scores_shifts_baselined[idx0] = scores_shifts_baselined[idx0]# * 2 - 1
+#                    scores_shiftes_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+
+#                if vjoy_gamepad_inverse_scores:
+ #               if vjoy_gamepad_scores_baselined:
+#                  return(scores)
+                if show_gamepad_inverse_scores:
+ #               if show_gamepad_scores_baselined:
+                
+                  fig, ax = plt.subplots()
+                  plt.bar(vjoy_gamepad_inverse_scores_data, scores)
+##                  plt.bar(vjoy_gamepad_scores_data, scores_shifts_baselined)
+#                  plt.bar(range(len(scores_shifts_baselined)), scores_shifts_baselined)
+#                  plt.bar(range(len(scores_shiftes_normed)), scores_shiftes_normed)
+#                  plt.ylim(-1, 1)
+##                  plt.ylim(0, 1)
+#                  plt.plot(range(len(scores)), scores)
+#                  counts = scores
+#                  bins = range(len(scores))
+#                  plt.hist(bins, bins, weights=counts)
+#                  plt.stairs(range(len(scores)), scores)
+                  fig.canvas.draw()
+                        
+                  image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+                  image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+                  plt.close(fig)
+                  del fig
+                  
+#                  del scores
+#                  del scoress
+#                  del scores_calc_bufs
+#                  del scores_calc_mults
+#                  del score_indexes
+#                  del peak_freq_maxs
+#                  del epo_spectrum
+#                  del psds
+#                  del freqs
+#                  import gc
+#                  gc.collect()
+                  
+                  return image
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             if show_gamepad_inverse_peaks_stc_iapf or show_gamepad_inverse_peaks_stc_iapf_circle_cons:
 #            if True:
@@ -1370,7 +1692,7 @@ if True:
 
 #              plt.close(fig)
 #              del fig
-              out_shows_ji_images.append([shows_circle,ji,image])
+              out_shows_ji_images.append([shows_inverse_circle,ji,image])
 
             return image
 
@@ -1659,6 +1981,7 @@ if True:
         ch_types_pick = ['eeg'] * len(ch_names_pick)
         info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
         raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose='ERROR')
+        raw.load_data()
         
         epochs = []
         epochs.append(mne.make_fixed_length_epochs(raw, 
@@ -1783,7 +2106,7 @@ if True:
                   iapf_band_indices[1]=idx0
               for x0 in psds[ji1]:
                 peak_freq_maxs.append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
-                peak_freq_maxs_array=np.asarray(peak_freq_maxs)
+              peak_freq_maxs_array=np.asarray(peak_freq_maxs)
 #                peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
 #                peak_freq_maxs_array=np.asarray(peak_freq_maxs)
 #              print('peak_freq_maxs:',peak_freq_maxs)
@@ -4298,8 +4621,8 @@ def main():
   flags.DEFINE_string('inverse_standard_montage', 'standard_1005', 'EGI_256, GSN-HydroCel-128, GSN-HydroCel-129, GSN-HydroCel-256, GSN-HydroCel-257, GSN-HydroCel-32, GSN-HydroCel-64_1.0, GSN-HydroCel-65_1.0, artinis-brite23, artinis-octamon, biosemi128, biosemi16, biosemi160, biosemi256, biosemi32, biosemi64, brainproducts-RNP-BA-128, easycap-M1, easycap-M10, mgh60, mgh70, standard_1005, standard_1020, standard_alphabetic, standard_postfixed, standard_prefixed, standard_primed')
 #  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
 
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
   flags.DEFINE_list('gamepad_inverse_peaks_label_names', None, 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
   flags.DEFINE_string('gamepad_inverse_peaks_label', None, 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
@@ -4316,8 +4639,8 @@ def main():
   flags.DEFINE_boolean('gamepad_inverse_peaks_stc_iapf_transparent', False, '')
   flags.DEFINE_list('gamepad_inverse_peaks_stc_iapf_background', [0,0,0], '')
 #  flags.DEFINE_list('gamepad_inverse_peaks_stc_iapf_background', [1,1,1], '')
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', True, '')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', False, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_iapf_circle_cons', False, '')
   flags.DEFINE_list('show_inverse_peaks_circle_cons_colors', ['#00ff00', '#00ff77', '#00ffff', '#0077ff', '#0000ff'], 'from 0 to reliability_value')
 
 #  flags.DEFINE_list('gamepad_inverse_peaks_labels0', ['inverse/Left_DMN.json','inverse/Right_DMN.json','inverse/Left_FPN.json','inverse/Right_FPN.json','inverse/Left_CON.json','inverse/Right_CON.json'], 'None for all')
@@ -4356,8 +4679,8 @@ def main():
   flags.DEFINE_boolean('vjoy_gamepad_inverse_peaks_sensor_iapf', False, '')
   
 
-  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
-#  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
+#  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
+  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
   flags.DEFINE_string('epochs_peaks', '1', 'epochs_peaks')
 #  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', True, '')
   flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', False, '')
@@ -4417,16 +4740,41 @@ def main():
 #  flags.DEFINE_boolean('show_gamepad_scores_baselined', False, '')
 #  flags.DEFINE_boolean('vjoy_gamepad_scores_baselined', True, '')
   flags.DEFINE_boolean('vjoy_gamepad_scores_baselined', False, '')
-  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 
-  flags.DEFINE_list('score_bands_names', [
+  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+  flags.DEFINE_list('gamepad_score_bands_names', [
                   [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
                   [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
                   [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
                   [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
                   ], '')
-  flags.DEFINE_list('iapf_band', ['7.','14.'], '')
-  flags.DEFINE_string('epochs_baseline', '100', '')
+
+#  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+  flags.DEFINE_list('gamepad_inverse_score_bands_names', [
+#                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
+#                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
+                  [[[['IAPF-4','IAPF+3'],['R_47m_ROI-rh']],[['IAPF+3','IAPF+13'],['R_47m_ROI-rh']]],[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh']],[['IAPF+3','IAPF+13'],['L_47m_ROI-lh']]]],
+                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']],[['IAPF-4','IAPF+3'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']]]],
+                  [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+                  [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+                  ], '')
+  flags.DEFINE_list('gamepad_inverse_iapf_band', ['7.','14.'], '')
+  flags.DEFINE_string('gamepad_inverse_epochs_baseline', '100', '')
+  
+  flags.DEFINE_list('gamepad_iapf_band', ['7.','14.'], '')
+  flags.DEFINE_string('gamepad_epochs_baseline', '100', '')
+
+#  flags.DEFINE_boolean('vjoy_gamepad_inverse_psd', True, '')
+  flags.DEFINE_boolean('vjoy_gamepad_inverse_psd', False, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_scores', True, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_scores', False, '')
+  
+#  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', False, '')
+#  flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_baselined', True, '')
+  flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_baselined', False, '')
+
   
 #flags.mark_flag_as_required('input')
   import sys
@@ -4437,12 +4785,25 @@ def main():
   if FLAGS.help:
     exit()
 
+  vjoy_gamepad_inverse_psd = FLAGS.vjoy_gamepad_inverse_psd
+  show_gamepad_inverse_scores = FLAGS.show_gamepad_inverse_scores
+
+  vjoy_gamepad_inverse_scores_data = FLAGS.vjoy_gamepad_inverse_scores_data
+  gamepad_inverse_score_bands_names = FLAGS.gamepad_inverse_score_bands_names
+  show_gamepad_inverse_scores_baselined = FLAGS.show_gamepad_inverse_scores_baselined
+  vjoy_gamepad_inverse_scores_baselined = FLAGS.vjoy_gamepad_inverse_scores_baselined
+
+  gamepad_inverse_iapf_band=[float(FLAGS.gamepad_inverse_iapf_band[0]),float(FLAGS.gamepad_inverse_iapf_band[1])]
+  gamepad_inverse_epochs_baseline=int(FLAGS.gamepad_inverse_epochs_baseline)
+
+  gamepad_iapf_band=[float(FLAGS.gamepad_iapf_band[0]),float(FLAGS.gamepad_iapf_band[1])]
+  gamepad_epochs_baseline=int(FLAGS.gamepad_epochs_baseline)
+
   vjoy_gamepad_scores_data=FLAGS.vjoy_gamepad_scores_data
-  epochs_baseline=int(FLAGS.epochs_baseline)
-  iapf_band=[float(FLAGS.iapf_band[0]),float(FLAGS.iapf_band[1])]
-  score_bands_names = FLAGS.score_bands_names
+  gamepad_score_bands_names = FLAGS.gamepad_score_bands_names
   show_gamepad_scores_baselined = FLAGS.show_gamepad_scores_baselined
   vjoy_gamepad_scores_baselined = FLAGS.vjoy_gamepad_scores_baselined
+
   show_gamepad_scores = FLAGS.show_gamepad_scores
   from_bdf_realtime = FLAGS.from_bdf_realtime
   from_bdf_repeat = FLAGS.from_bdf_repeat
@@ -6870,6 +7231,7 @@ def main():
     if not (FLAGS.from_bdf is None):
       raw = mne.io.read_raw_bdf(FLAGS.from_bdf, eog=None, misc=None, stim_channel='auto', 
                           exclude=(), preload=False, verbose=True)
+      raw.load_data()
 #    if not (FLAGS.from_edf is None):
 #      raw = mne.io.read_raw_edf(FLAGS.from_edf, eog=None, misc=None, stim_channel='auto', 
 #                          exclude=(), preload=False, verbose=True)
@@ -7066,13 +7428,22 @@ def main():
 
         duration_id = ray.put(duration)
         cohs_tril_indices_id = ray.put(cohs_tril_indices)
-        epochs_baseline_id = ray.put(epochs_baseline)
-        iapf_band_id = ray.put(iapf_band)
+        
+        gamepad_epochs_baseline_id = ray.put(gamepad_epochs_baseline)
+        gamepad_iapf_band_id = ray.put(gamepad_iapf_band)
+        
         vjoy_gamepad_psd_id = ray.put(vjoy_gamepad_psd)
         show_gamepad_scores_id = ray.put(show_gamepad_scores)
+
+        gamepad_score_bands_names_id = ray.put(gamepad_score_bands_names)
         show_gamepad_scores_baselined_id = ray.put(show_gamepad_scores_baselined)
         vjoy_gamepad_scores_baselined_id = ray.put(vjoy_gamepad_scores_baselined)
         vjoy_gamepad_scores_data_id = ray.put(vjoy_gamepad_scores_data)
+
+        gamepad_inverse_score_bands_names_id = ray.put(gamepad_inverse_score_bands_names)
+        show_gamepad_inverse_scores_baselined_id = ray.put(show_gamepad_inverse_scores_baselined)
+        vjoy_gamepad_inverse_scores_baselined_id = ray.put(vjoy_gamepad_inverse_scores_baselined)
+        vjoy_gamepad_inverse_scores_data_id = ray.put(vjoy_gamepad_inverse_scores_data)
 
         label_names_id = ray.put(label_names)
 
@@ -7084,7 +7455,6 @@ def main():
         vmin_id = ray.put(vmin)
         from_bdf_id = ray.put(from_bdf)
         fps_id = ray.put(fps)
-        score_bands_names_id = ray.put(score_bands_names)
   if show_inverse_3d or show_inverse_circle_cons or show_gamepad_inverse_peaks:
         overlap_id = ray.put(overlap)
         fwd_id = ray.put(fwd)
@@ -7094,6 +7464,17 @@ def main():
         lambda2_id = ray.put(lambda2)
         subject_id = ray.put(subject)
         subjects_dir_id = ray.put(subjects_dir)
+        
+        gamepad_inverse_score_bands_names_id = ray.put(gamepad_inverse_score_bands_names)
+        gamepad_inverse_epochs_baseline_id = ray.put(gamepad_inverse_epochs_baseline)
+        gamepad_inverse_iapf_band_id = ray.put(gamepad_inverse_iapf_band)
+        vjoy_gamepad_inverse_psd_id = ray.put(vjoy_gamepad_inverse_psd)
+        show_gamepad_inverse_scores_id = ray.put(show_gamepad_inverse_scores)
+        show_gamepad_inverse_scores_baselined_id = ray.put(show_gamepad_inverse_scores_baselined)
+        vjoy_gamepad_inverse_scores_baselined_id = ray.put(vjoy_gamepad_inverse_scores_baselined)
+        vjoy_gamepad_inverse_scores_data_id = ray.put(vjoy_gamepad_inverse_scores_data)
+        epochs_inverse_cov_id = ray.put(epochs_inverse_cov)
+        
   start = time.time()
 
   while True:
@@ -7221,6 +7602,7 @@ def main():
       ch_types_pick = ['eeg'] * len(ch_names_pick)
       info_pick = mne.create_info(ch_names=ch_names_pick, sfreq=sfreq, ch_types=ch_types_pick)
       raw = mne.io.RawArray(raws_hstack_cut, info_pick, verbose='ERROR')
+      raw.load_data()
       raw_buf = raw
       len_raw=len(raw)
 
@@ -7428,9 +7810,12 @@ def main():
           G3ms_id = ray.put(G3ms)
 
         if show_gamepad_inverse_peaks:
-          duration_id = ray.put(duration)
-          cohs_tril_indices_id = ray.put(cohs_tril_indices)
-          object_ref = worker_gamepad_inverse_peaks.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id, raws_id, label_id, overlap_id)
+          epochs_id = None
+          raws_id = None
+#          duration_id = ray.put(duration)
+#          cohs_tril_indices_id = ray.put(cohs_tril_indices)
+#          object_ref = worker_gamepad_inverse_peaks.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id, raws_id, label_id, overlap_id)
+          object_ref = worker_gamepad_inverse_peaks.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id, raws_id, label_id, overlap_id, gamepad_inverse_score_bands_names_id, gamepad_inverse_epochs_baseline_id, gamepad_inverse_iapf_band_id, vjoy_gamepad_inverse_psd_id, show_gamepad_inverse_scores_id, show_gamepad_inverse_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, raws_hstack_cut_id, vjoy_gamepad_inverse_scores_baselined_id, vjoy_gamepad_inverse_scores_data_id, duration_id, epochs_inverse_cov_id, show_gamepad_inverse_peaks_stc_psd, show_gamepad_inverse_peaks_sensor_psd, show_gamepad_inverse_peaks_sensor_iapf, show_gamepad_inverse_peaks_stc_iapf, show_gamepad_inverse_peaks_stc_iapf_circle_cons, show_circle_iapf_cons_multiply, gamepad_inverse_peaks_indices0, gamepad_inverse_peaks_indices1, gamepad_inverse_peaks_frequency_average, mon, epochs_inverse_con, show_inverse_peaks_circle_cons_colors, inverse_parc, shows_inverse_circle)
           shows_ids.append(shows_gamepad_inverse_peaks)
           ji_ids.append(ji0)
           object_refs.append(object_ref)
@@ -7438,7 +7823,7 @@ def main():
         if show_gamepad_peaks:
 #          object_ref = worker_gamepad_peaks.remote(epochs_ids[len(epochs_ids)-1], ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id, epochs_baseline_id, iapf_band_id, vjoy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id)
           epochs_id = None
-          object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id, epochs_baseline_id, iapf_band_id, vjoy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, raws_hstack_cut_id, overlap_id, vjoy_gamepad_scores_baselined_id, vjoy_gamepad_scores_data_id)
+          object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, gamepad_score_bands_names_id, gamepad_epochs_baseline_id, gamepad_iapf_band_id, vjoy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, raws_hstack_cut_id, overlap_id, vjoy_gamepad_scores_baselined_id, vjoy_gamepad_scores_data_id)
           del epochs_id
           shows_ids.append(shows_gamepad_peaks)
           ji_ids.append(ji0)
