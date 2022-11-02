@@ -2207,7 +2207,8 @@ if True:
                       scores_calc_buf = 0
 #                      score_calcs[idx0][idx1][idx2] = None
 #                      print('len(score_indexes[idx0][idx1][idx2]):',len(score_indexes[idx0][idx1][idx2]))
-                      if True:
+#                      if True:
+                      if len(score_indexes[idx0][idx1][idx2])==2:
 #                      if len(score_indexes[idx0][idx1][idx2])>1:
                         freq_from=score_indexes[idx0][idx1][idx2][0][0]
                         freq_to=score_indexes[idx0][idx1][idx2][0][1]
@@ -2228,7 +2229,7 @@ if True:
                         scores_calc_buf = scores_calc_buf / len(score_indexes[idx0][idx1][idx2][1])
 #                        print('idx0,idx1,idx2,freq_from,freq_to,scores_calc_buf:',idx0,idx1,idx2,freq_from,freq_to,scores_calc_buf)
                         if scores_calc_mult is None:
-                          scores_calc_mults = np.ones(len(psds))
+#                          scores_calc_mults = np.ones(len(psds))
                           scores_calc_mult = 1
                         if idx2%2==0:#x
 #                          if score_calcs[idx0][idx1][idx2] is None:
@@ -2240,6 +2241,8 @@ if True:
 ##                          scores_calc_mults = scores_calc_mults / scores_calc_bufs
                           scores_calc_mult = scores_calc_mult / scores_calc_buf
 #                          scores_calc_mult = scores_calc_mult / score_calcs[idx0][idx1][idx2]
+                      else:#1/y
+                        scores_calc_mult = 1
                     if not (scores_calc_mult is None):
 #                      print('idx0,idx1,scores_calc_mult:',idx0,idx1,scores_calc_mult)
                       if idx1%2==0:#x/y
@@ -4495,7 +4498,7 @@ def main():
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
 #  flags.DEFINE_list('bands', [8.,28.], 'bands')
-  flags.DEFINE_list('bands', [1.,28.], 'bands')
+  flags.DEFINE_list('bands', [1.,48.], 'bands')
 #  flags.DEFINE_list('bands', [4.,28.], 'bands')
 #  flags.DEFINE_list('bands', [7.,14.], 'bands')
 #  flags.DEFINE_list('bands', [8.,12.], 'bands')
@@ -4734,22 +4737,117 @@ def main():
 #  flags.DEFINE_boolean('vjoy_gamepad_scores_baselined', True, '')
   flags.DEFINE_boolean('vjoy_gamepad_scores_baselined', False, '')
 
-  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+  flags.DEFINE_list('vjoy_gamepad_scores_data', ['lButton5', 'lButton6', 'lButton7', 'lButton8', 'wAxisXRot', 'wAxisY', 'lButton1', 'lButton2', 'lButton3', 'lButton4'], 'lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, lButton8, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
   flags.DEFINE_list('gamepad_score_bands_names', [
-                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
-                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
-                  [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
-                  [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
-#                  [[[['IAPF+3','IAPF+13'],['F3','F4']]]],
-#                  [[[['IAPF-4','IAPF+3'],['F3','F4']]]],
-                  ], '')
+#                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+#                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+
+                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]],[],
+                   [[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]],[[],[]]],#+valence+(arousal-1)
+                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]],
+                   [[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]],[[],[]]],#+valence-(arousal-1)
+                  [[],[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]],
+                   [[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]],[[],[]]],#-valence+(arousal-1)
+                  [[],[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]],[],
+                   [[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]],[[],[]]],#-valence-(arousal-1)
+                  
+#                  [[[['IAPF+3','IAPF+8'],['AF3','AF4','F3','F4']]]],#low_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF+8','IAPF+17'],['AF3','AF4','F3','F4']]]],#high_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']]]],#cumulative_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF+17','IAPF+32'],['AF3','AF4','F3','F4']]]],#gamma(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF+17','IAPF+32'],['Cz']]]],#gamma(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF-8','IAPF-6'],['AF3','AF4','F3','F4']]]],#delta
+#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']]]],#theta
+#                  [[[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],#alpha
+#                  [[[['IAPF-4','IAPF+0'],['AF3','AF4','F3','F4']]]],#low alpha
+#                  [[[['IAPF+0','IAPF+3'],['AF3','AF4','F3','F4']]]],#high alpha
+##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+3','IAPF+8'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/low_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/high_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+3','IAPF+17'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/cumulative_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+3','IAPF+8'],['AF3','AF4','F3','F4']]]],#theta/low_beta https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+8','IAPF+17'],['AF3','AF4','F3','F4']]]],#theta/high_beta https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']]]],#theta/cumulative_beta https://doi.org/10.3389/fnhum.2015.00723
+                  
+##                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#SMR(C4+Cz+C3) https://doi.org/10.3389/fnhum.2016.00348
+##                  [[[['IAPF+2','IAPF+5'],['Pz','Cz']]]],#SMR(Pz+Cz) https://doi.org/10.3389/fnhum.2016.00348
+##                  [[[['IAPF+5','IAPF+8'],['Pz','Cz']]]],#adjacent_beta1(Pz+Cz) https://doi.org/10.3389/fnhum.2016.00348
+                  
+##                  [[[['IAPF-2','IAPF+3'],['C4']]]],#mu(C4) https://doi.org/10.1111/ejn.13551
+##                  [[[['IAPF-6','IAPF-2'],['C4']]]],#theta(C4) https://doi.org/10.1111/ejn.13551
+##                  [[[['IAPF+3','IAPF+17'],['C4']]]],#beta(C4) https://doi.org/10.1111/ejn.13551
+#                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#beta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
+#                  [[[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#theta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
+#                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],[],[[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#beta(C4)/mu(C4)+theta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
+
+#                  [[[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C3)/mu(C3)
+#                  [[[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#theta(C3)/mu(C3)
+                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
+                   [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
+                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
+                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)+theta(C3)/mu(C3)
+
+#                  [[[['IAPF+8','IAPF+17'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]],[],[[['IAPF-6','IAPF-2'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]]],#beta2(Cz)/SMR(Cz)+theta(Cz)/SMR(Cz) https://doi.org/10.3389/fnins.2021.638369
+
+##                  [[[['IAPF-2','IAPF+3'],['T7']]]],#simualted_image_clear_music_louder=max(alpha(T7)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
+
+##                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+##                  [[[['IAPF-6','IAPF-4'],['Cz']]]],#attention_focusing_keep_animation_moving=min(theta(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+##                  [[[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=min(beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-4'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+
+##                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+##                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+##                  [[[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=min(theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+##                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]],[],
+                   [[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]],[],
+                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]],[],
+                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+
+##                  [[[['IAPF+3','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+##                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+                  [[[['IAPF+3','IAPF+17'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_visual_auditory_1=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+#                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_auditory_1=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+                  
+                  [[[['IAPF-6','IAPF-2'],['Pz']],[['IAPF-2','IAPF+3'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+##                  [[[['IAPF+8','IAPF+17'],['Pz']]]],#attention_focusing_visual_auditory_2=min(beta2(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+                  
+#                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_placing_balls=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_placing_balls=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
+#                  [[[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_placing_balls=min(theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
+#                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_placing_balls=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
+                  
+#                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
+
+#                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
+#                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
+
+#                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
+#                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
+                  
+                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
+                  
+##                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
+##                  [[[['IAPF','IAPF+2'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
+                  
+                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#monitoring_golf_putting_task=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Cheng et al., 2015a
+                  
+                  ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
 
 #  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1', 'lButton5', 'lButton6', 'lButton7', 'lButton8'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton1'], 'lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, lButton8, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
   flags.DEFINE_list('gamepad_inverse_score_bands_names', [
                   [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
@@ -4762,7 +4860,7 @@ def main():
 #                  [[[['IAPF-4','IAPF+3'],['F3','F4']]]],
 #                  [[[['IAPF+3','IAPF+13'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
 #                  [[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
-                  ], '')
+                  ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
   flags.DEFINE_list('gamepad_inverse_iapf_band', ['7.','14.'], '')
   flags.DEFINE_string('gamepad_inverse_epochs_baseline', '100', '')
   
@@ -4781,8 +4879,8 @@ def main():
   flags.DEFINE_boolean('vjoy_gamepad_scores_no_image', False, '')
   flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_no_vjoy', True, '')
 #  flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_no_vjoy', False, '')
-  flags.DEFINE_boolean('vjoy_gamepad_scores_no_vjoy', True, '')
-#  flags.DEFINE_boolean('vjoy_gamepad_scores_no_vjoy', False, '')
+#  flags.DEFINE_boolean('vjoy_gamepad_scores_no_vjoy', True, '')
+  flags.DEFINE_boolean('vjoy_gamepad_scores_no_vjoy', False, '')
   
 #  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', False, '')
@@ -4814,6 +4912,18 @@ def main():
 
   if vjoy_gamepad_inverse_scores_no_vjoy and vjoy_gamepad_scores_no_vjoy:
       vjoy = None
+  else:
+    import pyvjoy
+    vjoy = pyvjoy.VJoyDevice(1)
+    vjoy.data.lButtons = 0
+    vjoy.data.wAxisXRot = round(0x8000 / 2)
+    vjoy.data.wAxisYRot = round(0x8000 / 2)
+    vjoy.data.wAxisZRot = round(0x8000 / 2)
+    vjoy.data.wAxisX = round(0x8000 / 2)
+    vjoy.data.wAxisY = round(0x8000 / 2)
+    vjoy.data.wAxisZ = round(0x8000 / 2)
+    vjoy.update()
+#    vjoy.reset()
 
   vjoy_gamepad_inverse_scores_data = FLAGS.vjoy_gamepad_inverse_scores_data
   gamepad_inverse_score_bands_names = FLAGS.gamepad_inverse_score_bands_names
@@ -8035,25 +8145,33 @@ def main():
 #                    print('scoress[idx0]:',scoress[idx0])
 #                    print('scoress[:][idx0]:',scoress[:][idx0])
                     scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+#                    if np.isnan(scores_shifts_baselined[idx0]):
+#                        scores_shifts_baselined[idx0] = 0.499999999
+#                        scores_shifts_baselined[idx0] = 0
+#                        scores_shifts_baselined[idx0] = -1
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if not vjoy_gamepad_scores_no_vjoy:
-                  vjoy.data.lButtons = 0
-                  for idx0, gamepad_data in enumerate(scores):
+#                  vjoy.data.lButtons = 0
+                  for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data):
+#                   if not(scores_shifts_baselined[idx0] == -1):
+                   if not np.isnan(scores_shifts_baselined[idx0]):
                     if gamepad_data == 'wAxisXRot':
-                      vjoy.data.wAxisXRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisXRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisYRot':
-                      vjoy.data.wAxisYRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisYRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisZRot':
-                      vjoy.data.wAxisZRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisZRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisX':
-                      vjoy.data.wAxisXRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisX = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisY':
-                      vjoy.data.wAxisYRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisY = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisZ':
-                      vjoy.data.wAxisZRot = round(0x8000 * scores[idx0])
-                    if gamepad_data.find('lButton') == 0:
-                      if round(vjoy_data) > 0:
-                        vjoy.data.lButtons = vjoy.data.lButtons + (2**(int(gamepad_data[7:])))
+                      vjoy.data.wAxisZ = round(0x8000 * scores_shifts_baselined[idx0])
+                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                      if round(scores_shifts_baselined[idx0]) > 0:
+                        vjoy.data.lButtons |= (1<<(int(gamepad_data[7:])-1))
+                      else:
+                        vjoy.data.lButtons &= ~(1<<(int(gamepad_data[7:])-1))
                   vjoy.update()
                 if not vjoy_gamepad_scores_no_image:
                   fig, ax = plt.subplots()
@@ -8080,25 +8198,31 @@ def main():
 #                    print('scoress[idx0]:',scoress[idx0])
 #                    print('scoress[:][idx0]:',scoress[:][idx0])
                     scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+#                    if np.isnan(scores_shifts_baselined[idx0]):
+#                        scores_shifts_baselined[idx0] = 0.499999999
+#                        scores_shifts_baselined[idx0] = 0
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if not vjoy_gamepad_inverse_scores_no_vjoy:
-                  vjoy.data.lButtons = 0
-                  for idx0, gamepad_data in enumerate(scores):
+#                  vjoy.data.lButtons = 0
+                  for idx0, gamepad_data in enumerate(vjoy_gamepad_inverse_scores_data):
+                   if not np.isnan(scores_shifts_baselined[idx0]):
                     if gamepad_data == 'wAxisXRot':
-                      vjoy.data.wAxisXRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisXRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisYRot':
-                      vjoy.data.wAxisYRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisYRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisZRot':
-                      vjoy.data.wAxisZRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisZRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisX':
-                      vjoy.data.wAxisXRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisX = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisY':
-                      vjoy.data.wAxisYRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisY = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisZ':
-                      vjoy.data.wAxisZRot = round(0x8000 * scores[idx0])
-                    if gamepad_data.find('lButton') == 0:
-                      if round(vjoy_data) > 0:
-                        vjoy.data.lButtons = vjoy.data.lButtons + (2**(int(gamepad_data[7:])))
+                      vjoy.data.wAxisZ = round(0x8000 * scores_shifts_baselined[idx0])
+                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                      if round(scores_shifts_baselined[idx0]) > 0:
+                        vjoy.data.lButtons |= (1<<(int(gamepad_data[7:])-1))
+                      else:
+                        vjoy.data.lButtons &= ~(1<<(int(gamepad_data[7:])-1))
                   vjoy.update()
                 if not vjoy_gamepad_inverse_scores_no_image:
                   fig, ax = plt.subplots()
@@ -8207,25 +8331,31 @@ def main():
 #                    print('scoress[idx0]:',scoress[idx0])
 #                    print('scoress[:][idx0]:',scoress[:][idx0])
                     scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+#                    if np.isnan(scores_shifts_baselined[idx0]):
+#                        scores_shifts_baselined[idx0] = 0.499999999
+#                        scores_shifts_baselined[idx0] = 0
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if not vjoy_gamepad_scores_no_vjoy:
-                  vjoy.data.lButtons = 0
-                  for idx0, gamepad_data in enumerate(scores):
+#                  vjoy.data.lButtons = 0
+                  for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data):
+                   if not np.isnan(scores_shifts_baselined[idx0]):
                     if gamepad_data == 'wAxisXRot':
-                      vjoy.data.wAxisXRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisXRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisYRot':
-                      vjoy.data.wAxisYRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisYRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisZRot':
-                      vjoy.data.wAxisZRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisZRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisX':
-                      vjoy.data.wAxisXRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisX = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisY':
-                      vjoy.data.wAxisYRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisY = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisZ':
-                      vjoy.data.wAxisZRot = round(0x8000 * scores[idx0])
-                    if gamepad_data.find('lButton') == 0:
-                      if round(vjoy_data) > 0:
-                        vjoy.data.lButtons = vjoy.data.lButtons + (2**(int(gamepad_data[7:])))
+                      vjoy.data.wAxisZ = round(0x8000 * scores_shifts_baselined[idx0])
+                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                      if round(scores_shifts_baselined[idx0]) > 0:
+                        vjoy.data.lButtons |= (1<<(int(gamepad_data[7:])-1))
+                      else:
+                        vjoy.data.lButtons &= ~(1<<(int(gamepad_data[7:])-1))
                   vjoy.update()
                 if not vjoy_gamepad_scores_no_image:
                   fig, ax = plt.subplots()
@@ -8252,25 +8382,31 @@ def main():
 #                    print('scoress[idx0]:',scoress[idx0])
 #                    print('scoress[:][idx0]:',scoress[:][idx0])
                     scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+#                    if np.isnan(scores_shifts_baselined[idx0]):
+#                        scores_shifts_baselined[idx0] = 0.499999999
+#                        scores_shifts_baselined[idx0] = 0
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if not vjoy_gamepad_inverse_scores_no_vjoy:
-                  vjoy.data.lButtons = 0
-                  for idx0, gamepad_data in enumerate(scores):
+#                  vjoy.data.lButtons = 0
+                  for idx0, gamepad_data in enumerate(vjoy_gamepad_inverse_scores_data):
+                   if not np.isnan(scores_shifts_baselined[idx0]):
                     if gamepad_data == 'wAxisXRot':
-                      vjoy.data.wAxisXRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisXRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisYRot':
-                      vjoy.data.wAxisYRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisYRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisZRot':
-                      vjoy.data.wAxisZRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisZRot = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisX':
-                      vjoy.data.wAxisXRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisX = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisY':
-                      vjoy.data.wAxisYRot = round(0x8000 * scores[idx0])
+                      vjoy.data.wAxisY = round(0x8000 * scores_shifts_baselined[idx0])
                     if gamepad_data == 'wAxisZ':
-                      vjoy.data.wAxisZRot = round(0x8000 * scores[idx0])
-                    if gamepad_data.find('lButton') == 0:
-                      if round(vjoy_data) > 0:
-                        vjoy.data.lButtons = vjoy.data.lButtons + (2**(int(gamepad_data[7:])))
+                      vjoy.data.wAxisZ = round(0x8000 * scores_shifts_baselined[idx0])
+                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                      if round(scores_shifts_baselined[idx0]) > 0:
+                        vjoy.data.lButtons |= (1<<(int(gamepad_data[7:])-1))
+                      else:
+                        vjoy.data.lButtons &= ~(1<<(int(gamepad_data[7:])-1))
                   vjoy.update()
                 if not vjoy_gamepad_inverse_scores_no_image:
                   fig, ax = plt.subplots()
