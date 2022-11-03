@@ -4487,9 +4487,11 @@ def main():
 #flags.DEFINE_list('prefix', None, 'prefix')
   flags.DEFINE_string('output_path', '', 'output_path')
   flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
-  flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'for neurofeedback')
+  flags.DEFINE_list('ch_names', ['AF3','F3','C3','C4','F4','AF4','Fz','Cz','Fp1','F7','FC1','FC5','T7','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','T8','FC6','FC2','F8','Fp2'], 'for neurofeedback')
+#  flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'for neurofeedback')
 #  flags.DEFINE_list('ch_names_pick', None, 'if None, uses all available')##TODO
-  flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
+  flags.DEFINE_list('ch_names_pick', ['AF3','F3','C3','C4','F4','AF4','Fz','Cz'], 'ch_names')
+#  flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
 #  flags.DEFINE_list('ch_names_pick', ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2'], 'ch_names')
 #  flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F7','F8','C3','C4','T7','T8','P3','P4','P7','P8','O1','O2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
@@ -4821,7 +4823,7 @@ def main():
 #                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_auditory_1=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
 #                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
                   
-                  [[[['IAPF-6','IAPF-2'],['Pz']],[['IAPF-2','IAPF+3'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+#                  [[[['IAPF-6','IAPF-2'],['Pz']],[['IAPF-2','IAPF+3'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
 ##                  [[[['IAPF+8','IAPF+17'],['Pz']]]],#attention_focusing_visual_auditory_2=min(beta2(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
                   
 #                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_placing_balls=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
@@ -4829,7 +4831,7 @@ def main():
 #                  [[[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_placing_balls=min(theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
 #                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_placing_balls=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
                   
-#                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
+                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
 
 #                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
 #                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
