@@ -4790,7 +4790,7 @@ def main():
                   [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
                    [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
                    [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
-                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)+theta(C3)/mu(C3)
+                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)-theta(C3)/mu(C3)
 
 #                  [[[['IAPF+8','IAPF+17'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]],[],[[['IAPF-6','IAPF-2'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]]],#beta2(Cz)/SMR(Cz)+theta(Cz)/SMR(Cz) https://doi.org/10.3389/fnins.2021.638369
 
