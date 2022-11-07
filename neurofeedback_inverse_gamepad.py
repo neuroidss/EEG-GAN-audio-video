@@ -4741,9 +4741,13 @@ def main():
   flags.DEFINE_boolean('vjoy_gamepad_scores_baselined', False, '')
 
   flags.DEFINE_list('vjoy_gamepad_scores_data', [#'wAxisYRot','wAxisX', 
-                                                 'HlButton5', 'HlButton5', 'HlButton6', 'iHlButton6', 'iHlButton7', 'HlButton7', 'iHlButton8', 'iHlButton8', 
-                                                 'wAxisXRot', 'wAxisZRot', 'wAxisY', 'wAxisZ', 'lButton1', 'lButton2', 'lButton3', 'lButton4'], 
-                                                 'lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, lButton8, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+                                                 'HB5', 'HB5', 'HB6', 'iHB6', 'iHB7', 'HB7', 'iHB8', 'iHB8', 
+                                                 'XR', 'ZR', 'Y', 'Z', 'B1', 'B2', 'B3', 'B4'], 
+                                                 'B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, XR, YR, ZR, X, Y, Z; H, i, Hi, iH')
+#  flags.DEFINE_list('vjoy_gamepad_scores_data', [#'wAxisYRot','wAxisX', 
+#                                                 'HlButton5', 'HlButton5', 'HlButton6', 'iHlButton6', 'iHlButton7', 'HlButton7', 'iHlButton8', 'iHlButton8', 
+#                                                 'wAxisXRot', 'wAxisZRot', 'wAxisY', 'wAxisZ', 'lButton1', 'lButton2', 'lButton3', 'lButton4'], 
+#                                                 'lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, lButton8, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('vjoy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
   flags.DEFINE_list('gamepad_score_bands_names', [
@@ -8303,14 +8307,12 @@ def main():
 #                        scores_shifts_baselined[idx0] = -1
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if True:
-#                  vjoy.data.lButtons = 0
-                  vjoy_gamepad_scores_data_combined = ['lButton1', 'lButton2', 'lButton3', 'lButton4', 'lButton5', 'lButton6', 'lButton7', 'lButton8', 
-                                                       'lButton9', 'lButton10', 'lButton11', 'lButton12', 'lButton13', 'lButton14', 'lButton15', 'lButton16', 'lButton17', 
-                                                      'wAxisXRot', 'wAxisYRot', 'wAxisZRot', 'wAxisX', 'wAxisY', 'wAxisZ']
+                  vjoy_gamepad_scores_data_combined = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 
+                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B4', 'B15', 'B16', 'B17', 
+                                                      'XR', 'YR', 'ZR', 'X', 'Y', 'Z']
+                  vjoy_gamepad_scores_data_combined_used = []
                   scores_shifts_baselined_combined = [np.nan]*len(vjoy_gamepad_scores_data_combined)
-#                  scores_shifts_baselined_combined = [0]*len(vjoy_gamepad_scores_data_combined)
                   for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data):
-#                   if not(scores_shifts_baselined[idx0] == -1):
                    if not np.isnan(scores_shifts_baselined[idx0]):
                     vjoy_data = scores_shifts_baselined[idx0]
                     if (gamepad_data.find('iH') == 0):
@@ -8334,47 +8336,47 @@ def main():
                       vjoy_data = 1-scores_shifts_baselined[idx0]
                     if np.isnan(scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)]):
                         scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] = 0
-                    scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] = scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] + vjoy_data 
+                    scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] = scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] + vjoy_data
                 if vjoy_gamepad_scores_uinput:
                   for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data_combined):
                    if not np.isnan(scores_shifts_baselined_combined[idx0]):
-                    if gamepad_data == 'wAxisXRot':
+                    if gamepad_data == 'XR':
                       uinput_device.emit(uinput.ABS_RX, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisYRot':
+                    if gamepad_data == 'YR':
                       uinput_device.emit(uinput.ABS_RY, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisZRot':
+                    if gamepad_data == 'ZR':
                       uinput_device.emit(uinput.ABS_RZ, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisX':
+                    if gamepad_data == 'X':
                       uinput_device.emit(uinput.ABS_X, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisY':
+                    if gamepad_data == 'Y':
                       uinput_device.emit(uinput.ABS_Y, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisZ':
+                    if gamepad_data == 'Z':
                       uinput_device.emit(uinput.ABS_Z, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                    if (gamepad_data.find('B') == 0) and (int(gamepad_data[1:]) >= 1) and (int(gamepad_data[1:]) <= 17):
                       if round(scores_shifts_baselined_combined[idx0]) > 0:
-                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[7:])-1)), 1)
+                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[1:])-1)), 1)
                       else:
-                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[7:])-1)), 0)
+                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[1:])-1)), 0)
                 if not vjoy_gamepad_scores_no_vjoy:
                   for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data_combined):
                    if not np.isnan(scores_shifts_baselined_combined[idx0]):
-                    if gamepad_data == 'wAxisXRot':
+                    if gamepad_data == 'XR':
                       vjoy.data.wAxisXRot = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisYRot':
+                    if gamepad_data == 'YR':
                       vjoy.data.wAxisYRot = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisZRot':
+                    if gamepad_data == 'ZR':
                       vjoy.data.wAxisZRot = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisX':
+                    if gamepad_data == 'X':
                       vjoy.data.wAxisX = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisY':
+                    if gamepad_data == 'Y':
                       vjoy.data.wAxisY = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisZ':
+                    if gamepad_data == 'Z':
                       vjoy.data.wAxisZ = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                    if (gamepad_data.find('B') == 0) and (int(gamepad_data[1:]) >= 1) and (int(gamepad_data[1:]) <= 8):
                       if round(scores_shifts_baselined_combined[idx0]) > 0:
-                        vjoy.data.lButtons |= (1<<(int(gamepad_data[7:])-1))
+                        vjoy.data.lButtons |= (1<<(int(gamepad_data[1:])-1))
                       else:
-                        vjoy.data.lButtons &= ~(1<<(int(gamepad_data[7:])-1))
+                        vjoy.data.lButtons &= ~(1<<(int(gamepad_data[1:])-1))
                   vjoy.update()
                 if not vjoy_gamepad_scores_no_image:
                   fig, ax = plt.subplots(figsize=(12,3))
@@ -8576,14 +8578,12 @@ def main():
 #                        scores_shifts_baselined[idx0] = 0
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if True:
-#                  vjoy.data.lButtons = 0
-                  vjoy_gamepad_scores_data_combined = ['lButton1', 'lButton2', 'lButton3', 'lButton4', 'lButton5', 'lButton6', 'lButton7', 'lButton8', 
-                                                       'lButton9', 'lButton10', 'lButton11', 'lButton12', 'lButton13', 'lButton14', 'lButton15', 'lButton16', 'lButton17', 
-                                                      'wAxisXRot', 'wAxisYRot', 'wAxisZRot', 'wAxisX', 'wAxisY', 'wAxisZ']
+                  vjoy_gamepad_scores_data_combined = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 
+                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B4', 'B15', 'B16', 'B17', 
+                                                      'XR', 'YR', 'ZR', 'X', 'Y', 'Z']
+                  vjoy_gamepad_scores_data_combined_used = []
                   scores_shifts_baselined_combined = [np.nan]*len(vjoy_gamepad_scores_data_combined)
-#                 scores_shifts_baselined_combined = [0]*len(vjoy_gamepad_scores_data_combined)
                   for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data):
-#                   if not(scores_shifts_baselined[idx0] == -1):
                    if not np.isnan(scores_shifts_baselined[idx0]):
                     vjoy_data = scores_shifts_baselined[idx0]
                     if (gamepad_data.find('iH') == 0):
@@ -8611,43 +8611,43 @@ def main():
                 if vjoy_gamepad_scores_uinput:
                   for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data_combined):
                    if not np.isnan(scores_shifts_baselined_combined[idx0]):
-                    if gamepad_data == 'wAxisXRot':
+                    if gamepad_data == 'XR':
                       uinput_device.emit(uinput.ABS_RX, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisYRot':
+                    if gamepad_data == 'YR':
                       uinput_device.emit(uinput.ABS_RY, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisZRot':
+                    if gamepad_data == 'ZR':
                       uinput_device.emit(uinput.ABS_RZ, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisX':
+                    if gamepad_data == 'X':
                       uinput_device.emit(uinput.ABS_X, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisY':
+                    if gamepad_data == 'Y':
                       uinput_device.emit(uinput.ABS_Y, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if gamepad_data == 'wAxisZ':
+                    if gamepad_data == 'Z':
                       uinput_device.emit(uinput.ABS_Z, round(0x8000 * scores_shifts_baselined_combined[idx0]))
-                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                    if (gamepad_data.find('B') == 0) and (int(gamepad_data[1:]) >= 1) and (int(gamepad_data[1:]) <= 17):
                       if round(scores_shifts_baselined_combined[idx0]) > 0:
-                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[7:])-1)), 1)
+                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[1:])-1)), 1)
                       else:
-                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[7:])-1)), 0)
+                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[1:])-1)), 0)
                 if not vjoy_gamepad_scores_no_vjoy:
                   for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data_combined):
                    if not np.isnan(scores_shifts_baselined_combined[idx0]):
-                    if gamepad_data == 'wAxisXRot':
+                    if gamepad_data == 'XR':
                       vjoy.data.wAxisXRot = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisYRot':
+                    if gamepad_data == 'YR':
                       vjoy.data.wAxisYRot = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisZRot':
+                    if gamepad_data == 'ZR':
                       vjoy.data.wAxisZRot = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisX':
+                    if gamepad_data == 'X':
                       vjoy.data.wAxisX = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisY':
+                    if gamepad_data == 'Y':
                       vjoy.data.wAxisY = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if gamepad_data == 'wAxisZ':
+                    if gamepad_data == 'Z':
                       vjoy.data.wAxisZ = round(0x8000 * scores_shifts_baselined_combined[idx0])
-                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                    if (gamepad_data.find('B') == 0) and (int(gamepad_data[1:]) >= 1) and (int(gamepad_data[1:]) <= 8):
                       if round(scores_shifts_baselined_combined[idx0]) > 0:
-                        vjoy.data.lButtons |= (1<<(int(gamepad_data[7:])-1))
+                        vjoy.data.lButtons |= (1<<(int(gamepad_data[1:])-1))
                       else:
-                        vjoy.data.lButtons &= ~(1<<(int(gamepad_data[7:])-1))
+                        vjoy.data.lButtons &= ~(1<<(int(gamepad_data[1:])-1))
                   vjoy.update()
                 if not vjoy_gamepad_scores_no_image:
                   fig, ax = plt.subplots(figsize=(12,3))
