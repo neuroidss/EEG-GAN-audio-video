@@ -16,6 +16,7 @@ start = time.time()
 
 #ray.init(object_store_memory=10**9)
 ray.init()
+#ray.init()
 #ray.init(num_cpus=1)
 #ray.init(num_cpus=8)
 
@@ -4887,6 +4888,10 @@ def main():
 #  flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_no_vjoy', False, '')
   flags.DEFINE_boolean('vjoy_gamepad_scores_no_vjoy', True, '')
 #  flags.DEFINE_boolean('vjoy_gamepad_scores_no_vjoy', False, '')
+  flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_uinput', True, '')
+#  flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_uinput', False, '')
+  flags.DEFINE_boolean('vjoy_gamepad_scores_uinput', True, '')
+#  flags.DEFINE_boolean('vjoy_gamepad_scores_uinput', False, '')
   
 #  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', False, '')
@@ -4915,7 +4920,148 @@ def main():
   vjoy_gamepad_scores_no_vjoy = FLAGS.vjoy_gamepad_scores_no_vjoy
   vjoy_gamepad_inverse_scores_no_vjoy = FLAGS.vjoy_gamepad_inverse_scores_no_vjoy
 
+  vjoy_gamepad_inverse_scores_uinput = FLAGS.vjoy_gamepad_inverse_scores_uinput
+  vjoy_gamepad_scores_uinput = FLAGS.vjoy_gamepad_scores_uinput
 
+  if (not vjoy_gamepad_inverse_scores_uinput) and (not vjoy_gamepad_scores_uinput):
+      uinput_device = None
+  else:
+    import uinput
+    import time
+    import numpy as np
+    
+#    events = (
+#        uinput.BTN_JOYSTICK,
+#        uinput.ABS_X + (0, 255, 0, 0),
+#        uinput.ABS_Y + (0, 255, 0, 0),
+#        )
+
+    events = (
+        uinput.BTN_A,
+        uinput.BTN_B,
+        uinput.BTN_X,
+        uinput.BTN_Y,
+        uinput.BTN_TL,
+        uinput.BTN_TR,
+        uinput.BTN_TL2,
+        uinput.BTN_TR2,
+        uinput.BTN_DPAD_UP,
+        uinput.BTN_DPAD_DOWN,
+        uinput.BTN_DPAD_LEFT,
+        uinput.BTN_DPAD_RIGHT,
+        uinput.BTN_SELECT,
+        uinput.BTN_START,
+        uinput.BTN_MODE,
+        uinput.BTN_THUMBL,
+        uinput.BTN_THUMBR,
+        uinput.ABS_X + (0, 0x8000, 0, 0),
+        uinput.ABS_Y + (0, 0x8000, 0, 0),
+        uinput.ABS_Z + (0, 0x8000, 0, 0),
+        uinput.ABS_RX + (0, 0x8000, 0, 0),
+        uinput.ABS_RY + (0, 0x8000, 0, 0),
+        uinput.ABS_RZ + (0, 0x8000, 0, 0),
+        uinput.REL_X + (0, 0x8000, 0, 0),
+        uinput.REL_Y + (0, 0x8000, 0, 0),
+        uinput.REL_Z + (0, 0x8000, 0, 0),
+        uinput.REL_RX + (0, 0x8000, 0, 0),
+        uinput.REL_RY + (0, 0x8000, 0, 0),
+        uinput.REL_RZ + (0, 0x8000, 0, 0),
+#        uinput.ABS_X + (0, 255, 0, 0),
+#        uinput.ABS_Y + (0, 255, 0, 0),
+#        uinput.ABS_Z + (0, 255, 0, 0),
+#        uinput.ABS_RX + (0, 255, 0, 0),
+#        uinput.ABS_RY + (0, 255, 0, 0),
+#        uinput.ABS_RZ + (0, 255, 0, 0),
+#        uinput.REL_X + (0, 255, 0, 0),
+#        uinput.REL_Y + (0, 255, 0, 0),
+#        uinput.REL_Z + (0, 255, 0, 0),
+#        uinput.REL_RX + (0, 255, 0, 0),
+#        uinput.REL_RY + (0, 255, 0, 0),
+#        uinput.REL_RZ + (0, 255, 0, 0),
+        )
+
+    #https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/input-event-codes.h?h=v4.7
+#    BTN_GAMEPAD
+    uinput_device = uinput.Device(events)
+    if False:
+      with uinput.Device(events) as device:
+#        for i in range(20000):
+        while True:
+            # syn=False to emit an "atomic" (5, 5) event.
+#            device.emit(uinput.ABS_X, 5, syn=False)
+#            device.emit(uinput.ABS_Y, 5)
+            device.emit(uinput.REL_X, np.random.randint(0, high=255+1))
+            device.emit(uinput.REL_Y, np.random.randint(0, high=255+1))
+            device.emit(uinput.REL_Z, np.random.randint(0, high=255+1))
+            device.emit(uinput.REL_RY, np.random.randint(0, high=255+1))
+            device.emit(uinput.REL_RX, np.random.randint(0, high=255+1))
+            device.emit(uinput.REL_RZ, np.random.randint(0, high=255+1))
+            device.emit(uinput.ABS_X, np.random.randint(0, high=255+1))
+            device.emit(uinput.ABS_Y, np.random.randint(0, high=255+1))
+            device.emit(uinput.ABS_Z, np.random.randint(0, high=255+1))
+            device.emit(uinput.ABS_RY, np.random.randint(0, high=255+1))
+            device.emit(uinput.ABS_RX, np.random.randint(0, high=255+1))
+            device.emit(uinput.ABS_RZ, np.random.randint(0, high=255+1))
+            device.emit(uinput.BTN_A, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_B, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_X, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_Y, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_TL, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_TR, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_TL2, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_TR2, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_DPAD_UP, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_DPAD_DOWN, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_DPAD_LEFT, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_DPAD_RIGHT, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_SELECT, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_START, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_MODE, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_THUMBL, np.random.randint(0, high=1+1))
+            device.emit(uinput.BTN_THUMBR, np.random.randint(0, high=1+1))
+            time.sleep(2)
+        
+#  ioctl(fd, UI_SET_KEYBIT, BTN_A);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_B);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_X);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_Y);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_TL);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_TR);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_TL2);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_TR2);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_START);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_SELECT);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_THUMBL);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_THUMBR);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_DPAD_UP);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_DPAD_DOWN);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_DPAD_LEFT);
+#  ioctl(fd, UI_SET_KEYBIT, BTN_DPAD_RIGHT);        
+        
+    #Generate keyboard clicks
+
+#    with uinput.Device([uinput.KEY_E, uinput.KEY_H,
+#                    uinput.KEY_L, uinput.KEY_O]) as device:
+#      device.emit_click(uinput.KEY_H)
+#      device.emit_click(uinput.KEY_E)
+#      device.emit_click(uinput.KEY_L)
+#      device.emit_click(uinput.KEY_L)
+#      device.emit_click(uinput.KEY_O)
+
+    #Move mouse cursor
+
+#    with uinput.Device([uinput.REL_X, uinput.REL_Y,
+#                    uinput.BTN_LEFT, uinput.BTN_RIGHT]) as device:
+#      for i in range(20):
+#        device.emit(uinput.REL_X, 5)
+#        device.emit(uinput.REL_Y, 5)
+        
+    #Generate keyboard combinations
+
+#    with uinput.Device([uinput.KEY_LEFTALT, uinput.KEY_TAB]) as device:
+#      device.emit_combo([uinput.KEY_LEFTALT, uinput.KEY_TAB])    
+    
+    
   if vjoy_gamepad_inverse_scores_no_vjoy and vjoy_gamepad_scores_no_vjoy:
       vjoy = None
   else:
@@ -8159,6 +8305,7 @@ def main():
                 if True:
 #                  vjoy.data.lButtons = 0
                   vjoy_gamepad_scores_data_combined = ['lButton1', 'lButton2', 'lButton3', 'lButton4', 'lButton5', 'lButton6', 'lButton7', 'lButton8', 
+                                                       'lButton9', 'lButton10', 'lButton11', 'lButton12', 'lButton13', 'lButton14', 'lButton15', 'lButton16', 'lButton17', 
                                                       'wAxisXRot', 'wAxisYRot', 'wAxisZRot', 'wAxisX', 'wAxisY', 'wAxisZ']
                   scores_shifts_baselined_combined = [np.nan]*len(vjoy_gamepad_scores_data_combined)
 #                  scores_shifts_baselined_combined = [0]*len(vjoy_gamepad_scores_data_combined)
@@ -8188,6 +8335,26 @@ def main():
                     if np.isnan(scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)]):
                         scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] = 0
                     scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] = scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] + vjoy_data 
+                if vjoy_gamepad_scores_uinput:
+                  for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data_combined):
+                   if not np.isnan(scores_shifts_baselined_combined[idx0]):
+                    if gamepad_data == 'wAxisXRot':
+                      uinput_device.emit(uinput.ABS_RX, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisYRot':
+                      uinput_device.emit(uinput.ABS_RY, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisZRot':
+                      uinput_device.emit(uinput.ABS_RZ, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisX':
+                      uinput_device.emit(uinput.ABS_X, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisY':
+                      uinput_device.emit(uinput.ABS_Y, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisZ':
+                      uinput_device.emit(uinput.ABS_Z, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                      if round(scores_shifts_baselined_combined[idx0]) > 0:
+                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[7:])-1)), 1)
+                      else:
+                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[7:])-1)), 0)
                 if not vjoy_gamepad_scores_no_vjoy:
                   for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data_combined):
                    if not np.isnan(scores_shifts_baselined_combined[idx0]):
@@ -8411,6 +8578,7 @@ def main():
                 if True:
 #                  vjoy.data.lButtons = 0
                   vjoy_gamepad_scores_data_combined = ['lButton1', 'lButton2', 'lButton3', 'lButton4', 'lButton5', 'lButton6', 'lButton7', 'lButton8', 
+                                                       'lButton9', 'lButton10', 'lButton11', 'lButton12', 'lButton13', 'lButton14', 'lButton15', 'lButton16', 'lButton17', 
                                                       'wAxisXRot', 'wAxisYRot', 'wAxisZRot', 'wAxisX', 'wAxisY', 'wAxisZ']
                   scores_shifts_baselined_combined = [np.nan]*len(vjoy_gamepad_scores_data_combined)
 #                 scores_shifts_baselined_combined = [0]*len(vjoy_gamepad_scores_data_combined)
@@ -8439,7 +8607,27 @@ def main():
                       vjoy_data = 1-scores_shifts_baselined[idx0]
                     if np.isnan(scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)]):
                         scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] = 0
-                    scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] = scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] + vjoy_data 
+                    scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] = scores_shifts_baselined_combined[vjoy_gamepad_scores_data_combined.index(gamepad_data)] + vjoy_data
+                if vjoy_gamepad_scores_uinput:
+                  for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data_combined):
+                   if not np.isnan(scores_shifts_baselined_combined[idx0]):
+                    if gamepad_data == 'wAxisXRot':
+                      uinput_device.emit(uinput.ABS_RX, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisYRot':
+                      uinput_device.emit(uinput.ABS_RY, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisZRot':
+                      uinput_device.emit(uinput.ABS_RZ, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisX':
+                      uinput_device.emit(uinput.ABS_X, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisY':
+                      uinput_device.emit(uinput.ABS_Y, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if gamepad_data == 'wAxisZ':
+                      uinput_device.emit(uinput.ABS_Z, round(0x8000 * scores_shifts_baselined_combined[idx0]))
+                    if (gamepad_data.find('lButton') == 0) and (int(gamepad_data[7:]) >= 1) and (int(gamepad_data[7:]) <= 8):
+                      if round(scores_shifts_baselined_combined[idx0]) > 0:
+                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[7:])-1)), 1)
+                      else:
+                        uinput_device.emit((uinput.BTN_GAMEPAD[0],uinput.BTN_GAMEPAD[1]+(int(gamepad_data[7:])-1)), 0)
                 if not vjoy_gamepad_scores_no_vjoy:
                   for idx0, gamepad_data in enumerate(vjoy_gamepad_scores_data_combined):
                    if not np.isnan(scores_shifts_baselined_combined[idx0]):
