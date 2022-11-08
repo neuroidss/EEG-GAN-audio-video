@@ -15,10 +15,69 @@ start = time.time()
 #import asyncio
 
 #ray.init(object_store_memory=10**9)
+#ray.init()
+
+from pprint import pprint
 ray.init()
+pprint(ray.nodes())
+#report_time = time.time()
+
+#while True:
+#  if report_time+10 < time.time():
+#    pprint(ray.nodes())
+#    report_time = time.time()
+    
+
 #ray.init()
 #ray.init(num_cpus=1)
 #ray.init(num_cpus=8)
+
+#@ray.remote(resources={"FreeEEG32-beta": 1})
+#def worker_brainflow():
+
+@ray.remote(resources={"FreeEEG32-beta": 1}, num_cpus=2)
+class Worker_brainflow_freeeeg32_beta_board(object):
+
+  def __init__(self, serial_port):
+    print('in Worker_brainflow_freeeeg32_beta_board.__init__ serial_port:', serial_port)
+    import brainflow
+    from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
+    from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+
+    self.params = BrainFlowInputParams()
+    self.debug = False
+    if self.debug:
+      self.board_id = -1 # synthetic
+      self.sample_rate = 512
+    else:
+      self.board_id = BoardIds.FREEEEG32_BOARD.value
+    #params.serial_port = '/dev/ttyACM0'
+      self.params.serial_port = serial_port
+#    params.serial_port = '/dev/ttyS20'
+      self.sample_rate = 512
+      self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)
+#        if num_channels is not None:
+#            eeg_channels = eeg_channels[:num_channels]
+  
+    self.board = BoardShim(self.board_id, self.params)
+        #global board
+    self.board.release_all_sessions()
+
+    self.board.prepare_session()
+    self.board.start_stream()
+
+  def get_sample_rate(self):
+      return self.sample_rate
+  def get_eeg_channels(self):
+      return self.eeg_channels
+
+  def get_board_data_count(self):
+      data_count = self.board.get_board_data_count()
+      return data_count
+  def get_board_data(self):
+      data = self.board.get_board_data()
+      return data
+        
 
 def auto_garbage_collect(pct=80.0):
     """
@@ -364,6 +423,7 @@ def __smooth_plot(this_time, params):
 
 if True:
 
+#    @ray.remote(resources={"FreeEEG32-beta": 1})
     @ray.remote
 #    def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
     def worker_gamepad_inverse_peaks(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps, ji_fps, 
@@ -1964,6 +2024,7 @@ if True:
 #            return out_shows_ji_images
 
 
+#    @ray.remote(resources={"FreeEEG32-beta": 1}, max_calls=1)
     @ray.remote
     def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps, score_bands_names, 
                              epochs_baseline, iapf_band, vjoy_gamepad_psd, show_gamepad_scores, show_gamepad_scores_baselined, label_names, sfreq, ch_names_pick, raws_hstack_cut, overlap, 
@@ -4903,6 +4964,10 @@ def main():
   flags.DEFINE_boolean('vjoy_gamepad_inverse_scores_baselined', False, '')
 
   flags.DEFINE_string('ray_max_remaining_refs', '1000', '')
+
+#  flags.DEFINE_boolean('remote_brainflow', True, '')
+  flags.DEFINE_boolean('remote_brainflow', False, '')
+  
   
 #flags.mark_flag_as_required('input')
   import sys
@@ -5327,6 +5392,15 @@ def main():
 
 
   if (FLAGS.from_bdf is None):
+   if FLAGS.remote_brainflow:
+      print('call Worker_brainflow_freeeeg32_beta_board.__init__ serial_port:', serial_port)
+      worker_brainflow_freeeeg32_beta_board = Worker_brainflow_freeeeg32_beta_board.remote(serial_port)
+      eeg_channels_ref = worker_brainflow_freeeeg32_beta_board.get_eeg_channels.remote()
+      eeg_channels = ray.get(eeg_channels_ref)
+      sample_rate_ref = worker_brainflow_freeeeg32_beta_board.get_sample_rate.remote()
+      sample_rate = ray.get(sample_rate_ref)
+      print('called Worker_brainflow_freeeeg32_beta_board.__init__ serial_port, eeg_channels, sample_rate:', serial_port, eeg_channels, sample_rate)
+   else:   
 #if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
     params = BrainFlowInputParams()
     if debug:
@@ -7790,7 +7864,14 @@ def main():
       len_raw=len(raw)
     while len_raw<int(sample_rate*duration*2):
 
-     while board.get_board_data_count() > int((sample_rate)/fps): 
+#     if FLAGS.remote_brainflow:
+#        board_data_count_ref = worker_brainflow_freeeeg32_beta_board.get_board_data_count.remote()
+#        board_data_count = ray.get(board_data_count_ref)
+#     else:
+#        board_data_count = board.get_board_data_count()
+
+     while (FLAGS.remote_brainflow and (ray.get(worker_brainflow_freeeeg32_beta_board.get_board_data_count.remote()) > int((sample_rate)/fps))) or ((not FLAGS.remote_brainflow) and (board.get_board_data_count() > int((sample_rate)/fps))): 
+#     while board.get_board_data_count() > int((sample_rate)/fps): 
      
       if show_inverse_3d:
        if not (brain is None):
@@ -7799,7 +7880,13 @@ def main():
 #    while board.get_board_data_count() > int((sample_rate*5*1/bands[0][0])/fps): 
 #    while board.get_board_data_count() > 0: 
 # because stream.read_available seems to max out, leading us to not read enough with one read
-      data = board.get_board_data()
+
+      if FLAGS.remote_brainflow:
+        data_ref = worker_brainflow_freeeeg32_beta_board.get_board_data.remote()
+        data = ray.get(data_ref)
+      else:
+        data = board.get_board_data()
+      
             #eeg_data.append(data[eeg_channels,:].T)
       eeg_data = data[eeg_channels, :]
 
