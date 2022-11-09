@@ -4967,6 +4967,17 @@ def main():
 
 #  flags.DEFINE_boolean('remote_brainflow', True, '')
   flags.DEFINE_boolean('remote_brainflow', False, '')
+
+  flags.DEFINE_boolean('from_brainflow', True, '')
+#  flags.DEFINE_boolean('from_brainflow', False, '')
+#  flags.DEFINE_boolean('from_lsl', True, '')
+  flags.DEFINE_boolean('from_lsl', False, '')
+#  flags.DEFINE_boolean('to_lsl', True, '')
+  flags.DEFINE_boolean('to_lsl', False, '')
+#  flags.DEFINE_boolean('to_bdf', True, '')
+  flags.DEFINE_boolean('to_bdf', False, '')
+#  flags.DEFINE_boolean('to_osc', True, '')
+  flags.DEFINE_boolean('to_osc', False, '')
   
   
 #flags.mark_flag_as_required('input')
@@ -5391,7 +5402,40 @@ def main():
 #part_len=int(FLAGS.part_len)
 
 
-  if (FLAGS.from_bdf is None):
+
+  if (FLAGS.from_lsl):
+    from pylsl import StreamInlet, resolve_stream
+    # first resolve an EEG stream on the lab network
+    print("looking for an EEG stream...")
+    streams = resolve_stream('type', 'EEG')
+    # create a new inlet to read from the stream
+    lsl_inlet = StreamInlet(streams[0])
+    
+    lsl_inlet_info = lsl_inlet.info()
+#    print('lsl_inlet_info: ', lsl_inlet_info)
+    lsl_inlet_info_n_channels = lsl_inlet_info.channel_count()
+    lsl_inlet_info_fs = lsl_inlet_info.nominal_srate()
+#    print("The channel labels are as follows:")
+    ch = lsl_inlet_info.desc().child("channels").child("channel")
+    eeg_channels = []
+    for k in range(lsl_inlet_info.channel_count()):
+#        print("  " + ch.child_value("label"))
+        eeg_channels.append(ch.child_value("label"))
+        ch = ch.next_sibling()
+    sample_rate = int(lsl_inlet_info_fs)
+    eeg_channels = eeg_channels[0:32]
+        
+    if False:
+      while True:
+        # get a new sample (you can also omit the timestamp part if you're not
+        # interested in it)
+        chunk, timestamps = inlet.pull_chunk()
+        if timestamps:
+            print(timestamps, chunk)
+
+
+#  if (FLAGS.from_bdf is None):
+  if (FLAGS.from_brainflow):
    if FLAGS.remote_brainflow:
       print('call Worker_brainflow_freeeeg32_beta_board.__init__ serial_port:', serial_port)
       worker_brainflow_freeeeg32_beta_board = Worker_brainflow_freeeeg32_beta_board.remote(serial_port)
@@ -7673,7 +7717,8 @@ def main():
     else:
       video_output_file=FLAGS.video_output_file
 
-  if (FLAGS.from_bdf is None):
+#  if (FLAGS.from_bdf is None):
+  if (FLAGS.to_bdf):
 #  if (FLAGS.from_bdf is None) and (FLAGS.from_edf is None) :
 
     import pyedflib
@@ -7870,7 +7915,10 @@ def main():
 #     else:
 #        board_data_count = board.get_board_data_count()
 
-     while (FLAGS.remote_brainflow and (ray.get(worker_brainflow_freeeeg32_beta_board.get_board_data_count.remote()) > int((sample_rate)/fps))) or ((not FLAGS.remote_brainflow) and (board.get_board_data_count() > int((sample_rate)/fps))): 
+        
+     if FLAGS.from_lsl:
+       chunk, timestamps = lsl_inlet.pull_chunk()
+     while (FLAGS.from_lsl and (timestamps) and (len_raw<int(sample_rate*duration*2))) or (FLAGS.from_brainflow and FLAGS.remote_brainflow and (ray.get(worker_brainflow_freeeeg32_beta_board.get_board_data_count.remote()) > int((sample_rate)/fps))) or (FLAGS.from_brainflow and (not FLAGS.remote_brainflow) and (board.get_board_data_count() > int((sample_rate)/fps))): 
 #     while board.get_board_data_count() > int((sample_rate)/fps): 
      
       if show_inverse_3d:
@@ -7881,14 +7929,22 @@ def main():
 #    while board.get_board_data_count() > 0: 
 # because stream.read_available seems to max out, leading us to not read enough with one read
 
-      if FLAGS.remote_brainflow:
-        data_ref = worker_brainflow_freeeeg32_beta_board.get_board_data.remote()
-        data = ray.get(data_ref)
-      else:
-        data = board.get_board_data()
+      if FLAGS.from_lsl:
+         data = np.asarray(chunk)
+#         print('data:', data)
+#         print('len(data): ', len(data))
+         eeg_data = data.T[0:32, :]
+#         print('eeg_data:', eeg_data)
+
+      if FLAGS.from_brainflow:
+        if FLAGS.remote_brainflow:
+          data_ref = worker_brainflow_freeeeg32_beta_board.get_board_data.remote()
+          data = ray.get(data_ref)
+        else:
+          data = board.get_board_data()
       
             #eeg_data.append(data[eeg_channels,:].T)
-      eeg_data = data[eeg_channels, :]
+        eeg_data = data[eeg_channels, :]
 
       signals = eeg_data
 #      print(signals.shape)
@@ -7917,6 +7973,8 @@ def main():
       bufs_hstack = np.hstack(bufs_for_hstack)
 #      print(raws_hstack)
 #      print(len(raws_hstack))
+#      print('len(bufs_hstack[0]):',len(bufs_hstack[0]))
+#      print('sample_rate:',sample_rate)
 #      raws_hstack_cut = raws_hstack[:,:]
 
       buf = bufs_hstack
@@ -7934,7 +7992,8 @@ def main():
 #        print(bufs_hstack_cut.shape)
 #        print(bdf)
  
-        bdf.writeSamples(bufs_hstack_cut)
+        if FLAGS.to_bdf:
+          bdf.writeSamples(bufs_hstack_cut)
 #      bdf.blockWriteDigitalSamples(signals)
 #      bdf.blockWritePhysicalSamples(signals)
 
@@ -7943,7 +8002,10 @@ def main():
       ch_types = ['eeg'] * len(eeg_channels)
 #            ch_names = [str(x) for x in range(len(eeg_channels))]
   #ch_names = BoardShim.get_eeg_names(BoardIds.FREEEEG32_BOARD.value)
-      sfreq = BoardShim.get_sampling_rate(BoardIds.FREEEEG32_BOARD.value)
+      if FLAGS.from_lsl:
+        sfreq = sample_rate
+      if FLAGS.from_brainflow:
+        sfreq = BoardShim.get_sampling_rate(BoardIds.FREEEEG32_BOARD.value)
       info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
       #eeg = np.concatenate(eeg_data, 0)
       if raw_buf is not None:
@@ -7990,6 +8052,10 @@ def main():
       raw.load_data()
       raw_buf = raw
       len_raw=len(raw)
+
+      if FLAGS.from_lsl:
+       if len_raw<int(sample_rate*duration*2):
+        chunk, timestamps = lsl_inlet.pull_chunk()
 
   # its time to plot something!
 
