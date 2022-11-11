@@ -4,7 +4,7 @@
 #!pip install pyvistaqt PyQt5 darkdetect qdarkstyle
 #!pip install ray
 #!pip install imageio-ffmpeg nibabel
-#!pip install pylsl
+#!pip install pylsl python-osc pyopengl
 
 
 import ray
@@ -774,9 +774,9 @@ if True:
 #                  peak_freq_maxs.append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
                 peak_freq_maxs=[[],[]]
                 for x0 in stc.data:
-                  peak_freq_maxs[0].append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
+                  peak_freq_maxs[0].append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]+1]*freqs[iapf_band_indices[0]:iapf_band_indices[1]+1])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]+1]))
                 for x0 in sensor_psd.data:
-                  peak_freq_maxs[1].append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
+                  peak_freq_maxs[1].append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]+1]*freqs[iapf_band_indices[0]:iapf_band_indices[1]+1])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]+1]))
 #                peak_freq_maxs_array=np.asarray(peak_freq_maxs)
                 peak_freq_maxs_array=[np.asarray(peak_freq_maxs[0]),np.asarray(peak_freq_maxs[1])]
 #                peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
@@ -912,14 +912,14 @@ if True:
 #                        print('names_range:',names_range)
 #                        scores_calc_buf = np.average(psds[0][names_range][freq_from:freq_to])
                         for idx4 in range(len(score_indexes[idx0][idx1][idx2][1][0])):#names
-                          scores_calc_buf = scores_calc_buf + np.average(stc.data[score_indexes[idx0][idx1][idx2][1][0][idx4]][freq_from:freq_to])
+                          scores_calc_buf = scores_calc_buf + np.average(stc.data[score_indexes[idx0][idx1][idx2][1][0][idx4]][freq_from:freq_to+1])
                         for idx4 in range(len(score_indexes[idx0][idx1][idx2][1][1])):#names
 #                          score_calcs[idx0][idx1][idx2] = (np.average(psd[0][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))/(np.max(psd[:][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))
 ##                          for idx5 in range(len(scores_calc_bufs)):
 ##                            scores_calc_bufs[idx5] = scores_calc_bufs[idx5] + np.average(psds[idx5][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
 #                          print('idx0,idx1,idx2,idx4,freq_from,freq_to:',idx0,idx1,idx2,idx4,freq_from,freq_to)
 #                          print('score_indexes[idx0][idx1][idx2][1][idx4]:',score_indexes[idx0][idx1][idx2][1][idx4])
-                          scores_calc_buf = scores_calc_buf + np.average(sensor_psd.data[score_indexes[idx0][idx1][idx2][1][1][idx4]][freq_from:freq_to])
+                          scores_calc_buf = scores_calc_buf + np.average(sensor_psd.data[score_indexes[idx0][idx1][idx2][1][1][idx4]][freq_from:freq_to+1])
 ##                          scores_calc_buf = scores_calc_buf + np.average(psds[ji1][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
 #                          score_calcs[idx0][idx1][idx2] = np.average(psds[0][idx4][freq_from:freq_to])
 #                          print('score_calcs[idx0][idx1][idx2]:',score_calcs[idx0][idx1][idx2])
@@ -2028,7 +2028,7 @@ if True:
     @ray.remote
     def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps, score_bands_names, 
                              epochs_baseline, iapf_band, joy_gamepad_psd, show_gamepad_scores, show_gamepad_scores_baselined, label_names, sfreq, ch_names_pick, raws_hstack_cut, overlap, 
-                             joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon):
+                             joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability):
 #        import pyvjoy
         out_shows_ji_images=[]
         import numpy as np
@@ -2177,7 +2177,7 @@ if True:
                 if freqs[idx0]<=iapf_band[1]:
                   iapf_band_indices[1]=idx0
               for x0 in psds[ji1]:
-                peak_freq_maxs.append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]*freqs[iapf_band_indices[0]:iapf_band_indices[1]])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]]))
+                peak_freq_maxs.append(np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]+1]*freqs[iapf_band_indices[0]:iapf_band_indices[1]+1])/np.average(x0[iapf_band_indices[0]:iapf_band_indices[1]+1]))
               peak_freq_maxs_array=np.asarray(peak_freq_maxs)
 #                peak_freq_maxs.append(np.average(x0*freqs)/np.average(x0))
 #                peak_freq_maxs_array=np.asarray(peak_freq_maxs)
@@ -2285,7 +2285,7 @@ if True:
 #                          score_calcs[idx0][idx1][idx2] = (np.average(psd[0][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))/(np.max(psd[:][idx4][freq_from:freq_to])-np.min(psd[:][idx4][freq_from:freq_to]))
 ##                          for idx5 in range(len(scores_calc_bufs)):
 ##                            scores_calc_bufs[idx5] = scores_calc_bufs[idx5] + np.average(psds[idx5][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
-                          scores_calc_buf = scores_calc_buf + np.average(psds[ji1][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to])
+                          scores_calc_buf = scores_calc_buf + np.average(psds[ji1][score_indexes[idx0][idx1][idx2][1][idx4]][freq_from:freq_to+1])
 #                          score_calcs[idx0][idx1][idx2] = np.average(psds[0][idx4][freq_from:freq_to])
 #                          print('score_calcs[idx0][idx1][idx2]:',score_calcs[idx0][idx1][idx2])
 #                          print('scores_calc_buf:',scores_calc_buf)
@@ -2332,6 +2332,45 @@ if True:
 ##                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
 ##                    scores_shifts_baselined[idx0] = scores_shifts_baselined[idx0]# * 2 - 1
 #                    scores_shiftes_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+
+                if gamepad_scores_reliability:
+                  fmin_beta=13
+                  fmax_beta=28
+                  beta_band = [fmin_beta,fmax_beta]
+#                  fmin_raw=1
+#                  fmax_raw=sfreq/2
+                  
+                  beta_band_indices = [None,None]
+#                  raw_band_indices = [0,len(freqs)-1]
+                  for idx0 in range(len(freqs)):
+                    if beta_band_indices[0] is None:
+                      if freqs[idx0]>=beta_band[0]:
+                        beta_band_indices[0]=idx0
+                    if freqs[idx0]<=beta_band[1]:
+                      beta_band_indices[1]=idx0
+                      
+#                  print('beta_band_indices:',beta_band_indices)
+#                  print('psds[0][:]:',psds[0][:])
+#                  print('len(psds[0][:]):',len(psds[0][:]))
+#                  print('len(psds[0][0]):',len(psds[0][0]))
+#                  print('len(freqs):',len(freqs))
+#                  print('psds[0][:,beta_band_indices[0]:beta_band_indices[1]+1]:',psds[0][:,beta_band_indices[0]:beta_band_indices[1]+1])
+                  psds_beta_average=np.average(psds[0][:,beta_band_indices[0]:beta_band_indices[1]+1], axis=1)
+                  psds_raw_average=np.average(psds[0], axis=1)
+                  reliability = psds_beta_average / psds_raw_average
+#                  print('reliability:',reliability)
+
+                  scores_reliability=np.ones(len(score_bands_names))
+                  for idx0 in range(len(score_bands_names)):#scores
+                    for idx1 in range(len(score_bands_names[idx0])):#x/y,-x/y
+                      for idx2 in range(len(score_bands_names[idx0][idx1])):#x,1/y
+                        for idx3 in reversed(range(len(score_bands_names[idx0][idx1][idx2]))):#names,bands
+                          if idx3==1:#names
+                            for idx4 in range(len(score_bands_names[idx0][idx1][idx2][idx3])):
+#                              print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
+                              scores_reliability[idx0] = scores_reliability[idx0] * reliability[score_indexes[idx0][idx1][idx2][idx3][idx4]]
+                    if scores_reliability[idx0] < 1:
+                        scores[idx0] = np.nan
 
                 if joy_gamepad_scores:
                   return(scores)
@@ -4574,7 +4613,8 @@ def main():
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
 #  flags.DEFINE_list('bands', [8.,28.], 'bands')
-  flags.DEFINE_list('bands', [1.,48.], 'bands')
+  flags.DEFINE_list('bands', [1.,125.], 'bands')
+#  flags.DEFINE_list('bands', [1.,48.], 'bands')
 #  flags.DEFINE_list('bands', [4.,28.], 'bands')
 #  flags.DEFINE_list('bands', [7.,14.], 'bands')
 #  flags.DEFINE_list('bands', [8.,12.], 'bands')
@@ -4691,8 +4731,8 @@ def main():
   flags.DEFINE_string('inverse_standard_montage', 'standard_1005', 'EGI_256, GSN-HydroCel-128, GSN-HydroCel-129, GSN-HydroCel-256, GSN-HydroCel-257, GSN-HydroCel-32, GSN-HydroCel-64_1.0, GSN-HydroCel-65_1.0, artinis-brite23, artinis-octamon, biosemi128, biosemi16, biosemi160, biosemi256, biosemi32, biosemi64, brainproducts-RNP-BA-128, easycap-M1, easycap-M10, mgh60, mgh70, standard_1005, standard_1020, standard_alphabetic, standard_postfixed, standard_prefixed, standard_primed')
 #  flags.DEFINE_string('inverse_montage', '10-5', '10-5, 10-10, 10-20, HGSN128, HGSN129')
 
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks', True, 'show_gamepad_inverse_peaks')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks', False, 'show_gamepad_inverse_peaks')
   flags.DEFINE_list('gamepad_inverse_peaks_label_names', None, 'None for all')
 #  flags.DEFINE_list('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
   flags.DEFINE_string('gamepad_inverse_peaks_label', None, 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
@@ -4748,9 +4788,160 @@ def main():
 #  flags.DEFINE_boolean('joy_gamepad_inverse_peaks_sensor_iapf', True, '')
   flags.DEFINE_boolean('joy_gamepad_inverse_peaks_sensor_iapf', False, '')
   
+#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1', 'lButton5', 'lButton6', 'lButton7', 'lButton8'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+  flags.DEFINE_list('joy_gamepad_inverse_scores_data', [#'wAxisYRot','wAxisX',
+                                                 'HB5', 'HB5', 'HB6', 'iHB6', 'iHB7', 'HB7', 'iHB8', 'iHB8', 
+                                                 'XR', 'ZR', 'Y', 'Z', 'B1', 'B2', 'B3', 'B4',
+                                                 'YR', 
+                                                 'X',  
+                                                 ], 
+                                                 'B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, XR, YR, ZR, X, Y, Z; H, i, Hi, iH')
+#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton1'], 'lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, lButton8, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
+#  flags.DEFINE_list('gamepad_inverse_score_bands_names', [
+#                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
+#                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
+##                  [[[['IAPF-4','IAPF+3'],['R_47m_ROI-rh']],[['IAPF+3','IAPF+13'],['R_47m_ROI-rh']]],[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh']],[['IAPF+3','IAPF+13'],['L_47m_ROI-lh']]]],
+##                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']],[['IAPF-4','IAPF+3'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']]]],
+#                  [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+#                  [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
+##                  [[[['IAPF+3','IAPF+13'],['F3','F4']]]],
+##                  [[[['IAPF-4','IAPF+3'],['F3','F4']]]],
+##                  [[[['IAPF+3','IAPF+13'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
+##                  [[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
+#                  ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
+  flags.DEFINE_list('gamepad_inverse_score_bands_names', [
+#                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+#                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
 
-#  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
-  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
+#                  [[[['IAPF+3','IAPF+8'],['AF3','AF4','F3','F4']]]],#low_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF+8','IAPF+17'],['AF3','AF4','F3','F4']]]],#high_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']]]],#cumulative_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF+17','IAPF+32'],['AF3','AF4','F3','F4']]]],#gamma(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF+17','IAPF+32'],['Cz']]]],#gamma(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF-8','IAPF-6'],['AF3','AF4','F3','F4']]]],#delta
+#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']]]],#theta
+#                  [[[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],#alpha
+#                  [[[['IAPF-4','IAPF+0'],['AF3','AF4','F3','F4']]]],#low alpha
+#                  [[[['IAPF+0','IAPF+3'],['AF3','AF4','F3','F4']]]],#high alpha
+##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+3','IAPF+8'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/low_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/high_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+3','IAPF+17'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/cumulative_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+3','IAPF+8'],['AF3','AF4','F3','F4']]]],#theta/low_beta https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+8','IAPF+17'],['AF3','AF4','F3','F4']]]],#theta/high_beta https://doi.org/10.3389/fnhum.2015.00723
+#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']]]],#theta/cumulative_beta https://doi.org/10.3389/fnhum.2015.00723
+                  
+##                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#SMR(C4+Cz+C3) https://doi.org/10.3389/fnhum.2016.00348
+##                  [[[['IAPF+2','IAPF+5'],['Pz','Cz']]]],#SMR(Pz+Cz) https://doi.org/10.3389/fnhum.2016.00348
+##                  [[[['IAPF+5','IAPF+8'],['Pz','Cz']]]],#adjacent_beta1(Pz+Cz) https://doi.org/10.3389/fnhum.2016.00348
+                  
+##                  [[[['IAPF-2','IAPF+3'],['C4']]]],#mu(C4) https://doi.org/10.1111/ejn.13551
+##                  [[[['IAPF-6','IAPF-2'],['C4']]]],#theta(C4) https://doi.org/10.1111/ejn.13551
+##                  [[[['IAPF+3','IAPF+17'],['C4']]]],#beta(C4) https://doi.org/10.1111/ejn.13551
+#                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#beta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
+#                  [[[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#theta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
+#                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],[],[[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#beta(C4)/mu(C4)+theta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
+
+#                  [[[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C3)/mu(C3)
+#                  [[[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#theta(C3)/mu(C3)
+                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
+                   [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
+                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
+                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)-theta(C3)/mu(C3)
+
+#                  [[[['IAPF+8','IAPF+17'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]],[],[[['IAPF-6','IAPF-2'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]]],#beta2(Cz)/SMR(Cz)+theta(Cz)/SMR(Cz) https://doi.org/10.3389/fnins.2021.638369
+
+##                  [[[['IAPF-2','IAPF+3'],['T7']]]],#simualted_image_clear_music_louder=max(alpha(T7)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
+
+##                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+##                  [[[['IAPF-6','IAPF-4'],['Cz']]]],#attention_focusing_keep_animation_moving=min(theta(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+##                  [[[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=min(beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-4'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-4'],['Cz']]],[],
+                   [[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)+SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+
+##                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+##                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+##                  [[[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=min(theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+##                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]],[],
+                   [[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]],[],
+                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]],[],
+                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)+beta1(C4+C3)/beta2(C4+C3)+SMR(C4+C3)/theta(C4+C3)+SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+
+##                  [[[['IAPF+3','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+##                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+                  [[[['IAPF+3','IAPF+17'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_visual_auditory_1=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+#                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_auditory_1=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+                  
+                  [[[['IAPF-6','IAPF-2'],['Pz']],[['IAPF-2','IAPF+3'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+##                  [[[['IAPF+8','IAPF+17'],['Pz']]]],#attention_focusing_visual_auditory_2=min(beta2(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+                  
+#                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_placing_balls=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
+#                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_placing_balls=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
+#                  [[[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_placing_balls=min(theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
+#                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_placing_balls=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
+                  
+                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
+
+#                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
+#                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
+
+#                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
+#                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
+                  
+                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
+                  
+##                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
+                  [[[['IAPF+0','IAPF+2'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
+                  
+                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#monitoring_golf_putting_task=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Cheng et al., 2015a
+
+                  [[[['8','12'],['O1','Oz','O2']]]],
+#                  [[[['IAPF-2','IAPF+3'],['O1','Oz','O2']]]],
+                  
+                  ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
+  flags.DEFINE_list('gamepad_inverse_iapf_band', ['7.','14.'], '')
+  flags.DEFINE_string('gamepad_inverse_epochs_baseline', '300', '')
+  
+#  flags.DEFINE_boolean('joy_gamepad_inverse_psd', True, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_psd', False, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_scores', True, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_scores', False, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores', True, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores', False, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', True, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', False, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', True, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', False, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', True, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', False, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', False, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_baselined', True, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores_baselined', False, '')
+
+
+  flags.DEFINE_boolean('show_gamepad_peaks', True, 'show_gamepad_peaks')
+#  flags.DEFINE_boolean('show_gamepad_peaks', False, 'show_gamepad_peaks')
   flags.DEFINE_string('epochs_peaks', '1', 'epochs_peaks')
 #  flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', True, '')
   flags.DEFINE_boolean('show_gamepad_peaks_sensor_psd', False, '')
@@ -4933,7 +5124,9 @@ def main():
 #                  [[[['IAPF-2','IAPF+3'],['O1','Oz','O2']]]],
                   
                   ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
-
+  flags.DEFINE_list('gamepad_iapf_band', ['7.','14.'], '')
+  flags.DEFINE_string('gamepad_epochs_baseline', '300', '')
+#  flags.DEFINE_string('gamepad_epochs_baseline', '100', '')
 
   flags.DEFINE_boolean('joy_gamepad_scores_image', True, '')
 #  flags.DEFINE_boolean('joy_gamepad_scores_image', False, '')
@@ -4943,162 +5136,9 @@ def main():
   flags.DEFINE_boolean('joy_gamepad_scores_uinput', False, '')
 
 
-#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisX', 'wAxisZ', 'wAxisZRot', 'lButton1', 'lButton5', 'lButton6', 'lButton7', 'lButton8'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-  flags.DEFINE_list('joy_gamepad_inverse_scores_data', [#'wAxisYRot','wAxisX',
-                                                 'HB5', 'HB5', 'HB6', 'iHB6', 'iHB7', 'HB7', 'iHB8', 'iHB8', 
-                                                 'XR', 'ZR', 'Y', 'Z', 'B1', 'B2', 'B3', 'B4',
-                                                 'YR', 
-                                                 'X',  
-                                                 ], 
-                                                 'B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, XR, YR, ZR, X, Y, Z; H, i, Hi, iH')
-#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton1'], 'lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, lButton8, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-#  flags.DEFINE_list('joy_gamepad_inverse_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-#  flags.DEFINE_list('gamepad_inverse_score_bands_names', [
-#                  [[[['IAPF-4','IAPF+3'],['F4']],[['IAPF+3','IAPF+13'],['F4']]],[[['IAPF-4','IAPF+3'],['F3']],[['IAPF+3','IAPF+13'],['F3']]]],
-#                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','F3','F4']],[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],
-##                  [[[['IAPF-4','IAPF+3'],['R_47m_ROI-rh']],[['IAPF+3','IAPF+13'],['R_47m_ROI-rh']]],[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh']],[['IAPF+3','IAPF+13'],['L_47m_ROI-lh']]]],
-##                  [[[['IAPF+3','IAPF+13'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']],[['IAPF-4','IAPF+3'],['AF3','AF4','L_47m_ROI-lh','R_47m_ROI-rh']]]],
-#                  [[[['IAPF-4','IAPF+3'],['O1','O2','P7','P3','Pz','P4','P8']]]],
-#                  [[[['IAPF-6','IAPF-4'],['O1','O2','P7','P3','Pz','P4','P8']]]],
-##                  [[[['IAPF+3','IAPF+13'],['F3','F4']]]],
-##                  [[[['IAPF-4','IAPF+3'],['F3','F4']]]],
-##                  [[[['IAPF+3','IAPF+13'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
-##                  [[[['IAPF-4','IAPF+3'],['L_47m_ROI-lh','R_47m_ROI-rh']]]],
-#                  ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
-  flags.DEFINE_list('gamepad_inverse_score_bands_names', [
-#                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
-#                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
-                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
-                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
-                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
-                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
-                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
-                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
-                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
-                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+  flags.DEFINE_boolean('gamepad_scores_reliability', True, '')
+#  flags.DEFINE_boolean('gamepad_scores_reliability', False, '')
 
-#                  [[[['IAPF+3','IAPF+8'],['AF3','AF4','F3','F4']]]],#low_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
-#                  [[[['IAPF+8','IAPF+17'],['AF3','AF4','F3','F4']]]],#high_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
-#                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']]]],#cumulative_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
-#                  [[[['IAPF+17','IAPF+32'],['AF3','AF4','F3','F4']]]],#gamma(Cz) https://doi.org/10.3389/fnhum.2015.00723
-#                  [[[['IAPF+17','IAPF+32'],['Cz']]]],#gamma(Cz) https://doi.org/10.3389/fnhum.2015.00723
-#                  [[[['IAPF-8','IAPF-6'],['AF3','AF4','F3','F4']]]],#delta
-#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']]]],#theta
-#                  [[[['IAPF-4','IAPF+3'],['AF3','AF4','F3','F4']]]],#alpha
-#                  [[[['IAPF-4','IAPF+0'],['AF3','AF4','F3','F4']]]],#low alpha
-#                  [[[['IAPF+0','IAPF+3'],['AF3','AF4','F3','F4']]]],#high alpha
-##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+3','IAPF+8'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/low_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
-##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/high_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
-##                  [[[['IAPF-6','IAPF-4'],['Cz']],[['IAPF+3','IAPF+17'],['Cz']]]],#lethargy_vs_social_withdrawal=theta(Cz)/cumulative_beta(Cz) https://doi.org/10.3389/fnhum.2015.00723
-#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+3','IAPF+8'],['AF3','AF4','F3','F4']]]],#theta/low_beta https://doi.org/10.3389/fnhum.2015.00723
-#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+8','IAPF+17'],['AF3','AF4','F3','F4']]]],#theta/high_beta https://doi.org/10.3389/fnhum.2015.00723
-#                  [[[['IAPF-6','IAPF-4'],['AF3','AF4','F3','F4']],[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']]]],#theta/cumulative_beta https://doi.org/10.3389/fnhum.2015.00723
-                  
-##                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#SMR(C4+Cz+C3) https://doi.org/10.3389/fnhum.2016.00348
-##                  [[[['IAPF+2','IAPF+5'],['Pz','Cz']]]],#SMR(Pz+Cz) https://doi.org/10.3389/fnhum.2016.00348
-##                  [[[['IAPF+5','IAPF+8'],['Pz','Cz']]]],#adjacent_beta1(Pz+Cz) https://doi.org/10.3389/fnhum.2016.00348
-                  
-##                  [[[['IAPF-2','IAPF+3'],['C4']]]],#mu(C4) https://doi.org/10.1111/ejn.13551
-##                  [[[['IAPF-6','IAPF-2'],['C4']]]],#theta(C4) https://doi.org/10.1111/ejn.13551
-##                  [[[['IAPF+3','IAPF+17'],['C4']]]],#beta(C4) https://doi.org/10.1111/ejn.13551
-#                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#beta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
-#                  [[[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#theta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
-#                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],[],[[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#beta(C4)/mu(C4)+theta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
-
-#                  [[[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C3)/mu(C3)
-#                  [[[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#theta(C3)/mu(C3)
-                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
-                   [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
-                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
-                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)-theta(C3)/mu(C3)
-
-#                  [[[['IAPF+8','IAPF+17'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]],[],[[['IAPF-6','IAPF-2'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]]],#beta2(Cz)/SMR(Cz)+theta(Cz)/SMR(Cz) https://doi.org/10.3389/fnins.2021.638369
-
-##                  [[[['IAPF-2','IAPF+3'],['T7']]]],#simualted_image_clear_music_louder=max(alpha(T7)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
-
-##                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-##                  [[[['IAPF-6','IAPF-4'],['Cz']]]],#attention_focusing_keep_animation_moving=min(theta(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-##                  [[[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=min(beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-4'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-4'],['Cz']]],[],
-                   [[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)+SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-
-##                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-##                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-##                  [[[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=min(theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-##                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-#                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-#                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]],[],
-                   [[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]],[],
-                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]],[],
-                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)+beta1(C4+C3)/beta2(C4+C3)+SMR(C4+C3)/theta(C4+C3)+SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-
-##                  [[[['IAPF+3','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-##                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-                  [[[['IAPF+3','IAPF+17'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-
-#                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_visual_auditory_1=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
-#                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_auditory_1=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
-#                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
-                  
-                  [[[['IAPF-6','IAPF-2'],['Pz']],[['IAPF-2','IAPF+3'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
-##                  [[[['IAPF+8','IAPF+17'],['Pz']]]],#attention_focusing_visual_auditory_2=min(beta2(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
-                  
-#                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_placing_balls=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
-#                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_placing_balls=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
-#                  [[[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_placing_balls=min(theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
-#                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_placing_balls=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
-                  
-                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
-
-#                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
-#                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
-
-#                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
-#                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
-                  
-                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
-                  
-##                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
-                  [[[['IAPF+0','IAPF+2'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
-                  
-                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#monitoring_golf_putting_task=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Cheng et al., 2015a
-
-                  [[[['8','12'],['O1','Oz','O2']]]],
-#                  [[[['IAPF-2','IAPF+3'],['O1','Oz','O2']]]],
-                  
-                  ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
-  flags.DEFINE_list('gamepad_inverse_iapf_band', ['7.','14.'], '')
-  flags.DEFINE_string('gamepad_inverse_epochs_baseline', '300', '')
-  
-  flags.DEFINE_list('gamepad_iapf_band', ['7.','14.'], '')
-  flags.DEFINE_string('gamepad_epochs_baseline', '300', '')
-#  flags.DEFINE_string('gamepad_epochs_baseline', '100', '')
-
-#  flags.DEFINE_boolean('joy_gamepad_inverse_psd', True, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_psd', False, '')
-  flags.DEFINE_boolean('show_gamepad_inverse_scores', True, '')
-#  flags.DEFINE_boolean('show_gamepad_inverse_scores', False, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores', True, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores', False, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', True, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', False, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', True, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', False, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', True, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', False, '')
-#  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', True, '')
-  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', False, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_baselined', True, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores_baselined', False, '')
-
-  
 
   flags.DEFINE_string('ray_max_remaining_refs', '1000', '')
 
@@ -5113,9 +5153,11 @@ def main():
   flags.DEFINE_boolean('to_lsl', False, '')
 #  flags.DEFINE_boolean('to_bdf', True, '')
   flags.DEFINE_boolean('to_bdf', False, '')
-#  flags.DEFINE_boolean('to_osc', True, '')
-  flags.DEFINE_boolean('to_osc', False, '')
-  
+
+  flags.DEFINE_boolean('gamepad_scores_to_osc', True, '')
+#  flags.DEFINE_boolean('gamepad_scores_to_osc', False, '')
+  flags.DEFINE_string('gamepad_scores_osc_ip', '127.0.0.1', 'The ip of the OSC server')
+  flags.DEFINE_string('gamepad_scores_osc_port', '5005', 'The port the OSC server is listening on')
   
 #flags.mark_flag_as_required('input')
   import sys
@@ -5126,6 +5168,18 @@ def main():
   if FLAGS.help:
     exit()
 
+  if FLAGS.gamepad_scores_to_osc:
+    import random
+    import time
+    from pythonosc import udp_client
+    gamepad_scores_osc_client = udp_client.SimpleUDPClient(FLAGS.gamepad_scores_osc_ip, int(FLAGS.gamepad_scores_osc_port))
+
+#    while True:
+#     for x in range(10):
+#      gamepad_scores_osc_client.send_message("/gamepad", random.random())
+#      time.sleep(1)
+
+  gamepad_scores_reliability = FLAGS.gamepad_scores_reliability
   ray_max_remaining_refs = int(FLAGS.ray_max_remaining_refs)
   
   joy_gamepad_inverse_psd = FLAGS.joy_gamepad_inverse_psd
@@ -8426,7 +8480,7 @@ def main():
           object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, 
                                                    duration_id, cohs_tril_indices_id, ji_fps_id, gamepad_score_bands_names_id, gamepad_epochs_baseline_id, gamepad_iapf_band_id, 
                                                    joy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, 
-                                                   raws_hstack_cut_id, overlap_id, joy_gamepad_scores_baselined_id, joy_gamepad_scores_data_id, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon)
+                                                   raws_hstack_cut_id, overlap_id, joy_gamepad_scores_baselined_id, joy_gamepad_scores_data_id, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability)
           del epochs_id
           shows_ids.append(shows_gamepad_peaks)
           ji_ids.append(ji0)
@@ -8582,7 +8636,8 @@ def main():
                 scoress = []
                 for idx0 in range(len(scores)):
 #                  print('len(gamepad_scores_baselines), len(scores), idx0: ', len(gamepad_scores_baselines), len(scores), idx0)
-                  gamepad_scores_baselines[idx0].append(scores[idx0])
+                  if not np.isnan(scores[idx0]):
+                    gamepad_scores_baselines[idx0].append(scores[idx0])
                   gamepad_scores_baselines[idx0] = gamepad_scores_baselines[idx0][-gamepad_epochs_baseline:]
                   scoress.append(np.asarray(gamepad_scores_baselines[idx0]))
 #                scoress=np.asarray(gamepad_scores_baselines)
@@ -8592,7 +8647,8 @@ def main():
 #                    print('scoress:',scoress)
 #                    print('scoress[idx0]:',scoress[idx0])
 #                    print('scoress[:][idx0]:',scoress[:][idx0])
-                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+                    if len(scoress[idx0])>0:
+                      scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
 #                    if np.isnan(scores_shifts_baselined[idx0]):
 #                        scores_shifts_baselined[idx0] = 0.499999999
 #                        scores_shifts_baselined[idx0] = 0
@@ -8670,13 +8726,20 @@ def main():
                       else:
                         vjoy.data.lButtons &= ~(1<<(int(gamepad_data[1:])-1))
                   vjoy.update()
+                if FLAGS.gamepad_scores_to_osc:
+                  for idx0, gamepad_data in enumerate(joy_gamepad_scores_data_combined):
+                   if not np.isnan(scores_shifts_baselined_combined[idx0]):
+                    gamepad_scores_osc_client.send_message("/gamepad/"+gamepad_data, scores_shifts_baselined_combined[idx0])
                 if joy_gamepad_scores_image:
                   fig, ax = plt.subplots(figsize=(12,3))
                   fig.tight_layout()
 #                  plt.bar(joy_gamepad_scores_data, scores)
+                  for idx0 in range(len(scores_shifts_baselined_combined)):
+                      if np.isnan(scores_shifts_baselined_combined[idx0]):
+                          scores_shifts_baselined_combined[idx0] = -1
                   plt.bar(joy_gamepad_scores_data_combined, scores_shifts_baselined_combined)
 #                  plt.bar(joy_gamepad_scores_data, scores_shifts_baselined)
-                  plt.ylim(0, 1)
+                  plt.ylim(-0.1, 1)
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
                   image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
@@ -8688,7 +8751,8 @@ def main():
                 scoress = []
                 for idx0 in range(len(scores)):
 #                  print('len(gamepad_scores_baselines), len(scores), idx0: ', len(gamepad_scores_baselines), len(scores), idx0)
-                  gamepad_inverse_scores_baselines[idx0].append(scores[idx0])
+                  if not np.isnan(scores[idx0]):
+                    gamepad_inverse_scores_baselines[idx0].append(scores[idx0])
                   gamepad_inverse_scores_baselines[idx0] = gamepad_inverse_scores_baselines[idx0][-gamepad_inverse_epochs_baseline:]
                   scoress.append(np.asarray(gamepad_inverse_scores_baselines[idx0]))
 #                scoress=np.asarray(gamepad_scores_baselines)
@@ -8698,7 +8762,8 @@ def main():
 #                    print('scoress:',scoress)
 #                    print('scoress[idx0]:',scoress[idx0])
 #                    print('scoress[:][idx0]:',scoress[:][idx0])
-                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+                    if len(scoress[idx0])>0:
+                      scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
 #                    if np.isnan(scores_shifts_baselined[idx0]):
 #                        scores_shifts_baselined[idx0] = 0.499999999
 #                        scores_shifts_baselined[idx0] = 0
@@ -8780,9 +8845,12 @@ def main():
                   fig, ax = plt.subplots(figsize=(12,3))
                   fig.tight_layout()
 #                  plt.bar(joy_gamepad_scores_data, scores)
+                  for idx0 in range(len(scores_shifts_baselined_combined)):
+                      if np.isnan(scores_shifts_baselined_combined[idx0]):
+                          scores_shifts_baselined_combined[idx0] = -1
                   plt.bar(joy_gamepad_inverse_scores_data_combined, scores_shifts_baselined_combined)
 #                  plt.bar(joy_gamepad_scores_data, scores_shifts_baselined)
-                  plt.ylim(0, 1)
+                  plt.ylim(-0.1, 1)
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
                   image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
@@ -8875,7 +8943,8 @@ def main():
                 scoress = []
                 for idx0 in range(len(scores)):
 #                  print('len(gamepad_scores_baselines), len(scores), idx0: ', len(gamepad_scores_baselines), len(scores), idx0)
-                  gamepad_scores_baselines[idx0].append(scores[idx0])
+                  if not np.isnan(scores[idx0]):
+                    gamepad_scores_baselines[idx0].append(scores[idx0])
                   gamepad_scores_baselines[idx0] = gamepad_scores_baselines[idx0][-gamepad_epochs_baseline:]
                   scoress.append(np.asarray(gamepad_scores_baselines[idx0]))
 #                scoress=np.asarray(gamepad_scores_baselines)
@@ -8885,7 +8954,8 @@ def main():
 #                    print('scoress:',scoress)
 #                    print('scoress[idx0]:',scoress[idx0])
 #                    print('scoress[:][idx0]:',scoress[:][idx0])
-                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+                    if len(scoress[idx0])>0:
+                      scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
 #                    if np.isnan(scores_shifts_baselined[idx0]):
 #                        scores_shifts_baselined[idx0] = 0.499999999
 #                        scores_shifts_baselined[idx0] = 0
@@ -8966,9 +9036,12 @@ def main():
                   fig, ax = plt.subplots(figsize=(12,3))
                   fig.tight_layout()
 #                  plt.bar(joy_gamepad_scores_data, scores)
+                  for idx0 in range(len(scores_shifts_baselined_combined)):
+                      if np.isnan(scores_shifts_baselined_combined[idx0]):
+                          scores_shifts_baselined_combined[idx0] = -1
                   plt.bar(joy_gamepad_scores_data_combined, scores_shifts_baselined_combined)
 #                  plt.bar(joy_gamepad_scores_data, scores_shifts_baselined)
-                  plt.ylim(0, 1)
+                  plt.ylim(-0.1, 1)
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
                   image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
@@ -8980,7 +9053,8 @@ def main():
                 scoress = []
                 for idx0 in range(len(scores)):
 #                  print('len(gamepad_scores_baselines), len(scores), idx0: ', len(gamepad_scores_baselines), len(scores), idx0)
-                  gamepad_inverse_scores_baselines[idx0].append(scores[idx0])
+                  if not np.isnan(scores[idx0]):
+                    gamepad_inverse_scores_baselines[idx0].append(scores[idx0])
                   gamepad_inverse_scores_baselines[idx0] = gamepad_inverse_scores_baselines[idx0][-gamepad_inverse_epochs_baseline:]
                   scoress.append(np.asarray(gamepad_inverse_scores_baselines[idx0]))
 #                scoress=np.asarray(gamepad_scores_baselines)
@@ -8990,7 +9064,8 @@ def main():
 #                    print('scoress:',scoress)
 #                    print('scoress[idx0]:',scoress[idx0])
 #                    print('scoress[:][idx0]:',scoress[:][idx0])
-                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
+                    if len(scoress[idx0])>0:
+                      scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[idx0])) / (np.max(scoress[idx0]) - np.min(scoress[idx0])))
 #                    if np.isnan(scores_shifts_baselined[idx0]):
 #                        scores_shifts_baselined[idx0] = 0.499999999
 #                        scores_shifts_baselined[idx0] = 0
@@ -9072,9 +9147,12 @@ def main():
                   fig, ax = plt.subplots(figsize=(12,3))
                   fig.tight_layout()
 #                  plt.bar(joy_gamepad_scores_data, scores)
+                  for idx0 in range(len(scores_shifts_baselined_combined)):
+                      if np.isnan(scores_shifts_baselined_combined[idx0]):
+                          scores_shifts_baselined_combined[idx0] = -1
                   plt.bar(joy_gamepad_inverse_scores_data_combined, scores_shifts_baselined_combined)
 #                  plt.bar(joy_gamepad_scores_data, scores_shifts_baselined)
-                  plt.ylim(0, 1)
+                  plt.ylim(-0.1, 1)
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
                   image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
