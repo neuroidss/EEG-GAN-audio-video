@@ -4737,8 +4737,8 @@ def main():
 #  flags.DEFINE_list('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
   flags.DEFINE_string('gamepad_inverse_peaks_label', None, 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
 #  flags.DEFINE_string('gamepad_inverse_peaks_label', 'V2', 'None for all, or: aparc, BA1, BA2, BA3a, BA3b, BA4a, BA4p, BA6, BA44, BA45, cortex, entorhinal, Medial_wall, MT, V1, V2')
-  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', True, '')
-#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', False, '')
+#  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', True, '')
+  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_psd', False, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_peaks_sensor_iapf', False, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_peaks_stc_psd', True, '')
@@ -4854,10 +4854,12 @@ def main():
 
 #                  [[[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C3)/mu(C3)
 #                  [[[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#theta(C3)/mu(C3)
-                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
-                   [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
-                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
-                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)-theta(C3)/mu(C3)
+                  [[[['IAPF-2','IAPF+3'],['C4']],[['IAPF+3','IAPF+17'],['C4']]],
+                   [[['IAPF-2','IAPF+3'],['C3']],[['IAPF+3','IAPF+17'],['C3']]]],#mu(C4)/beta(C4)-mu(C3)/beta(C3)
+#                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
+#                   [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
+#                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
+#                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)-theta(C3)/mu(C3)
 
 #                  [[[['IAPF+8','IAPF+17'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]],[],[[['IAPF-6','IAPF-2'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]]],#beta2(Cz)/SMR(Cz)+theta(Cz)/SMR(Cz) https://doi.org/10.3389/fnins.2021.638369
 
@@ -4913,14 +4915,20 @@ def main():
 ##                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
                   [[[['IAPF+0','IAPF+2'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
                   
-                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#monitoring_golf_putting_task=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Cheng et al., 2015a
+#                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#monitoring_golf_putting_task=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Cheng et al., 2015a
 
                   [[[['8','12'],['O1','Oz','O2']]]],
 #                  [[[['IAPF-2','IAPF+3'],['O1','Oz','O2']]]],
+
+ #                 [[[['IAPF-2','IAPF+3'],['C4']]],
+ #                  [[['IAPF-2','IAPF+3'],['C3']]]],#mu(C4)-mu(C3)
+                  [[[['IAPF+3','IAPF+17'],['C3']]],
+                   [[['IAPF+3','IAPF+17'],['C4']]]],#beta(C3)-beta(C4)
                   
                   ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
   flags.DEFINE_list('gamepad_inverse_iapf_band', ['7.','14.'], '')
-  flags.DEFINE_string('gamepad_inverse_epochs_baseline', '300', '')
+#  flags.DEFINE_string('gamepad_inverse_epochs_baseline', '300', '')
+  flags.DEFINE_string('gamepad_inverse_epochs_baseline', '30', '')
   
 #  flags.DEFINE_boolean('joy_gamepad_inverse_psd', True, '')
   flags.DEFINE_boolean('joy_gamepad_inverse_psd', False, '')
@@ -4930,8 +4938,8 @@ def main():
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores', False, '')
   flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', True, '')
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', False, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', True, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', False, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', True, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', False, '')
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', True, '')
   flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', False, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', True, '')
@@ -5050,19 +5058,21 @@ def main():
 ##                  [[[['IAPF+2','IAPF+5'],['Pz','Cz']]]],#SMR(Pz+Cz) https://doi.org/10.3389/fnhum.2016.00348
 ##                  [[[['IAPF+5','IAPF+8'],['Pz','Cz']]]],#adjacent_beta1(Pz+Cz) https://doi.org/10.3389/fnhum.2016.00348
                   
-##                  [[[['IAPF-2','IAPF+3'],['C4']]]],#mu(C4) https://doi.org/10.1111/ejn.13551
-##                  [[[['IAPF-6','IAPF-2'],['C4']]]],#theta(C4) https://doi.org/10.1111/ejn.13551
-##                  [[[['IAPF+3','IAPF+17'],['C4']]]],#beta(C4) https://doi.org/10.1111/ejn.13551
+##                  [[[['IAPF-2','IAPF+3'],['C4']]]],#max(mu(C4)) https://doi.org/10.1111/ejn.13551
+##                  [[[['IAPF-6','IAPF-2'],['C4']]]],#min(theta(C4)) https://doi.org/10.1111/ejn.13551
+##                  [[[['IAPF+3','IAPF+17'],['C4']]]],#min(beta(C4)) https://doi.org/10.1111/ejn.13551
 #                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#beta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
 #                  [[[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#theta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
 #                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],[],[[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#beta(C4)/mu(C4)+theta(C4)/mu(C4) https://doi.org/10.1111/ejn.13551
 
 #                  [[[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C3)/mu(C3)
 #                  [[[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#theta(C3)/mu(C3)
-                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
-                   [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
-                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
-                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)-theta(C3)/mu(C3)
+                  [[[['IAPF-2','IAPF+3'],['C4']],[['IAPF+3','IAPF+17'],['C4']]],
+                   [[['IAPF-2','IAPF+3'],['C3']],[['IAPF+3','IAPF+17'],['C3']]]],#mu(C4)/beta(C4)-mu(C3)/beta(C3)
+#                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
+#                   [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
+#                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
+#                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)-theta(C3)/mu(C3)
 
 #                  [[[['IAPF+8','IAPF+17'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]],[],[[['IAPF-6','IAPF-2'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]]],#beta2(Cz)/SMR(Cz)+theta(Cz)/SMR(Cz) https://doi.org/10.3389/fnins.2021.638369
 
@@ -5117,16 +5127,22 @@ def main():
                   
 ##                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
                   [[[['IAPF+0','IAPF+2'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
+
                   
-                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#monitoring_golf_putting_task=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Cheng et al., 2015a
+#                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#monitoring_golf_putting_task=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Cheng et al., 2015a
 
                   [[[['8','12'],['O1','Oz','O2']]]],
 #                  [[[['IAPF-2','IAPF+3'],['O1','Oz','O2']]]],
+
+ #                 [[[['IAPF-2','IAPF+3'],['C4']]],
+ #                  [[['IAPF-2','IAPF+3'],['C3']]]],#mu(C4)-mu(C3)
+                  [[[['IAPF+3','IAPF+17'],['C3']]],
+                   [[['IAPF+3','IAPF+17'],['C4']]]],#beta(C3)-beta(C4)
                   
                   ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
   flags.DEFINE_list('gamepad_iapf_band', ['7.','14.'], '')
   flags.DEFINE_string('gamepad_epochs_baseline', '300', '')
-#  flags.DEFINE_string('gamepad_epochs_baseline', '100', '')
+#  flags.DEFINE_string('gamepad_epochs_baseline', '30', '')
 
   flags.DEFINE_boolean('joy_gamepad_scores_image', True, '')
 #  flags.DEFINE_boolean('joy_gamepad_scores_image', False, '')
@@ -5140,7 +5156,7 @@ def main():
   flags.DEFINE_boolean('gamepad_scores_reliability', False, '')
 
 
-  flags.DEFINE_string('ray_max_remaining_refs', '1000', '')
+  flags.DEFINE_string('ray_max_remaining_refs', '10', '')
 
 #  flags.DEFINE_boolean('remote_brainflow', True, '')
   flags.DEFINE_boolean('remote_brainflow', False, '')
@@ -5151,8 +5167,8 @@ def main():
   flags.DEFINE_boolean('from_lsl', False, '')
 #  flags.DEFINE_boolean('to_lsl', True, '')
   flags.DEFINE_boolean('to_lsl', False, '')
-#  flags.DEFINE_boolean('to_bdf', True, '')
-  flags.DEFINE_boolean('to_bdf', False, '')
+  flags.DEFINE_boolean('to_bdf', True, '')
+#  flags.DEFINE_boolean('to_bdf', False, '')
 
   flags.DEFINE_boolean('gamepad_scores_to_osc', True, '')
 #  flags.DEFINE_boolean('gamepad_scores_to_osc', False, '')
@@ -5411,6 +5427,7 @@ def main():
       gamepad_peaks_indices1[idx] = int(gamepad_peaks_indices1[idx])
 
   write_video=FLAGS.write_video
+#  print('write_video:',write_video)
   stable_fps=FLAGS.stable_fps
 
 #  gamepad_inverse_peaks_labels0 = FLAGS.gamepad_inverse_peaks_labels0
@@ -8443,8 +8460,8 @@ def main():
        for i in range(part_len): # display separate audio for each break
         ji = j * part_len + i
         ji0 = ji0 + 1
-        if from_bdf is None:
-          ji0 = -1
+#        if from_bdf is None:
+#          ji0 = -1
         
 #        if (i==0) and (n_generate-ji<part_len):
 #            psd_array=np.random.rand((n_generate-ji), dim) 
@@ -8571,7 +8588,7 @@ def main():
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if True:
                   joy_gamepad_scores_data_combined = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 
-                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B4', 'B15', 'B16', 'B17', 
+                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 
                                                       'XR', 'YR', 'ZR', 'X', 'Y', 'Z']
                   joy_gamepad_scores_data_combined_used = []
                   scores_shifts_baselined_combined = [np.nan]*len(joy_gamepad_scores_data_combined)
@@ -8651,7 +8668,10 @@ def main():
 #                  plt.bar(joy_gamepad_scores_data, scores)
                   for idx0 in range(len(scores_shifts_baselined_combined)):
                       if np.isnan(scores_shifts_baselined_combined[idx0]):
+#                          print('idx0, scores_shifts_baselined_combined[idx0]:', idx0, scores_shifts_baselined_combined[idx0])
                           scores_shifts_baselined_combined[idx0] = -1
+#                  print('joy_gamepad_scores_data_combined[:14]:',joy_gamepad_scores_data_combined[:14])
+#                  print('scores_shifts_baselined_combined:',scores_shifts_baselined_combined)
                   plt.bar(joy_gamepad_scores_data_combined, scores_shifts_baselined_combined)
 #                  plt.bar(joy_gamepad_scores_data, scores_shifts_baselined)
                   plt.ylim(-0.1, 1)
@@ -8686,7 +8706,7 @@ def main():
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if True:
                   joy_gamepad_inverse_scores_data_combined = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 
-                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B4', 'B15', 'B16', 'B17', 
+                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 
                                                       'XR', 'YR', 'ZR', 'X', 'Y', 'Z']
                   joy_gamepad_inverse_scores_data_combined_used = []
                   scores_shifts_baselined_combined = [np.nan]*len(joy_gamepad_inverse_scores_data_combined)
@@ -8779,6 +8799,7 @@ def main():
 #                  message = joy_gamepad_scores_update(vjoy, scores)
 #            if not((joy_gamepad_scores and (shows_ids[ready_id] == shows_gamepad_peaks)) or (joy_gamepad_inverse_scores and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
             ready_images.append(message)
+#            print('len(ready_images):',len(ready_images))
             if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
                    (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
               image_show = message[:,:,::-1]
@@ -8804,16 +8825,21 @@ def main():
            shows_idx = ready_shows_ids[image_idx]
            ji_idx = ready_ji_ids[image_idx]
 #           print('image_idx, shows_idx, ji_idx, ji0, ji0-ji_idx:', image_idx, shows_idx, ji_idx, ji0, ji0-ji_idx)
+#           print('image_idx, shows_idx, ji_idx:', image_idx, shows_idx, ji_idx)
+#           print('last_image_shows_ji[shows_idx]', last_image_shows_ji[shows_idx])
            if last_image_shows_ji[shows_idx] == ji_idx - 1:
             last_image_shows_ji[shows_idx] = ji_idx
+            image = ready_images[image_idx]
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
-                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and write_video:
+#            print('_shows_ids[ready_id]:',shows_ids[ready_id])
+            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_idx == shows_gamepad_peaks)) or 
+                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_idx == shows_gamepad_inverse_peaks))) and write_video:
+#              print('__shows_ids[ready_id]:',shows_ids[ready_id])
               video_outs[shows_idx].append_data(image)
-            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
-                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and not stable_fps:
+            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_idx == shows_gamepad_peaks)) or 
+                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_idx == shows_gamepad_inverse_peaks))) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #          screens[image_idx].update(image)
@@ -8881,7 +8907,7 @@ def main():
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if True:
                   joy_gamepad_scores_data_combined = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 
-                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B4', 'B15', 'B16', 'B17', 
+                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 
                                                       'XR', 'YR', 'ZR', 'X', 'Y', 'Z']
                   joy_gamepad_scores_data_combined_used = []
                   scores_shifts_baselined_combined = [np.nan]*len(joy_gamepad_scores_data_combined)
@@ -8961,6 +8987,7 @@ def main():
 #                  plt.bar(joy_gamepad_scores_data, scores)
                   for idx0 in range(len(scores_shifts_baselined_combined)):
                       if np.isnan(scores_shifts_baselined_combined[idx0]):
+#                          print('idx0, scores_shifts_baselined_combined[idx0]:', idx0, scores_shifts_baselined_combined[idx0])
                           scores_shifts_baselined_combined[idx0] = -1
                   plt.bar(joy_gamepad_scores_data_combined, scores_shifts_baselined_combined)
 #                  plt.bar(joy_gamepad_scores_data, scores_shifts_baselined)
@@ -8996,7 +9023,7 @@ def main():
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if True:
                   joy_gamepad_inverse_scores_data_combined = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 
-                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B4', 'B15', 'B16', 'B17', 
+                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 
                                                       'XR', 'YR', 'ZR', 'X', 'Y', 'Z']
                   joy_gamepad_inverse_scores_data_combined_used = []
                   scores_shifts_baselined_combined = [np.nan]*len(joy_gamepad_inverse_scores_data_combined)
@@ -9089,6 +9116,8 @@ def main():
 #                  message = joy_gamepad_inverse_scores_update(vjoy, scores)
 #            if not((joy_gamepad_scores and (shows_ids[ready_id] == shows_gamepad_peaks)) or (joy_gamepad_inverse_scores and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
             ready_images.append(message)
+#            print('len(ready_images):',len(ready_images))
+#            print('message:',message)
             if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
                    (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and stable_fps:
               image_show = message[:,:,::-1]
@@ -9118,11 +9147,13 @@ def main():
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
-                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and write_video:
+#            print('_shows_ids[ready_id]:',shows_ids[ready_id])
+            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_idx == shows_gamepad_peaks)) or 
+                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_idx == shows_gamepad_inverse_peaks))) and write_video:
+#              print('__shows_ids[ready_id]:',shows_ids[ready_id])
               video_outs[shows_idx].append_data(image)
-            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
-                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and not stable_fps:
+            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_idx == shows_gamepad_peaks)) or 
+                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_idx == shows_gamepad_inverse_peaks))) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
@@ -9167,7 +9198,7 @@ def main():
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if True:
                   joy_gamepad_scores_data_combined = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 
-                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B4', 'B15', 'B16', 'B17', 
+                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 
                                                       'XR', 'YR', 'ZR', 'X', 'Y', 'Z']
                   joy_gamepad_scores_data_combined_used = []
                   scores_shifts_baselined_combined = [np.nan]*len(joy_gamepad_scores_data_combined)
@@ -9282,7 +9313,7 @@ def main():
 #                    scores_shifts_baselined[idx0] = ((scores[idx0] - np.min(scoress[:][idx0])) / (np.max(scoress[:][idx0]) - np.min(scoress[:][idx0])))
                 if True:
                   joy_gamepad_inverse_scores_data_combined = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 
-                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B4', 'B15', 'B16', 'B17', 
+                                                       'B9', 'B10', 'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 
                                                       'XR', 'YR', 'ZR', 'X', 'Y', 'Z']
                   joy_gamepad_inverse_scores_data_combined_used = []
                   scores_shifts_baselined_combined = [np.nan]*len(joy_gamepad_inverse_scores_data_combined)
@@ -9401,14 +9432,16 @@ def main():
            if last_image_shows_ji[shows_idx] == ji_idx - 1:
 #            print('ji_idx:', ji_idx)
             last_image_shows_ji[shows_idx] = ji_idx
+            image = ready_images[image_idx]
             ready_images.pop(image_idx)
             ready_shows_ids.pop(image_idx)
             ready_ji_ids.pop(image_idx)
-            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
-                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and write_video:
+            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_idx == shows_gamepad_peaks)) or 
+                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_idx == shows_gamepad_inverse_peaks))) and write_video:
+#              print('__shows_ids[ready_id]:',shows_ids[ready_id])
               video_outs[shows_idx].append_data(image)
-            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_ids[ready_id] == shows_gamepad_peaks)) or 
-                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_ids[ready_id] == shows_gamepad_inverse_peaks))) and not stable_fps:
+            if not((joy_gamepad_scores and (not joy_gamepad_scores_image) and (shows_idx == shows_gamepad_peaks)) or 
+                   (joy_gamepad_inverse_scores and (not joy_gamepad_inverse_scores_image) and (shows_idx == shows_gamepad_inverse_peaks))) and not stable_fps:
               image = image[:,:,::-1]
               screens[shows_idx].update(image)
 #        print("New messages len:", len(new_messages))
