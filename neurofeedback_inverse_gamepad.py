@@ -2028,7 +2028,7 @@ if True:
     @ray.remote
     def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps, score_bands_names, 
                              epochs_baseline, iapf_band, joy_gamepad_psd, show_gamepad_scores, show_gamepad_scores_baselined, label_names, sfreq, ch_names_pick, raws_hstack_cut, overlap, 
-                             joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability):
+                             joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, gamepad_scores_reliability_value):
 #        import pyvjoy
         out_shows_ji_images=[]
         import numpy as np
@@ -2339,6 +2339,7 @@ if True:
                   beta_band = [fmin_beta,fmax_beta]
 #                  fmin_raw=1
 #                  fmax_raw=sfreq/2
+#                  raw_band = [fmin_raw,fmax_raw]
                   
                   beta_band_indices = [None,None]
 #                  raw_band_indices = [0,len(freqs)-1]
@@ -2356,11 +2357,12 @@ if True:
 #                  print('len(freqs):',len(freqs))
 #                  print('psds[0][:,beta_band_indices[0]:beta_band_indices[1]+1]:',psds[0][:,beta_band_indices[0]:beta_band_indices[1]+1])
                   psds_beta_average=np.average(psds[0][:,beta_band_indices[0]:beta_band_indices[1]+1], axis=1)
+#                  psds_raw_average=np.average(psds[0][:,beta_band_indices[0]:beta_band_indices[1]+1], axis=1)
                   psds_raw_average=np.average(psds[0], axis=1)
                   reliability = psds_beta_average / psds_raw_average
 #                  print('reliability:',reliability)
 
-                  scores_reliability=np.ones(len(score_bands_names))
+                  scores_reliability=np.ones(len(score_bands_names))*100
                   for idx0 in range(len(score_bands_names)):#scores
                     for idx1 in range(len(score_bands_names[idx0])):#x/y,-x/y
                       for idx2 in range(len(score_bands_names[idx0][idx1])):#x,1/y
@@ -2368,9 +2370,12 @@ if True:
                           if idx3==1:#names
                             for idx4 in range(len(score_bands_names[idx0][idx1][idx2][idx3])):
 #                              print('score_bands_names[idx0][idx1][idx2][idx3][idx4]:',score_bands_names[idx0][idx1][idx2][idx3][idx4])
-                              scores_reliability[idx0] = scores_reliability[idx0] * reliability[score_indexes[idx0][idx1][idx2][idx3][idx4]]
-                    if scores_reliability[idx0] < 1:
+                              if scores_reliability[idx0] > reliability[score_indexes[idx0][idx1][idx2][idx3][idx4]]:
+                                scores_reliability[idx0] = reliability[score_indexes[idx0][idx1][idx2][idx3][idx4]]
+#                              scores_reliability[idx0] = scores_reliability[idx0] * reliability[score_indexes[idx0][idx1][idx2][idx3][idx4]]
+                    if scores_reliability[idx0] < gamepad_scores_reliability_value:
                         scores[idx0] = np.nan
+#                  print('scores_reliability:',scores_reliability)
 
                 if joy_gamepad_scores:
                   return(scores)
@@ -5154,6 +5159,7 @@ def main():
 
 #  flags.DEFINE_boolean('gamepad_scores_reliability', True, '')
   flags.DEFINE_boolean('gamepad_scores_reliability', False, '')
+  flags.DEFINE_string('gamepad_scores_reliability_value', '1.0', 'beta/raw spectrum')
 
 
   flags.DEFINE_string('ray_max_remaining_refs', '10', '')
@@ -5206,6 +5212,7 @@ def main():
 #      gamepad_scores_osc_client.send_message("/gamepad", random.random())
 #      time.sleep(1)
 
+  gamepad_scores_reliability_value = float(FLAGS.gamepad_scores_reliability_value)
   gamepad_scores_reliability = FLAGS.gamepad_scores_reliability
   ray_max_remaining_refs = int(FLAGS.ray_max_remaining_refs)
   
@@ -8508,7 +8515,7 @@ def main():
           object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, 
                                                    duration_id, cohs_tril_indices_id, ji_fps_id, gamepad_score_bands_names_id, gamepad_epochs_baseline_id, gamepad_iapf_band_id, 
                                                    joy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, 
-                                                   raws_hstack_cut_id, overlap_id, joy_gamepad_scores_baselined_id, joy_gamepad_scores_data_id, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability)
+                                                   raws_hstack_cut_id, overlap_id, joy_gamepad_scores_baselined_id, joy_gamepad_scores_data_id, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, gamepad_scores_reliability_value)
           del epochs_id
           shows_ids.append(shows_gamepad_peaks)
           ji_ids.append(ji0)
