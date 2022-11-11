@@ -5158,6 +5158,12 @@ def main():
 #  flags.DEFINE_boolean('gamepad_scores_to_osc', False, '')
   flags.DEFINE_string('gamepad_scores_osc_ip', '127.0.0.1', 'The ip of the OSC server')
   flags.DEFINE_string('gamepad_scores_osc_port', '5005', 'The port the OSC server is listening on')
+  flags.DEFINE_string('gamepad_scores_osc_path', "/gamepad/", '')
+  flags.DEFINE_boolean('gamepad_inverse_scores_to_osc', True, '')
+#  flags.DEFINE_boolean('gamepad_inverse_scores_to_osc', False, '')
+  flags.DEFINE_string('gamepad_inverse_scores_osc_ip', '127.0.0.1', 'The ip of the OSC server')
+  flags.DEFINE_string('gamepad_inverse_scores_osc_port', '5005', 'The port the OSC server is listening on')
+  flags.DEFINE_string('gamepad_inverse_scores_osc_path', "/gamepad_inverse/", '')
   
 #flags.mark_flag_as_required('input')
   import sys
@@ -5173,6 +5179,11 @@ def main():
     import time
     from pythonosc import udp_client
     gamepad_scores_osc_client = udp_client.SimpleUDPClient(FLAGS.gamepad_scores_osc_ip, int(FLAGS.gamepad_scores_osc_port))
+  if FLAGS.gamepad_inverse_scores_to_osc:
+    import random
+    import time
+    from pythonosc import udp_client
+    gamepad_inverse_scores_osc_client = udp_client.SimpleUDPClient(FLAGS.gamepad_inverse_scores_osc_ip, int(FLAGS.gamepad_inverse_scores_osc_port))
 
 #    while True:
 #     for x in range(10):
@@ -8729,7 +8740,7 @@ def main():
                 if FLAGS.gamepad_scores_to_osc:
                   for idx0, gamepad_data in enumerate(joy_gamepad_scores_data_combined):
                    if not np.isnan(scores_shifts_baselined_combined[idx0]):
-                    gamepad_scores_osc_client.send_message("/gamepad/"+gamepad_data, scores_shifts_baselined_combined[idx0])
+                    gamepad_scores_osc_client.send_message(FLAGS.gamepad_scores_path+gamepad_data, scores_shifts_baselined_combined[idx0])
                 if joy_gamepad_scores_image:
                   fig, ax = plt.subplots(figsize=(12,3))
                   fig.tight_layout()
@@ -8841,6 +8852,10 @@ def main():
                       else:
                         vjoy.data.lButtons &= ~(1<<(int(gamepad_data[1:])-1))
                   vjoy.update()
+                if FLAGS.gamepad_inverse_scores_to_osc:
+                  for idx0, gamepad_data in enumerate(joy_gamepad_inverse_scores_data_combined):
+                   if not np.isnan(scores_shifts_baselined_combined[idx0]):
+                    gamepad_inverse_scores_osc_client.send_message(FLAGS.gamepad_inverse_scores_path+gamepad_data, scores_shifts_baselined_combined[idx0])
                 if joy_gamepad_inverse_scores_image:
                   fig, ax = plt.subplots(figsize=(12,3))
                   fig.tight_layout()
@@ -9143,6 +9158,10 @@ def main():
                       else:
                         vjoy.data.lButtons &= ~(1<<(int(gamepad_data[1:])-1))
                   vjoy.update()
+                if FLAGS.gamepad_scores_to_osc:
+                  for idx0, gamepad_data in enumerate(joy_gamepad_scores_data_combined):
+                   if not np.isnan(scores_shifts_baselined_combined[idx0]):
+                    gamepad_scores_osc_client.send_message(FLAGS.gamepad_scores_path+gamepad_data, scores_shifts_baselined_combined[idx0])
                 if joy_gamepad_inverse_scores_image:
                   fig, ax = plt.subplots(figsize=(12,3))
                   fig.tight_layout()
@@ -9295,6 +9314,10 @@ def main():
                       if round(joy_data) > 0:
                         vjoy.data.lButtons = vjoy.data.lButtons + (2**(int(gamepad_data[7:])))
                   vjoy.update()
+                if FLAGS.gamepad_inverse_scores_to_osc:
+                  for idx0, gamepad_data in enumerate(joy_gamepad_inverse_scores_data_combined):
+                   if not np.isnan(scores_shifts_baselined_combined[idx0]):
+                    gamepad_inverse_scores_osc_client.send_message(FLAGS.gamepad_inverse_scores_path+gamepad_data, scores_shifts_baselined_combined[idx0])
                 if joy_gamepad_inverse_scores_image:
                   fig, ax = plt.subplots()
                   plt.bar(joy_gamepad_inverse_scores_data, scores_shifts_baselined)
