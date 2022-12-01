@@ -11,6 +11,7 @@ import ray
 
 import time
 from cupy._manipulation.add_remove import append
+from numpy import average
 start = time.time()
 
 #import asyncio
@@ -2028,7 +2029,8 @@ if True:
     @ray.remote
     def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps, score_bands_names, 
                              epochs_baseline, iapf_band, joy_gamepad_psd, show_gamepad_scores, show_gamepad_scores_baselined, label_names, sfreq, ch_names_pick, raws_hstack_cut, overlap, 
-                             joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, gamepad_scores_reliability_value):
+                             joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, 
+                             gamepad_scores_reliability_value, filter_butterworth, gamepad_samples_cut_wave_periods):
 #        import pyvjoy
         out_shows_ji_images=[]
         import numpy as np
@@ -2052,6 +2054,63 @@ if True:
 #        print('raw: ', raw)
 
         raw.load_data()
+        
+        if False:
+#        if filter_butterworth:
+            
+            import numpy as np
+            from numpy.fft import fft, fftfreq
+            from scipy import signal
+            import matplotlib.pyplot as plt
+
+            from mne.time_frequency.tfr import morlet
+            from mne.viz import plot_filter, plot_ideal_filter
+
+            import mne
+
+            sfreq = 512.
+            f_p = 8.
+            # limits for plotting
+            flim = (1., sfreq / 2.)  # frequencies
+            dlim = (-0.2, 0.2)  # delays
+            nyq = sfreq / 2.  # the Nyquist frequency is half our sample rate
+            freq = [0, f_p, f_p, nyq]
+            gain = [1, 1, 0, 0]
+            
+#            x = raw
+                        
+#            iir_params = dict(order=8, ftype='butter')
+#            filt = mne.filter.create_filter(x, sfreq, l_freq=None, h_freq=f_p,
+#                                method='iir', iir_params=iir_params,
+#                                verbose=True)
+            
+#            iir_lp_30 = signal.iirfilter(2, 30. / sfreq, btype='lowpass')
+#            iir_hp_p1 = signal.iirfilter(2, 0.1 / sfreq, btype='highpass')
+#            iir_lp_2 = signal.iirfilter(2, 2. / sfreq, btype='lowpass')
+#            iir_hp_2 = signal.iirfilter(2, 2. / sfreq, btype='highpass')
+
+#            fig, ax = plt.subplots()
+#            plot_filter(filt, sfreq, freq, gain, 'Butterworth order=8',
+#                        compensate=True, axes=ax)
+            
+#            raw_new = raw.copy().filter(method='iir')
+            psds = []
+            freqs = []
+
+
+            raw_alpha = raw.copy().filter(l_freq=8., h_freq=12., method="iir",
+                     iir_params=dict(order=4, ftype='butter', output="ba"))
+            fig = raw_alpha.plot(scalings='auto', show=False)
+            
+            #x_steep = signal.sosfiltfilt(filt['sos'], x)
+
+            fig.canvas.draw()
+                       
+            image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
+            image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            plt.close(fig)
+            del fig
+            return image
         
         epochs = []
         epochs.append(mne.make_fixed_length_epochs(raw, 
@@ -2142,10 +2201,40 @@ if True:
             peak_index_maxs=[]
             peak_freq_maxs=[]
             psds, freqs = epo_spectrum.get_data(return_freqs=True)
+            
 #            peak_index_maxs = np.average(psds[0]*freqs,1)/np.average(psds[0],1)
 #            print(f'\nPSDs shape: {psds.shape}, freqs shape: {freqs.shape}')
             if ji1 >= len(psds):
               ji1 = len(psds) - 1
+
+            if filter_butterworth:
+                psds_fir = psds
+                psds = psds.copy()
+
+#                freq_step = (freqs[1] - freqs[0]) / 2
+                for freq_idx in range(len(freqs)):
+                  if freq_idx == 0:
+                    freq_step = (freqs[freq_idx+1] - freqs[freq_idx]) / 2
+                  elif freq_idx == len(freqs)-1:
+                    freq_step = (freqs[freq_idx] - freqs[freq_idx-1]) / 2
+                  else:
+                    freq_step = (freqs[freq_idx+1] - freqs[freq_idx-1]) / 4
+                  raw_filtered = raw.copy().filter(l_freq=freqs[freq_idx]-freq_step, h_freq=freqs[freq_idx]+freq_step, method="iir",
+                         iir_params=dict(order=4, ftype='butter', output="ba"))
+                  raw_filtered_data = raw_filtered.get_data()
+#                  print(np.log(np.average(np.square(raw_filtered_data),1)),np.average(np.square(raw_filtered_data),1),np.square(raw_filtered_data))
+                  samples_cut_freq = int(gamepad_samples_cut_wave_periods * sfreq / freqs[freq_idx])
+#                  print('samples_cut_freq:',samples_cut_freq)
+                  raw_filtered_data_cut = raw_filtered_data[:,-samples_cut_freq:]
+#                  print('raw_filtered_data.shape:',raw_filtered_data.shape)
+#                  print('raw_filtered_data_cut.shape:',raw_filtered_data_cut.shape)
+                  psds_at_freq = np.average(np.square(raw_filtered_data_cut),1)
+#                  print(len(freqs))
+#                  print(psds_at_freq.shape)
+#                  print(psds[ji1].shape)
+#                  psds[ji1][freq_idx] = psds_at_freq
+                  for psd_idx in range(len(psds[ji1])):
+                    psds[ji1][psd_idx][freq_idx] = psds_at_freq[psd_idx]
 
             if False:
 #            if gamepad_peak_finder:
@@ -4618,9 +4707,10 @@ def main():
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
 #  flags.DEFINE_list('bands', [8.,28.], 'bands')
-  flags.DEFINE_list('bands', [1.,125.], 'bands')
+#  flags.DEFINE_list('bands', [1.,125.], 'bands')
+#  flags.DEFINE_list('bands', [1.,125.], 'bands')
 #  flags.DEFINE_list('bands', [1.,48.], 'bands')
-#  flags.DEFINE_list('bands', [4.,28.], 'bands')
+  flags.DEFINE_list('bands', [4.,28.], 'bands')
 #  flags.DEFINE_list('bands', [7.,14.], 'bands')
 #  flags.DEFINE_list('bands', [8.,12.], 'bands')
 #flags.DEFINE_list('bands', [4.,6.,6.5,8.,8.5,10.,10.5,12.,12.5,16.,16.5,20.,20.5,28], 'bands')
@@ -4943,10 +5033,10 @@ def main():
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores', False, '')
   flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', True, '')
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', False, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', True, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', False, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', True, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', False, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', True, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', False, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', True, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', False, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', False, '')
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores_baselined', True, '')
@@ -5031,6 +5121,33 @@ def main():
 #  flags.DEFINE_list('joy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('joy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
   flags.DEFINE_list('gamepad_score_bands_names', [
+                  [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+                  [[[['13','27'],['AF3','AF4','F3','F4']],[['8','13'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+                  [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+                  [[[['13','27'],['AF3','AF4','F3','F4']],[['8','13'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+                  [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+                  [[[['13','27'],['AF3','AF4','F3','F4']],[['8','13'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+                  [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
+                  [[[['13','27'],['AF3','AF4','F3','F4']],[['8','13'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
+                  [[[['8','13'],['C4']],[['13','28'],['C4']]],
+                   [[['8','13'],['C3']],[['13','28'],['C3']]]],#mu(C4)/beta(C4)-mu(C3)/beta(C3)
+                  [[[['12','15'],['Cz']],[['4','8'],['Cz']]],[],
+                   [[['12','15'],['Cz']],[['18','27'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)+SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+                  [[[['15','18'],['C4','C3']],[['4','8'],['C4','C3']]],[],
+                   [[['15','18'],['C4','C3']],[['18','27'],['C4','C3']]],[],
+                   [[['12','15'],['C4','C3']],[['4','8'],['C4','C3']]],[],
+                   [[['12','15'],['C4','C3']],[['18','27'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)+beta1(C4+C3)/beta2(C4+C3)+SMR(C4+C3)/theta(C4+C3)+SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+                  [[[['13','27'],['C4','C3']],[['18','27'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+                  [[[['4','8'],['Pz']],[['8','13'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+                  [[[['12','15'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
+                  [[[['4','8'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
+                  [[[['10','12'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
+                  [[[['8','12'],['O1','Oz','O2']]]],
+                  [[[['13','27'],['C3']]],
+                   [[['13','27'],['C4']]]],#beta(C3)-beta(C4)
+                  
+                  ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
+  flags.DEFINE_list('gamepad_score_bands_names_', [
 #                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
 #                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
                   [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
@@ -5088,7 +5205,7 @@ def main():
 ##                  [[[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=min(beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
 ##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-4'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
 ##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-4'],['Cz']]],[],
+                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-2'],['Cz']]],[],
                    [[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)+SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
 
 ##                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
@@ -5099,9 +5216,9 @@ def main():
 #                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 #                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 #                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]],[],
+                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-2'],['C4','C3']]],[],
                    [[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]],[],
-                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]],[],
+                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-2'],['C4','C3']]],[],
                    [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)+beta1(C4+C3)/beta2(C4+C3)+SMR(C4+C3)/theta(C4+C3)+SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 
 ##                  [[[['IAPF+3','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
@@ -5128,7 +5245,7 @@ def main():
 #                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
 #                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
                   
-                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
+                  [[[['IAPF-6','IAPF-2'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
                   
 ##                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
                   [[[['IAPF+0','IAPF+2'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
@@ -5151,10 +5268,10 @@ def main():
 
   flags.DEFINE_boolean('joy_gamepad_scores_image', True, '')
 #  flags.DEFINE_boolean('joy_gamepad_scores_image', False, '')
-  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', True, '')
-#  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', False, '')
-#  flags.DEFINE_boolean('joy_gamepad_scores_uinput', True, '')
-  flags.DEFINE_boolean('joy_gamepad_scores_uinput', False, '')
+#  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', True, '')
+  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', False, '')
+  flags.DEFINE_boolean('joy_gamepad_scores_uinput', True, '')
+#  flags.DEFINE_boolean('joy_gamepad_scores_uinput', False, '')
 
 
 #  flags.DEFINE_boolean('gamepad_scores_reliability', True, '')
@@ -5167,10 +5284,10 @@ def main():
 #  flags.DEFINE_boolean('remote_brainflow', True, '')
   flags.DEFINE_boolean('remote_brainflow', False, '')
 
-  flags.DEFINE_boolean('from_brainflow', True, '')
-#  flags.DEFINE_boolean('from_brainflow', False, '')
-#  flags.DEFINE_boolean('from_lsl', True, '')
-  flags.DEFINE_boolean('from_lsl', False, '')
+#  flags.DEFINE_boolean('from_brainflow', True, '')
+  flags.DEFINE_boolean('from_brainflow', False, '')
+  flags.DEFINE_boolean('from_lsl', True, '')
+#  flags.DEFINE_boolean('from_lsl', False, '')
 #  flags.DEFINE_boolean('to_lsl', True, '')
   flags.DEFINE_boolean('to_lsl', False, '')
   flags.DEFINE_boolean('to_bdf', True, '')
@@ -5187,6 +5304,13 @@ def main():
   flags.DEFINE_string('gamepad_inverse_scores_osc_port', '5005', 'The port the OSC server is listening on')
   flags.DEFINE_string('gamepad_inverse_scores_osc_path', "/gamepad_inverse/", '')
   
+  flags.DEFINE_boolean('filter_butterworth', True, '')
+#  flags.DEFINE_boolean('filter_butterworth', False, '')
+  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "0.25", '')
+
+#  flags.DEFINE_boolean('filter_fft', True, '')
+  flags.DEFINE_boolean('filter_fft', False, '')
+  
 #flags.mark_flag_as_required('input')
   import sys
   FLAGS(sys.argv)
@@ -5195,6 +5319,9 @@ def main():
 
   if FLAGS.help:
     exit()
+    
+  gamepad_samples_cut_wave_periods = float(FLAGS.gamepad_samples_cut_wave_periods)
+  filter_butterworth = FLAGS.filter_butterworth
 
   if FLAGS.gamepad_scores_to_osc:
     import random
@@ -7960,7 +8087,7 @@ def main():
       dst=FLAGS.output
   
   
-    pmax=300000
+    pmax=312500 #gain 8, vref 2.5 V, 24 bit
     dmax = 8388607
     dmin = -8388608
 #  if not pmax:
@@ -7969,10 +8096,11 @@ def main():
   
     dimension="uV"
     data_key="eeg"
-    rate=512
+#    rate=512
+    rate=sample_rate
 
     n_channels = len(eeg_channels)
-    file_type = 3  # BDF+
+    file_type = pyedflib.FILETYPE_BDFPLUS  # BDF+
     bdf = pyedflib.EdfWriter(dst, n_channels=n_channels, file_type=file_type)
 
     headers = []
@@ -8120,6 +8248,7 @@ def main():
         epochs_inverse_cov_id = ray.put(epochs_inverse_cov)
         
   start = time.time()
+  times = []
 
   while True:
   
@@ -8467,6 +8596,7 @@ def main():
        for i in range(part_len): # display separate audio for each break
         ji = j * part_len + i
         ji0 = ji0 + 1
+        times.append(time.time())
 #        if from_bdf is None:
 #          ji0 = -1
         
@@ -8515,7 +8645,9 @@ def main():
           object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, 
                                                    duration_id, cohs_tril_indices_id, ji_fps_id, gamepad_score_bands_names_id, gamepad_epochs_baseline_id, gamepad_iapf_band_id, 
                                                    joy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, 
-                                                   raws_hstack_cut_id, overlap_id, joy_gamepad_scores_baselined_id, joy_gamepad_scores_data_id, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, gamepad_scores_reliability_value)
+                                                   raws_hstack_cut_id, overlap_id, joy_gamepad_scores_baselined_id, joy_gamepad_scores_data_id, joy_gamepad_scores, 
+                                                   show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, gamepad_scores_reliability_value,
+                                                   filter_butterworth, gamepad_samples_cut_wave_periods)
           del epochs_id
           shows_ids.append(shows_gamepad_peaks)
           ji_ids.append(ji0)
@@ -8682,6 +8814,9 @@ def main():
                   plt.bar(joy_gamepad_scores_data_combined, scores_shifts_baselined_combined)
 #                  plt.bar(joy_gamepad_scores_data, scores_shifts_baselined)
                   plt.ylim(-0.1, 1)
+                  plt.title(f'fps:{1/(times[ji_ids[ready_id]]-times[ji_ids[ready_id]-1]):2.2f} latency:{(time.time()-times[ji_ids[ready_id]]):2.2f}')
+#                  plt.title(f'{1/(time.time()-times[ji_ids[ready_id]]):9.4f}')
+#                  plt.title(f'{ji_ids[ready_id]} {(times[ji_ids[ready_id]]-start):9.4f} {(time.time()-start):9.4f} {(time.time()-times[ji_ids[ready_id]]):9.4f}')
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
                   image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
@@ -8999,6 +9134,9 @@ def main():
                   plt.bar(joy_gamepad_scores_data_combined, scores_shifts_baselined_combined)
 #                  plt.bar(joy_gamepad_scores_data, scores_shifts_baselined)
                   plt.ylim(-0.1, 1)
+                  plt.title(f'fps:{1/(times[ji_ids[ready_id]]-times[ji_ids[ready_id]-1]):2.2f} latency:{(time.time()-times[ji_ids[ready_id]]):2.2f}')
+#                  plt.title(f'{1/(time.time()-times[ji_ids[ready_id]]):9.4f}')
+#                  plt.title(f'{ji_ids[ready_id]} {(times[ji_ids[ready_id]]-start):9.4f} {(time.time()-start):9.4f} {(time.time()-times[ji_ids[ready_id]]):9.4f}')
                   fig.canvas.draw()
                   image = np.frombuffer(fig.canvas.tostring_rgb(),'u1')  
                   image = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
