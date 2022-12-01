@@ -5306,7 +5306,7 @@ def main():
   
   flags.DEFINE_boolean('filter_butterworth', True, '')
 #  flags.DEFINE_boolean('filter_butterworth', False, '')
-  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "0.25", '')
+  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "1.0", '')
 
 #  flags.DEFINE_boolean('filter_fft', True, '')
   flags.DEFINE_boolean('filter_fft', False, '')
