@@ -2219,8 +2219,9 @@ if True:
                     freq_step = (freqs[freq_idx] - freqs[freq_idx-1]) / 2
                   else:
                     freq_step = (freqs[freq_idx+1] - freqs[freq_idx-1]) / 4
+                  mne.set_log_level('CRITICAL')
                   raw_filtered = raw.copy().filter(l_freq=freqs[freq_idx]-freq_step, h_freq=freqs[freq_idx]+freq_step, method="iir",
-                         iir_params=dict(order=4, ftype='butter', output="ba"))
+                         iir_params=dict(order=4, ftype='butter', output="ba", verbose='CRITICAL'))
                   raw_filtered_data = raw_filtered.get_data()
 #                  print(np.log(np.average(np.square(raw_filtered_data),1)),np.average(np.square(raw_filtered_data),1),np.square(raw_filtered_data))
                   samples_cut_freq = int(gamepad_samples_cut_wave_periods * sfreq / freqs[freq_idx])
@@ -5120,7 +5121,7 @@ def main():
 #                                                 'lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, lButton8, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('joy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('joy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-  flags.DEFINE_list('gamepad_score_bands_names', [
+  flags.DEFINE_list('gamepad_score_bands_names_', [
                   [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
                   [[[['13','27'],['AF3','AF4','F3','F4']],[['8','13'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
                   [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
@@ -5143,11 +5144,13 @@ def main():
                   [[[['4','8'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
                   [[[['10','12'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
                   [[[['8','12'],['O1','Oz','O2']]]],
-                  [[[['13','27'],['C3']]],
-                   [[['13','27'],['C4']]]],#beta(C3)-beta(C4)
+                  [[[['8','12'],['C3']]],
+                   [[['8','12'],['C4']]]],#beta(C3)-beta(C4)
+#                  [[[['13','27'],['C3']]],
+#                   [[['13','27'],['C4']]]],#beta(C3)-beta(C4)
                   
                   ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
-  flags.DEFINE_list('gamepad_score_bands_names_', [
+  flags.DEFINE_list('gamepad_score_bands_names', [
 #                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
 #                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
                   [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
@@ -5256,14 +5259,14 @@ def main():
                   [[[['8','12'],['O1','Oz','O2']]]],
 #                  [[[['IAPF-2','IAPF+3'],['O1','Oz','O2']]]],
 
- #                 [[[['IAPF-2','IAPF+3'],['C4']]],
- #                  [[['IAPF-2','IAPF+3'],['C3']]]],#mu(C4)-mu(C3)
-                  [[[['IAPF+3','IAPF+17'],['C3']]],
-                   [[['IAPF+3','IAPF+17'],['C4']]]],#beta(C3)-beta(C4)
+                  [[[['IAPF-2','IAPF+3'],['C4']]],
+                   [[['IAPF-2','IAPF+3'],['C3']]]],#mu(C4)-mu(C3)
+#                  [[[['IAPF+3','IAPF+17'],['C3']]],
+#                   [[['IAPF+3','IAPF+17'],['C4']]]],#beta(C3)-beta(C4)
                   
                   ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
   flags.DEFINE_list('gamepad_iapf_band', ['7.','14.'], '')
-  flags.DEFINE_string('gamepad_epochs_baseline', '300', '')
+  flags.DEFINE_string('gamepad_epochs_baseline', '200', '')
 #  flags.DEFINE_string('gamepad_epochs_baseline', '30', '')
 
   flags.DEFINE_boolean('joy_gamepad_scores_image', True, '')
@@ -5306,7 +5309,8 @@ def main():
   
   flags.DEFINE_boolean('filter_butterworth', True, '')
 #  flags.DEFINE_boolean('filter_butterworth', False, '')
-  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "1.0", '')
+  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "2.0", '')
+#  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "1.0", '')
 
 #  flags.DEFINE_boolean('filter_fft', True, '')
   flags.DEFINE_boolean('filter_fft', False, '')
