@@ -4694,10 +4694,12 @@ def main():
 #flags.DEFINE_list('prefix', None, 'prefix')
   flags.DEFINE_string('output_path', '', 'output_path')
   flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
-  flags.DEFINE_list('ch_names', ['AF3','F3','C3','C4','F4','AF4','Fz','Cz','Fp1','F7','FC1','FC5','T7','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','T8','FC6','FC2','F8','Fp2'], 'for neurofeedback')
-#  flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'for neurofeedback')
+  #flags.DEFINE_list('ch_names', ['AF3','F3','C3','C4','F4','AF4','Fz','Cz','Fp1','F7','FC1','FC5','T7','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','T8','FC6','FC2','F8','Fp2'], 'for neurofeedback')
+  flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'for neurofeedback')
+  flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'for neurofeedback')
 #  flags.DEFINE_list('ch_names_pick', None, 'if None, uses all available')##TODO
-  flags.DEFINE_list('ch_names_pick', ['AF3','F3','C3','C4','F4','AF4','Fz','Cz','Oz','O1','O2','Pz'], 'ch_names')
+#  flags.DEFINE_list('ch_names_pick', ['AF3','F3','C3','C4','F4','AF4','Fz','Cz','Oz','O1','O2','Pz','P4','P3'], 'ch_names')
+#  flags.DEFINE_list('ch_names_pick', ['AF3','F3','C3','C4','F4','AF4','Fz','Cz','Oz','O1','O2','Pz'], 'ch_names')
 #  flags.DEFINE_list('ch_names_pick', ['AF3','F3','C3','C4','F4','AF4','Fz','Cz'], 'ch_names')
 #  flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
 #  flags.DEFINE_list('ch_names_pick', ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2'], 'ch_names')
@@ -5036,8 +5038,8 @@ def main():
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores_image', False, '')
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', True, '')
   flags.DEFINE_boolean('joy_gamepad_inverse_scores_vjoy', False, '')
-  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', True, '')
-#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', False, '')
+#  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', True, '')
+  flags.DEFINE_boolean('joy_gamepad_inverse_scores_uinput', False, '')
 #  flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', True, '')
   flags.DEFINE_boolean('show_gamepad_inverse_scores_baselined', False, '')
 #  flags.DEFINE_boolean('joy_gamepad_inverse_scores_baselined', True, '')
@@ -5110,9 +5112,23 @@ def main():
 
   flags.DEFINE_list('joy_gamepad_scores_data', [#'wAxisYRot','wAxisX',
                                                  'HB5', 'HB5', 'HB6', 'iHB6', 'iHB7', 'HB7', 'iHB8', 'iHB8', 
-                                                 'XR', 'ZR', 'Y', 'Z', 'B1', 'B2', 'B3', 'B4',
+                                                 'HiXR', 
+                                                 'HXR', 
+#                                                 'ZR', 
+#                                                 'HiY', 
+#                                                 'Z', 
+                                                 'B1', 
+                                                 'HiX', 
+                                                 'HX', 
+#                                                 'HiY', 
+                                                 'Y', 
+                                                 'B2', 
+                                                 'B3', 
+                                                 'B4',
+                                                 'ZR', 
+                                                 'Z', 
                                                  'YR', 
-                                                 'X',  
+#                                                 'X',  
                                                  ], 
                                                  'B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16, B17, XR, YR, ZR, X, Y, Z; H, i, Hi, iH')
 #  flags.DEFINE_list('joy_gamepad_scores_data', [#'wAxisYRot','wAxisX', 
@@ -5121,7 +5137,7 @@ def main():
 #                                                 'lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, lButton8, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('joy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0', 'lButton3', 'lButton4'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
 #  flags.DEFINE_list('joy_gamepad_scores_data', ['wAxisXRot', 'wAxisYRot', 'wAxisY', 'lButton0'], 'lButton0, lButton1, lButton2, lButton3, lButton4, lButton5, lButton6, lButton7, wAxisXRot, wAxisYRot, wAxisZRot, wAxisX, wAxisY, wAxisZ')
-  flags.DEFINE_list('gamepad_score_bands_names_', [
+  flags.DEFINE_list('gamepad_score_bands_names', [
                   [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
                   [[[['13','27'],['AF3','AF4','F3','F4']],[['8','13'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
                   [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
@@ -5130,27 +5146,39 @@ def main():
                   [[[['13','27'],['AF3','AF4','F3','F4']],[['8','13'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
                   [[[['8','13'],['F4']],[['13','27'],['F4']]],[[['8','13'],['F3']],[['13','27'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
                   [[[['13','27'],['AF3','AF4','F3','F4']],[['8','13'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
-                  [[[['8','13'],['C4']],[['13','28'],['C4']]],
-                   [[['8','13'],['C3']],[['13','28'],['C3']]]],#mu(C4)/beta(C4)-mu(C3)/beta(C3)
-                  [[[['12','15'],['Cz']],[['4','8'],['Cz']]],[],
-                   [[['12','15'],['Cz']],[['18','27'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)+SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-                  [[[['15','18'],['C4','C3']],[['4','8'],['C4','C3']]],[],
-                   [[['15','18'],['C4','C3']],[['18','27'],['C4','C3']]],[],
-                   [[['12','15'],['C4','C3']],[['4','8'],['C4','C3']]],[],
-                   [[['12','15'],['C4','C3']],[['18','27'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)+beta1(C4+C3)/beta2(C4+C3)+SMR(C4+C3)/theta(C4+C3)+SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-                  [[[['13','27'],['C4','C3']],[['18','27'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-                  [[[['4','8'],['Pz']],[['8','13'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
-                  [[[['12','15'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
-                  [[[['4','8'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
-                  [[[['10','12'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
+                   [[],[[['8','13'],['C4']]]],#-mu(C4)
+                   [[],[[['8','13'],['C3']]]],#-mu(C3)
+                   [[],[[['8','13'],['Cz']]]],#-mu(Cz)
+                   [[],[[['8','13'],['P4']]]],#-alpha(P4)
+                   [[],[[['8','13'],['P3']]]],#-alpha(P3)
+                   [[],[[['8','13'],['Pz']]]],#-alpha(Pz)
+                   [[],[[['8','13'],['Fz']]]],#-alpha(Fz)
+                   [[],[[['8','13'],['T7','T8']]]],#-alpha(T7+T8)
+                   [[],[[['8','13'],['P7','P8']]]],#-alpha(P7+P8)
+                   [[],[[['8','13'],['CP5','CP6']]]],#-alpha(CP5+CP6)
+                   [[],[[['8','13'],['CP1','CP2']]]],#-alpha(CP1+CP2)
+#                   [[],[[['8','13'],['P3','P4']]]],#-alpha(P3+P4)
+#                  [[[['8','13'],['C4']],[['13','28'],['C4']]],
+#                   [[['8','13'],['C3']],[['13','28'],['C3']]]],#mu(C4)/beta(C4)-mu(C3)/beta(C3)
+#                  [[[['12','15'],['Cz']],[['4','8'],['Cz']]],[],
+#                   [[['12','15'],['Cz']],[['18','27'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)+SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+#                  [[[['15','18'],['C4','C3']],[['4','8'],['C4','C3']]],[],
+#                   [[['15','18'],['C4','C3']],[['18','27'],['C4','C3']]],[],
+#                   [[['12','15'],['C4','C3']],[['4','8'],['C4','C3']]],[],
+#                   [[['12','15'],['C4','C3']],[['18','27'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)+beta1(C4+C3)/beta2(C4+C3)+SMR(C4+C3)/theta(C4+C3)+SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['13','27'],['C4','C3']],[['18','27'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+#                  [[[['4','8'],['Pz']],[['8','13'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+#                  [[[['12','15'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
+#                  [[[['4','8'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
+#                  [[[['10','12'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
                   [[[['8','12'],['O1','Oz','O2']]]],
-                  [[[['8','12'],['C3']]],
-                   [[['8','12'],['C4']]]],#beta(C3)-beta(C4)
+#                  [[[['8','12'],['C3']]],
+#                   [[['8','12'],['C4']]]],#beta(C3)-beta(C4)
 #                  [[[['13','27'],['C3']]],
 #                   [[['13','27'],['C4']]]],#beta(C3)-beta(C4)
                   
                   ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
-  flags.DEFINE_list('gamepad_score_bands_names', [
+  flags.DEFINE_list('gamepad_score_bands_names__', [
 #                  [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
 #                  [[[['IAPF+3','IAPF+17'],['AF3','AF4','F3','F4']],[['IAPF-2','IAPF+3'],['AF3','AF4','F3','F4']]]],#arousal=beta(AF3+AF4+F3+F4)/alpha(AF3+AF4+F3+F4)
                   [[[['IAPF-2','IAPF+3'],['F4']],[['IAPF+3','IAPF+17'],['F4']]],[[['IAPF-2','IAPF+3'],['F3']],[['IAPF+3','IAPF+17'],['F3']]]],#valence=alpha(F4)/beta(F4)-alpha(F3)/beta(F3)
@@ -5192,12 +5220,25 @@ def main():
 
 #                  [[[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C3)/mu(C3)
 #                  [[[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#theta(C3)/mu(C3)
-                  [[[['IAPF-2','IAPF+3'],['C4']],[['IAPF+3','IAPF+17'],['C4']]],
-                   [[['IAPF-2','IAPF+3'],['C3']],[['IAPF+3','IAPF+17'],['C3']]]],#mu(C4)/beta(C4)-mu(C3)/beta(C3)
+                   [[],[[['IAPF-2','IAPF+3'],['C4']]]],#-mu(C4)
+                   [[],[[['IAPF-2','IAPF+3'],['C3']]]],#-mu(C3)
+                   [[],[[['IAPF-2','IAPF+3'],['Cz']]]],#-mu(Cz)
+#                   [[[['IAPF-2','IAPF+3'],['P4']]],
+#                   [[['IAPF-2','IAPF+3'],['P3']]]],#mu(P4)-mu(P3)
+#                   [[[['IAPF-2','IAPF+3'],['C4']]],
+#                   [[['IAPF-2','IAPF+3'],['C3']]]],#mu(C4)-mu(C3)
+#                 [[[['IAPF-2','IAPF+3'],['C4']],[['IAPF-2','IAPF+3'],['Cz']]],
+#                   [[['IAPF-2','IAPF+3'],['C3']],[['IAPF-2','IAPF+3'],['Cz']]]],#mu(C4)/mu(Cz)-mu(C3)/mu(Cz)
+#                 [[[['IAPF-2','IAPF+3'],['C4']],[['IAPF+3','IAPF+17'],['C4']]],
+#                   [[['IAPF-2','IAPF+3'],['C3']],[['IAPF+3','IAPF+17'],['C3']]]],#mu(C4)/beta(C4)-mu(C3)/beta(C3)
+#                 [[[['IAPF-2','IAPF+3'],['C3']],[['IAPF+3','IAPF+17'],['C3']]],
+#                   [[['IAPF-2','IAPF+3'],['C4']],[['IAPF+3','IAPF+17'],['C4']]]],#mu(C3)/beta(C3)-mu(C4)/beta(C4)
 #                  [[[['IAPF+3','IAPF+17'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
 #                   [[['IAPF+3','IAPF+17'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
 #                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]],
 #                   [[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]]],#beta(C4)/mu(C4)-beta(C3)/mu(C3)+theta(C4)/mu(C4)-theta(C3)/mu(C3)
+#                   [[[['IAPF-6','IAPF-2'],['C3']],[['IAPF-2','IAPF+3'],['C3']]],
+#                   [[['IAPF-6','IAPF-2'],['C4']],[['IAPF-2','IAPF+3'],['C4']]]],#theta(C3)/mu(C3)-theta(C4)/mu(C4)
 
 #                  [[[['IAPF+8','IAPF+17'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]],[],[[['IAPF-6','IAPF-2'],['Cz']],[['IAPF+2','IAPF+5'],['Cz']]]],#beta2(Cz)/SMR(Cz)+theta(Cz)/SMR(Cz) https://doi.org/10.3389/fnins.2021.638369
 
@@ -5208,8 +5249,8 @@ def main():
 ##                  [[[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=min(beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
 ##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-4'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
 ##                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
-                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-2'],['Cz']]],[],
-                   [[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)+SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
+###                  [[[['IAPF+2','IAPF+5'],['Cz']],[['IAPF-6','IAPF-2'],['Cz']]],[],
+###                   [[['IAPF+2','IAPF+5'],['Cz']],[['IAPF+8','IAPF+17'],['Cz']]]],#attention_focusing_keep_animation_moving=max(SMR(Cz)/theta(Cz)+SMR(Cz)/beta2(Cz)) https://doi.org/10.3389/fnins.2021.638369 Paul et al., 2011
 
 ##                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 ##                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
@@ -5219,20 +5260,20 @@ def main():
 #                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 #                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 #                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-2'],['C4','C3']]],[],
-                   [[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]],[],
-                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-2'],['C4','C3']]],[],
-                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)+beta1(C4+C3)/beta2(C4+C3)+SMR(C4+C3)/theta(C4+C3)+SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+###                  [[[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF-6','IAPF-2'],['C4','C3']]],[],
+###                   [[['IAPF+5','IAPF+8'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]],[],
+###                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF-6','IAPF-2'],['C4','C3']]],[],
+###                   [[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(beta1(C4+C3)/theta(C4+C3)+beta1(C4+C3)/beta2(C4+C3)+SMR(C4+C3)/theta(C4+C3)+SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 
 ##                  [[[['IAPF+3','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 ##                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
-                  [[[['IAPF+3','IAPF+17'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
+###                  [[[['IAPF+3','IAPF+17'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_2=max(beta(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Faridnia et al., 2012
 
 #                  [[[['IAPF+2','IAPF+5'],['C4','C3']]]],#attention_focusing_visual_auditory_1=max(SMR(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
 #                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_auditory_1=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
 #                  [[[['IAPF+2','IAPF+5'],['C4','C3']],[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_visual_1=max(SMR(C4+C3)/beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
                   
-                  [[[['IAPF-6','IAPF-2'],['Pz']],[['IAPF-2','IAPF+3'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
+###                  [[[['IAPF-6','IAPF-2'],['Pz']],[['IAPF-2','IAPF+3'],['Pz']]]],#attention_focusing_visual_auditory_2=max(theta(Pz)/alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
 ##                  [[[['IAPF+8','IAPF+17'],['Pz']]]],#attention_focusing_visual_auditory_2=min(beta2(Pz)) https://doi.org/10.3389/fnins.2021.638369 Rostami et al., 2012
                   
 #                  [[[['IAPF+5','IAPF+8'],['C4','C3']]]],#attention_focusing_placing_balls=max(beta1(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
@@ -5240,7 +5281,7 @@ def main():
 #                  [[[['IAPF-6','IAPF-4'],['C4','C3']]]],#attention_focusing_placing_balls=min(theta(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
 #                  [[[['IAPF+8','IAPF+17'],['C4','C3']]]],#attention_focusing_placing_balls=min(beta2(C4+C3)) https://doi.org/10.3389/fnins.2021.638369 Mikicin et al., 2015
                   
-                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
+###                  [[[['IAPF+2','IAPF+5'],['C4','Cz','C3']]]],#attention_focusing_image_clear_music_louder=max(SMR(C4+Cz+C3)) https://doi.org/10.3389/fnins.2021.638369 Gong et al., 2020
 
 #                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
 #                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Raymond et al., 2005
@@ -5248,10 +5289,10 @@ def main():
 #                  [[[['IAPF-6','IAPF-2'],['Pz']]]],#relaxation_image_dancing=max(theta(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
 #                  [[[['IAPF-2','IAPF+3'],['Pz']]]],#relaxation_image_dancing=min(alpha(Pz)) https://doi.org/10.3389/fnins.2021.638369 Gruzelier et al., 2014
                   
-                  [[[['IAPF-6','IAPF-2'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
+###                  [[[['IAPF-6','IAPF-2'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Kao et al., 2014
                   
 ##                  [[[['IAPF-6','IAPF-4'],['Fz']]]],#monitoring_golf_putting_task=min(theta(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
-                  [[[['IAPF+0','IAPF+2'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
+###                  [[[['IAPF+0','IAPF+2'],['Fz']]]],#monitoring_golf_putting_task=min(high_alpha(Fz)) https://doi.org/10.3389/fnins.2021.638369 Ring et al., 2015
 
                   
 #                  [[[['IAPF+2','IAPF+5'],['Cz']]]],#monitoring_golf_putting_task=max(SMR(Cz)) https://doi.org/10.3389/fnins.2021.638369 Cheng et al., 2015a
@@ -5259,22 +5300,22 @@ def main():
                   [[[['8','12'],['O1','Oz','O2']]]],
 #                  [[[['IAPF-2','IAPF+3'],['O1','Oz','O2']]]],
 
-                  [[[['IAPF-2','IAPF+3'],['C4']]],
-                   [[['IAPF-2','IAPF+3'],['C3']]]],#mu(C4)-mu(C3)
+###                  [[[['IAPF-2','IAPF+3'],['C4']]],
+###                   [[['IAPF-2','IAPF+3'],['C3']]]],#mu(C4)-mu(C3)
 #                  [[[['IAPF+3','IAPF+17'],['C3']]],
 #                   [[['IAPF+3','IAPF+17'],['C4']]]],#beta(C3)-beta(C4)
                   
                   ], 'band_regions0/band_regions1-band_regions2/band_regions3+band_regions4/band_regions5-band_regions6/band_regions7+...')
   flags.DEFINE_list('gamepad_iapf_band', ['7.','14.'], '')
-  flags.DEFINE_string('gamepad_epochs_baseline', '200', '')
+  flags.DEFINE_string('gamepad_epochs_baseline', '300', '')
 #  flags.DEFINE_string('gamepad_epochs_baseline', '30', '')
 
   flags.DEFINE_boolean('joy_gamepad_scores_image', True, '')
 #  flags.DEFINE_boolean('joy_gamepad_scores_image', False, '')
-#  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', True, '')
-  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', False, '')
-  flags.DEFINE_boolean('joy_gamepad_scores_uinput', True, '')
-#  flags.DEFINE_boolean('joy_gamepad_scores_uinput', False, '')
+  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', True, '')
+#  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', False, '')
+#  flags.DEFINE_boolean('joy_gamepad_scores_uinput', True, '')
+  flags.DEFINE_boolean('joy_gamepad_scores_uinput', False, '')
 
 
 #  flags.DEFINE_boolean('gamepad_scores_reliability', True, '')
@@ -5309,8 +5350,8 @@ def main():
   
   flags.DEFINE_boolean('filter_butterworth', True, '')
 #  flags.DEFINE_boolean('filter_butterworth', False, '')
-  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "2.0", '')
-#  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "1.0", '')
+#  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "2.0", '')
+  flags.DEFINE_string('gamepad_samples_cut_wave_periods', "1.0", '')
 
 #  flags.DEFINE_boolean('filter_fft', True, '')
   flags.DEFINE_boolean('filter_fft', False, '')
