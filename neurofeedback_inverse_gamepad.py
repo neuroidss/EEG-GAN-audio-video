@@ -3,25 +3,32 @@
 #!pip install mne mne_connectivity -U
 #!pip install pyvistaqt PyQt5 darkdetect qdarkstyle
 #!pip install ray
-#!pip install imageio-ffmpeg nibabel
+#!pip install imageio imageio-ffmpeg nibabel
 #!pip install pylsl python-osc pyopengl
+#win: !pip install pyvjoy
+#linux: !pip install python-uinput
 
-
-import ray
+#import ray
 
 import time
-from cupy._manipulation.add_remove import append
+#cuda#from cupy._manipulation.add_remove import append
 from numpy import average
 start = time.time()
+
+#import multiprocessing as mp
+import multiprocess as mp
+#from multiprocessing import Process
+#from multiprocessing import Pool
+pool = mp.Pool()
 
 #import asyncio
 
 #ray.init(object_store_memory=10**9)
 #ray.init()
 
-from pprint import pprint
-ray.init()
-pprint(ray.nodes())
+#from pprint import pprint
+#ray.init()
+#pprint(ray.nodes())
 #report_time = time.time()
 
 #while True:
@@ -37,7 +44,7 @@ pprint(ray.nodes())
 #@ray.remote(resources={"FreeEEG32-beta": 1})
 #def worker_brainflow():
 
-@ray.remote(resources={"FreeEEG32-beta": 1}, num_cpus=2)
+#@ray.remote(resources={"FreeEEG32-beta": 1}, num_cpus=2)
 class Worker_brainflow_freeeeg32_beta_board(object):
 
   def __init__(self, serial_port):
@@ -426,7 +433,7 @@ def __smooth_plot(this_time, params):
 if True:
 
 #    @ray.remote(resources={"FreeEEG32-beta": 1})
-    @ray.remote
+#    @ray.remote
 #    def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
     def worker_gamepad_inverse_peaks(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps, ji_fps, 
                                      raws, label, overlap, score_bands_names, epochs_baseline, iapf_band, joy_gamepad_inverse_psd, 
@@ -1765,7 +1772,7 @@ if True:
 
     # Define a remote function which loops around and pushes
     # messages to the actor.
-    @ray.remote
+#    @ray.remote
 #    def worker_(message_actor, epochs, fwd, labels_parc, video_out, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps):
     def worker_inverse_circle_cons(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps, ji_fps):
         out_shows_ji_images=[]
@@ -2026,7 +2033,7 @@ if True:
 
 
 #    @ray.remote(resources={"FreeEEG32-beta": 1}, max_calls=1)
-    @ray.remote
+#    @ray.remote
     def worker_gamepad_peaks(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps, score_bands_names, 
                              epochs_baseline, iapf_band, joy_gamepad_psd, show_gamepad_scores, show_gamepad_scores_baselined, label_names, sfreq, ch_names_pick, raws_hstack_cut, overlap, 
                              joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, 
@@ -3122,12 +3129,14 @@ if True:
 
 
 
-if True:
-    @ray.remote
+#if True:
+if False:
+#    @ray.remote
     def worker_stylegan3_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, G3ms):
         if show_stylegan3_cons:
           import torch
-    @ray.remote
+if True:
+#    @ray.remote
     def worker_cons(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps):
         out_shows_ji_images=[]
         import mne
@@ -4593,8 +4602,9 @@ if False:
 
 
 
-if True:
-    @ray.remote
+if False:
+#if True:
+#    @ray.remote
     class MessageActor_(object):
         def __init__(self):
             self.messages = []
@@ -5312,10 +5322,10 @@ def main():
 
   flags.DEFINE_boolean('joy_gamepad_scores_image', True, '')
 #  flags.DEFINE_boolean('joy_gamepad_scores_image', False, '')
-  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', True, '')
-#  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', False, '')
-#  flags.DEFINE_boolean('joy_gamepad_scores_uinput', True, '')
-  flags.DEFINE_boolean('joy_gamepad_scores_uinput', False, '')
+#  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', True, '')
+  flags.DEFINE_boolean('joy_gamepad_scores_vjoy', False, '')
+  flags.DEFINE_boolean('joy_gamepad_scores_uinput', True, '')
+#  flags.DEFINE_boolean('joy_gamepad_scores_uinput', False, '')
 
 
 #  flags.DEFINE_boolean('gamepad_scores_reliability', True, '')
@@ -5328,10 +5338,10 @@ def main():
 #  flags.DEFINE_boolean('remote_brainflow', True, '')
   flags.DEFINE_boolean('remote_brainflow', False, '')
 
-#  flags.DEFINE_boolean('from_brainflow', True, '')
-  flags.DEFINE_boolean('from_brainflow', False, '')
-  flags.DEFINE_boolean('from_lsl', True, '')
-#  flags.DEFINE_boolean('from_lsl', False, '')
+  flags.DEFINE_boolean('from_brainflow', True, '')
+#  flags.DEFINE_boolean('from_brainflow', False, '')
+#  flags.DEFINE_boolean('from_lsl', True, '')
+  flags.DEFINE_boolean('from_lsl', False, '')
 #  flags.DEFINE_boolean('to_lsl', True, '')
   flags.DEFINE_boolean('to_lsl', False, '')
   flags.DEFINE_boolean('to_bdf', True, '')
@@ -5731,16 +5741,16 @@ def main():
     n_jobs=FLAGS.n_jobs
 
   if FLAGS.cuda_jobs:
-    mne.utils.set_config('MNE_USE_CUDA', 'true')
-    mne.cuda.init_cuda(verbose=True)
+#cuda#    mne.utils.set_config('MNE_USE_CUDA', 'true')
+#cuda#    mne.cuda.init_cuda(verbose=True)
   
-    from mne.cuda import _cuda_capable
+#cuda#    from mne.cuda import _cuda_capable
   
 #  print(mne.get_config())
 #  global _cuda_capable
-    if _cuda_capable:
-      cuda_jobs='cuda'
-    else:
+#cuda#    if _cuda_capable:
+#cuda#      cuda_jobs='cuda'
+#cuda#    else:
       cuda_jobs=n_jobs
   else:
     cuda_jobs=n_jobs
@@ -7475,7 +7485,8 @@ def main():
     game_user_stddev_compare_with_possible_cards=np.zeros((game_max_user_cards, dim_sg2))
 
 
-  if show_stylegan3_cons or show_game_cons:
+  if False:
+#  if show_stylegan3_cons or show_game_cons:
 
     sg3_models=0
 
@@ -7637,7 +7648,8 @@ def main():
 #        beta_schedule='scaled_linear', num_train_timesteps=1000
 #    )
   
-  if show_game_cons:
+  if False:
+#  if show_game_cons:
     canvas5a=[{}]*len(files_path)
     screen5a=[{}]*len(files_path)
     for i in range(len(files_path)):
@@ -7650,7 +7662,8 @@ def main():
   #import logging
   #import pandas as pd
 
-  if show_stable_diffusion_cons:
+  if False:
+#  if show_stable_diffusion_cons:
   
    if False:
      import cv2
@@ -8179,7 +8192,8 @@ def main():
   #          bdf.writeAnnotation(onset, duration, description)  # meta is lost
 #  bdf.close()
 
-  if show_stable_diffusion_cons:
+  if False:
+#  if show_stable_diffusion_cons:
    latents = unet_latents.detach().clone()
    latents = latents.to(device)
    num_inference_steps=int(FLAGS.num_inference_steps)
@@ -8237,60 +8251,61 @@ def main():
         ready_shows_ids = []
         ready_ji_ids = []
         ji0=-1
-        rotate_id = ray.put(FLAGS.rotate)
-        cons_id = ray.put(cons)
+        #rotate_id = ray.put(FLAGS.rotate)
+        rotate = FLAGS.rotate
+        #cons_id = ray.put(cons)
         
         epochs_ids = []
         raws_ids = []
 
-        duration_id = ray.put(duration)
-        cohs_tril_indices_id = ray.put(cohs_tril_indices)
+        #duration_id = ray.put(duration)
+        #cohs_tril_indices_id = ray.put(cohs_tril_indices)
         
-        gamepad_epochs_baseline_id = ray.put(gamepad_epochs_baseline)
-        gamepad_iapf_band_id = ray.put(gamepad_iapf_band)
+        #gamepad_epochs_baseline_id = ray.put(gamepad_epochs_baseline)
+        #gamepad_iapf_band_id = ray.put(gamepad_iapf_band)
         
-        joy_gamepad_psd_id = ray.put(joy_gamepad_psd)
-        show_gamepad_scores_id = ray.put(show_gamepad_scores)
+        #joy_gamepad_psd_id = ray.put(joy_gamepad_psd)
+        #show_gamepad_scores_id = ray.put(show_gamepad_scores)
 
-        gamepad_score_bands_names_id = ray.put(gamepad_score_bands_names)
-        show_gamepad_scores_baselined_id = ray.put(show_gamepad_scores_baselined)
-        joy_gamepad_scores_baselined_id = ray.put(joy_gamepad_scores_baselined)
-        joy_gamepad_scores_data_id = ray.put(joy_gamepad_scores_data)
+        #gamepad_score_bands_names_id = ray.put(gamepad_score_bands_names)
+        #show_gamepad_scores_baselined_id = ray.put(show_gamepad_scores_baselined)
+        #joy_gamepad_scores_baselined_id = ray.put(joy_gamepad_scores_baselined)
+        #joy_gamepad_scores_data_id = ray.put(joy_gamepad_scores_data)
 
-        gamepad_inverse_score_bands_names_id = ray.put(gamepad_inverse_score_bands_names)
-        show_gamepad_inverse_scores_baselined_id = ray.put(show_gamepad_inverse_scores_baselined)
-        joy_gamepad_inverse_scores_baselined_id = ray.put(joy_gamepad_inverse_scores_baselined)
-        joy_gamepad_inverse_scores_data_id = ray.put(joy_gamepad_inverse_scores_data)
+        #gamepad_inverse_score_bands_names_id = ray.put(gamepad_inverse_score_bands_names)
+        #show_gamepad_inverse_scores_baselined_id = ray.put(show_gamepad_inverse_scores_baselined)
+        #joy_gamepad_inverse_scores_baselined_id = ray.put(joy_gamepad_inverse_scores_baselined)
+        #joy_gamepad_inverse_scores_data_id = ray.put(joy_gamepad_inverse_scores_data)
 
-        label_names_id = ray.put(label_names)
+        #label_names_id = ray.put(label_names)
 
-        cuda_jobs_id = ray.put(cuda_jobs)
-        n_jobs_id = ray.put(n_jobs)
-        bands_id = ray.put(bands)
-        methods_id = ray.put(methods)
-        input_fname_name_id = ray.put(input_fname_name)
-        vmin_id = ray.put(vmin)
-        from_bdf_id = ray.put(from_bdf)
-        fps_id = ray.put(fps)
-  if show_inverse_3d or show_inverse_circle_cons or show_gamepad_inverse_peaks:
-        overlap_id = ray.put(overlap)
-        fwd_id = ray.put(fwd)
-        labels_parc_id = ray.put(labels_parc)
-        label_id = ray.put(label)
-        inv_method_id = ray.put(inv_method)
-        lambda2_id = ray.put(lambda2)
-        subject_id = ray.put(subject)
-        subjects_dir_id = ray.put(subjects_dir)
+        #cuda_jobs_id = ray.put(cuda_jobs)
+        #n_jobs_id = ray.put(n_jobs)
+        #bands_id = ray.put(bands)
+        #methods_id = ray.put(methods)
+        #input_fname_name_id = ray.put(input_fname_name)
+        #vmin_id = ray.put(vmin)
+        #from_bdf_id = ray.put(from_bdf)
+        #fps_id = ray.put(fps)
+  #if show_inverse_3d or show_inverse_circle_cons or show_gamepad_inverse_peaks:
+        #overlap_id = ray.put(overlap)
+        #fwd_id = ray.put(fwd)
+        #labels_parc_id = ray.put(labels_parc)
+        #label_id = ray.put(label)
+        #inv_method_id = ray.put(inv_method)
+        #lambda2_id = ray.put(lambda2)
+        #subject_id = ray.put(subject)
+        #subjects_dir_id = ray.put(subjects_dir)
         
-        gamepad_inverse_score_bands_names_id = ray.put(gamepad_inverse_score_bands_names)
-        gamepad_inverse_epochs_baseline_id = ray.put(gamepad_inverse_epochs_baseline)
-        gamepad_inverse_iapf_band_id = ray.put(gamepad_inverse_iapf_band)
-        joy_gamepad_inverse_psd_id = ray.put(joy_gamepad_inverse_psd)
-        show_gamepad_inverse_scores_id = ray.put(show_gamepad_inverse_scores)
-        show_gamepad_inverse_scores_baselined_id = ray.put(show_gamepad_inverse_scores_baselined)
-        joy_gamepad_inverse_scores_baselined_id = ray.put(joy_gamepad_inverse_scores_baselined)
-        joy_gamepad_inverse_scores_data_id = ray.put(joy_gamepad_inverse_scores_data)
-        epochs_inverse_cov_id = ray.put(epochs_inverse_cov)
+        #gamepad_inverse_score_bands_names_id = ray.put(gamepad_inverse_score_bands_names)
+        #gamepad_inverse_epochs_baseline_id = ray.put(gamepad_inverse_epochs_baseline)
+        #gamepad_inverse_iapf_band_id = ray.put(gamepad_inverse_iapf_band)
+        #joy_gamepad_inverse_psd_id = ray.put(joy_gamepad_inverse_psd)
+        #show_gamepad_inverse_scores_id = ray.put(show_gamepad_inverse_scores)
+        #show_gamepad_inverse_scores_baselined_id = ray.put(show_gamepad_inverse_scores_baselined)
+        #joy_gamepad_inverse_scores_baselined_id = ray.put(joy_gamepad_inverse_scores_baselined)
+        #joy_gamepad_inverse_scores_data_id = ray.put(joy_gamepad_inverse_scores_data)
+        #epochs_inverse_cov_id = ray.put(epochs_inverse_cov)
         
   start = time.time()
   times = []
@@ -8339,11 +8354,11 @@ def main():
 #         print('eeg_data:', eeg_data)
 
       if FLAGS.from_brainflow:
-        if FLAGS.remote_brainflow:
-          data_ref = worker_brainflow_freeeeg32_beta_board.get_board_data.remote()
-          data = ray.get(data_ref)
-        else:
-          data = board.get_board_data()
+#        if FLAGS.remote_brainflow:
+ #         data_ref = worker_brainflow_freeeeg32_beta_board.get_board_data.remote()
+ #         data = ray.get(data_ref)
+ #       else:
+        data = board.get_board_data()
       
             #eeg_data.append(data[eeg_channels,:].T)
         eeg_data = data[eeg_channels, :]
@@ -8612,18 +8627,18 @@ def main():
       epochs_id = None
 #      raws_ndarray = np.asarray(raws)
 #      raws_id = ray.put(raws_ndarray)
-      ch_names_pick_id = ray.put(ch_names_pick)
+#      ch_names_pick_id = ray.put(ch_names_pick)
 #      print('raws_hstack_cut.dtype:',raws_hstack_cut.dtype)
       raws_hstack_cut_ndarray = np.asarray(raws_hstack_cut, dtype=np.float64)
-      raws_hstack_cut_id = ray.put(raws_hstack_cut_ndarray)
-      overlap_id = ray.put(overlap)
+#      raws_hstack_cut_id = ray.put(raws_hstack_cut_ndarray)
+#      overlap_id = ray.put(overlap)
 #      epochs_id = ray.put(raws_hstack_cut_ndarray)
       
 #      raws_id = ray.put(datas)
 #      del epochs_ndarray
 #      del raws_ndarray
 #      sfreq = epochs[0].info['sfreq']
-      sfreq_id = ray.put(sfreq)
+#      sfreq_id = ray.put(sfreq)
 
       del epochs
       del datas
@@ -8654,67 +8669,112 @@ def main():
 #        wrapper_.remote(actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji)
 #        worker_.remote(actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps)
 #        worker_.remote(message_actor_, epochs_id, fwd_id, labels_parc_id, video_out_id, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, subjects_dir, from_bdf, fps)
-        ji_id = ray.put(ji)
+#        ji_id = ray.put(ji)
         if from_bdf is None:
 #          ji_fps_id = ray.put(ji0/fps)
           ji_fps = time.time() - start
         else:
           ji_fps = ji/fps
-        ji_fps_id = ray.put(ji_fps)
-        if show_stylegan3_cons or show_game_cons:
-          G3ms_id = ray.put(G3ms)
+ #       ji_fps_id = ray.put(ji_fps)
+ #       if show_stylegan3_cons or show_game_cons:
+ #         G3ms_id = ray.put(G3ms)
 
         if show_gamepad_inverse_peaks:
-          epochs_id = None
-          raws_id = None
+#          epochs_id = None
+#          raws_id = None
+          epochs = None
+          raws = None
 #          duration_id = ray.put(duration)
 #          cohs_tril_indices_id = ray.put(cohs_tril_indices)
 #          object_ref = worker_gamepad_inverse_peaks.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id, raws_id, label_id, overlap_id)
-          object_ref = worker_gamepad_inverse_peaks.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, 
-                                                           input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id, raws_id, label_id, overlap_id, 
-                                                           gamepad_inverse_score_bands_names_id, gamepad_inverse_epochs_baseline_id, gamepad_inverse_iapf_band_id, joy_gamepad_inverse_psd_id, 
-                                                           show_gamepad_inverse_scores_id, show_gamepad_inverse_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, 
-                                                           raws_hstack_cut_id, joy_gamepad_inverse_scores_baselined_id, joy_gamepad_inverse_scores_data_id, duration_id, 
-                                                           epochs_inverse_cov_id, show_gamepad_inverse_peaks_stc_psd, show_gamepad_inverse_peaks_sensor_psd, 
+#          object_ref = worker_gamepad_inverse_peaks.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, 
+#                                                           input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id, raws_id, label_id, overlap_id, 
+#                                                           gamepad_inverse_score_bands_names_id, gamepad_inverse_epochs_baseline_id, gamepad_inverse_iapf_band_id, joy_gamepad_inverse_psd_id, 
+#                                                           show_gamepad_inverse_scores_id, show_gamepad_inverse_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, 
+#                                                           raws_hstack_cut_id, joy_gamepad_inverse_scores_baselined_id, joy_gamepad_inverse_scores_data_id, duration_id, 
+#                                                           epochs_inverse_cov_id, show_gamepad_inverse_peaks_stc_psd, show_gamepad_inverse_peaks_sensor_psd, 
+#                                                           show_gamepad_inverse_peaks_sensor_iapf, show_gamepad_inverse_peaks_stc_iapf, show_gamepad_inverse_peaks_stc_iapf_circle_cons, 
+#                                                           show_circle_iapf_cons_multiply, gamepad_inverse_peaks_indices0, gamepad_inverse_peaks_indices1, 
+#                                                           gamepad_inverse_peaks_frequency_average, mon, epochs_inverse_con, show_inverse_peaks_circle_cons_colors, inverse_parc, 
+#                                                           shows_inverse_circle, joy_gamepad_inverse_scores)
+#          object_ref = Process(target=worker_gamepad_inverse_peaks, args=(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, 
+#                                                           input_fname_name, vmin, subject, subjects_dir, from_bdf, fps, ji_fps, raws, label, overlap, 
+#                                                           gamepad_inverse_score_bands_names, gamepad_inverse_epochs_baseline, gamepad_inverse_iapf_band, joy_gamepad_inverse_psd, 
+#                                                           show_gamepad_inverse_scores, show_gamepad_inverse_scores_baselined, label_names, sfreq, ch_names_pick, 
+#                                                           raws_hstack_cut, joy_gamepad_inverse_scores_baselined, joy_gamepad_inverse_scores_data, duration, 
+#                                                           epochs_inverse_cov, show_gamepad_inverse_peaks_stc_psd, show_gamepad_inverse_peaks_sensor_psd, 
+#                                                           show_gamepad_inverse_peaks_sensor_iapf, show_gamepad_inverse_peaks_stc_iapf, show_gamepad_inverse_peaks_stc_iapf_circle_cons, 
+#                                                           show_circle_iapf_cons_multiply, gamepad_inverse_peaks_indices0, gamepad_inverse_peaks_indices1, 
+#                                                           gamepad_inverse_peaks_frequency_average, mon, epochs_inverse_con, show_inverse_peaks_circle_cons_colors, inverse_parc, 
+#                                                           shows_inverse_circle, joy_gamepad_inverse_scores))
+          object_ref = pool.apply_async(worker_gamepad_inverse_peaks, (epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, 
+                                                           input_fname_name, vmin, subject, subjects_dir, from_bdf, fps, ji_fps, raws, label, overlap, 
+                                                           gamepad_inverse_score_bands_names, gamepad_inverse_epochs_baseline, gamepad_inverse_iapf_band, joy_gamepad_inverse_psd, 
+                                                           show_gamepad_inverse_scores, show_gamepad_inverse_scores_baselined, label_names, sfreq, ch_names_pick, 
+                                                           raws_hstack_cut, joy_gamepad_inverse_scores_baselined, joy_gamepad_inverse_scores_data, duration, 
+                                                           epochs_inverse_cov, show_gamepad_inverse_peaks_stc_psd, show_gamepad_inverse_peaks_sensor_psd, 
                                                            show_gamepad_inverse_peaks_sensor_iapf, show_gamepad_inverse_peaks_stc_iapf, show_gamepad_inverse_peaks_stc_iapf_circle_cons, 
                                                            show_circle_iapf_cons_multiply, gamepad_inverse_peaks_indices0, gamepad_inverse_peaks_indices1, 
                                                            gamepad_inverse_peaks_frequency_average, mon, epochs_inverse_con, show_inverse_peaks_circle_cons_colors, inverse_parc, 
-                                                           shows_inverse_circle, joy_gamepad_inverse_scores)
+                                                           shows_inverse_circle, joy_gamepad_inverse_scores))
           shows_ids.append(shows_gamepad_inverse_peaks)
           ji_ids.append(ji0)
           object_refs.append(object_ref)
 
         if show_gamepad_peaks:
 #          object_ref = worker_gamepad_peaks.remote(epochs_ids[len(epochs_ids)-1], ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id, score_bands_names_id, epochs_baseline_id, iapf_band_id, joy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id)
-          epochs_id = None
-          object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, 
-                                                   duration_id, cohs_tril_indices_id, ji_fps_id, gamepad_score_bands_names_id, gamepad_epochs_baseline_id, gamepad_iapf_band_id, 
-                                                   joy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, 
-                                                   raws_hstack_cut_id, overlap_id, joy_gamepad_scores_baselined_id, joy_gamepad_scores_data_id, joy_gamepad_scores, 
+#          epochs_id = None
+          epochs = None
+#          object_ref = worker_gamepad_peaks.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, 
+#                                                   duration_id, cohs_tril_indices_id, ji_fps_id, gamepad_score_bands_names_id, gamepad_epochs_baseline_id, gamepad_iapf_band_id, 
+#                                                   joy_gamepad_psd_id, show_gamepad_scores_id, show_gamepad_scores_baselined_id, label_names_id, sfreq_id, ch_names_pick_id, 
+#                                                   raws_hstack_cut_id, overlap_id, joy_gamepad_scores_baselined_id, joy_gamepad_scores_data_id, joy_gamepad_scores, 
+#                                                   show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, gamepad_scores_reliability_value,
+#                                                   filter_butterworth, gamepad_samples_cut_wave_periods)
+#          object_ref = Process(target=worker_gamepad_peaks, args=(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, 
+#                                                   duration, cohs_tril_indices, ji_fps, gamepad_score_bands_names, gamepad_epochs_baseline, gamepad_iapf_band, 
+#                                                   joy_gamepad_psd, show_gamepad_scores, show_gamepad_scores_baselined, label_names, sfreq, ch_names_pick, 
+#                                                   raws_hstack_cut_ndarray, overlap, joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, 
+#                                                   show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, gamepad_scores_reliability_value,
+#                                                   filter_butterworth, gamepad_samples_cut_wave_periods))
+          object_ref = pool.apply_async(worker_gamepad_peaks, (epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, 
+                                                   duration, cohs_tril_indices, ji_fps, gamepad_score_bands_names, gamepad_epochs_baseline, gamepad_iapf_band, 
+                                                   joy_gamepad_psd, show_gamepad_scores, show_gamepad_scores_baselined, label_names, sfreq, ch_names_pick, 
+                                                   raws_hstack_cut_ndarray, overlap, joy_gamepad_scores_baselined, joy_gamepad_scores_data, joy_gamepad_scores, 
                                                    show_gamepad_peaks_sensor_psd, mon, gamepad_scores_reliability, gamepad_scores_reliability_value,
-                                                   filter_butterworth, gamepad_samples_cut_wave_periods)
-          del epochs_id
+                                                   filter_butterworth, gamepad_samples_cut_wave_periods))
+
+#          del epochs_id
           shows_ids.append(shows_gamepad_peaks)
           ji_ids.append(ji0)
           object_refs.append(object_ref)
         
 #        if show_inverse_3d or show_inverse_circle_cons:
         if show_inverse_circle_cons:
-          object_ref = worker_inverse_circle_cons.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id)
+#          object_ref = worker_inverse_circle_cons.remote(epochs_id, fwd_id, labels_parc_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, inv_method_id, lambda2_id, input_fname_name_id, vmin_id, subject_id, subjects_dir_id, from_bdf_id, fps_id, ji_fps_id)
+#          object_ref = Process(target=worker_inverse_circle_cons, args=(epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, 
+#                                                                        subjects_dir, from_bdf, fps, ji_fps))
+          object_ref = pool.apply_async(worker_inverse_circle_cons, (epochs, fwd, labels_parc, ji, cuda_jobs, n_jobs, bands, methods, inv_method, lambda2, input_fname_name, vmin, subject, 
+                                                                        subjects_dir, from_bdf, fps, ji_fps))
           shows_ids.append(shows_inverse_circle)
           ji_ids.append(ji0)
           object_refs.append(object_ref)
         if show_circle_cons or show_spectrum_cons or sound_cons or show_stable_diffusion_cons or show_stylegan3_cons or show_game_cons:
-          duration_id = ray.put(duration)
-          cohs_tril_indices_id = ray.put(cohs_tril_indices)
+#          duration_id = ray.put(duration)
+#          cohs_tril_indices_id = ray.put(cohs_tril_indices)
 #        if show_circle_cons:
-          object_ref = worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id)
+#          object_ref = worker_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, duration_id, cohs_tril_indices_id, ji_fps_id)
+#          object_ref = Process(target=worker_cons, args=(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps))
+          object_ref = pool.apply_async(worker_cons, (epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, duration, cohs_tril_indices, ji_fps))
           shows_ids.append(shows_circle)
           ji_ids.append(ji0)
           object_refs.append(object_ref)
         if show_stylegan3_cons or show_game_cons:
 #        if show_circle_cons:
-          object_ref = worker_stylegan3_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, G3ms_id)
+#          object_ref = worker_stylegan3_cons.remote(epochs_id, ji_id, cuda_jobs_id, n_jobs_id, bands_id, methods_id, input_fname_name_id, vmin_id, from_bdf_id, fps_id, rotate_id, cons_id, G3ms_id)
+#          object_ref = Process(target=worker_stylegan3_cons, args=(epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, G3ms))
+          object_ref = pool.apply_async(worker_stylegan3_cons, (epochs, ji, cuda_jobs, n_jobs, bands, methods, input_fname_name, vmin, from_bdf, fps, rotate, cons, G3ms))
+          
           shows_ids.append(shows_stylegan3)
           ji_ids.append(ji0)
           object_refs.append(object_ref)
@@ -8727,7 +8787,14 @@ def main():
 #  if False:
         remaining_refs = [{}]*(ray_max_remaining_refs+1)
         while len(remaining_refs)>ray_max_remaining_refs:
-          ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+#          ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+          ready_refs = []
+          remaining_refs = []
+          for object_ref in object_refs:
+            if object_ref.ready():
+                ready_refs.append(object_ref)
+            else:
+                remaining_refs.append(object_ref)
 #        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
         print("len(ready_refs), len(remaining_refs):", len(ready_refs), len(remaining_refs))
         
@@ -8741,7 +8808,8 @@ def main():
 #        score_norms=[0,0,0]
 #        score_shifts=[0,0,0]
         for ready_ref in ready_refs:
-          message = ray.get(ready_ref)
+#          message = ray.get(ready_ref)
+          message = ready_ref.get()
           if not(message is None):
             ready_id = object_refs.index(ready_ref)
             ready_shows_ids.append(shows_ids[ready_id])
@@ -9055,14 +9123,22 @@ def main():
      auto_garbage_collect()
 
    if (len(object_refs)>0) or (len(ready_images)>0):
-        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+#        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+        ready_refs = []
+        remaining_refs = []
+        for object_ref in object_refs:
+            if object_ref.ready():
+                ready_refs.append(object_ref)
+            else:
+                remaining_refs.append(object_ref)
 #        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
 
 #        new_images = []
 #        new_shows_ids = []
 #        new_ji_ids = []
         for ready_ref in ready_refs:
-          message = ray.get(ready_ref)
+#          message = ray.get(ready_ref)
+          message = ready_ref.get()
 #          free(ready_refs[ready_ref_idx])
           if not(message is None):
 #            print('message:', message)
@@ -9349,14 +9425,22 @@ def main():
 #        print("New messages len:", len(new_messages))
 
   while (len(object_refs)>0) or (len(ready_images)>0):
-        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+#        ready_refs, remaining_refs = ray.wait(object_refs, num_returns=len(object_refs), fetch_local=False, timeout=0.000001)#None)
+        ready_refs = []
+        remaining_refs = []
+        for object_ref in object_refs:
+            if object_ref.ready():
+                ready_refs.append(object_ref)
+            else:
+                remaining_refs.append(object_ref)
 #        print("ready_refs, remaining_refs:", ready_refs, remaining_refs)
 
 #        new_images = []
 #        new_shows_ids = []
 #        new_ji_ids = []
         for ready_ref in ready_refs:
-          message = ray.get(ready_ref)
+#          message = ray.get(ready_ref)
+          message = ready_ref.get()
 #          free(ready_refs[ready_ref_idx])
           if not(message is None):
 #            print('message:', message)
@@ -9644,12 +9728,15 @@ def main():
   print("duration without startup = ", time.time() - start)
   print("duration with startup = ", time.time() - start_0)
 
+if __name__ == '__main__':
+    mp.freeze_support()
+    main ()
 #asyncio.run(
-main()
+#main()
 #)
 
-if False:    
-  cv2.destroyAllWindows()
+    if False:    
+      cv2.destroyAllWindows()
   
 #print("duration with startup = ", time.time() - start)
   
