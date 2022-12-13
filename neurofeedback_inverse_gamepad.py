@@ -7,6 +7,10 @@
 #!pip install pylsl python-osc pyopengl
 #win: !pip install pyvjoy
 #linux: !pip install python-uinput
+#!pip install multiprocess
+#!pip install wheel
+#!pip install pyyaml
+#!pip install psutil
 
 #import ray
 
@@ -5338,10 +5342,10 @@ def main():
 #  flags.DEFINE_boolean('remote_brainflow', True, '')
   flags.DEFINE_boolean('remote_brainflow', False, '')
 
-  flags.DEFINE_boolean('from_brainflow', True, '')
-#  flags.DEFINE_boolean('from_brainflow', False, '')
-#  flags.DEFINE_boolean('from_lsl', True, '')
-  flags.DEFINE_boolean('from_lsl', False, '')
+#  flags.DEFINE_boolean('from_brainflow', True, '')
+  flags.DEFINE_boolean('from_brainflow', False, '')
+  flags.DEFINE_boolean('from_lsl', True, '')
+#  flags.DEFINE_boolean('from_lsl', False, '')
 #  flags.DEFINE_boolean('to_lsl', True, '')
   flags.DEFINE_boolean('to_lsl', False, '')
   flags.DEFINE_boolean('to_bdf', True, '')
@@ -5373,6 +5377,22 @@ def main():
   print(FLAGS)
 
   if FLAGS.help:
+    exit()
+
+  if False:
+    from yaml import load, dump
+    try:
+      from yaml import CLoader as Loader, CDumper as Dumper
+    except ImportError:
+      from yaml import Loader, Dumper
+
+    stream = open('freeeeg32.yaml', 'r')
+
+    data = load(stream, Loader=Loader)
+
+    output = dump(data, Dumper=Dumper)
+
+    print(output)
     exit()
     
   gamepad_samples_cut_wave_periods = float(FLAGS.gamepad_samples_cut_wave_periods)
