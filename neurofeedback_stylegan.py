@@ -54,16 +54,18 @@ flags.DEFINE_boolean('debug', False, 'debug')
 #flags.DEFINE_string('input_name', '5min_experienced_meditator_unfiltered_signals', 'input')
 #flags.DEFINE_string('input_name', 'neurofeedback', 'input')
 flags.DEFINE_string('input_name', None, 'input: if None, will be neurofeedback or file name')
-flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
+flags.DEFINE_string('serial_port', '/dev/ttyS22', 'serial_port')
+#flags.DEFINE_string('serial_port', '/dev/ttyS20', 'serial_port')
+#flags.DEFINE_string('serial_port', '/dev/ttyACM0', 'serial_port')
 #flags.DEFINE_list('prefix', None, 'prefix')
 flags.DEFINE_string('output_path', '', 'output_path')
 flags.DEFINE_string('output', None, 'output: if None, used: output_path+input_name+"-%Y.%m.%d-%H.%M.%S.bdf"')
 flags.DEFINE_list('ch_names', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Fz','Cz','Pz','Oz','Fp1','Fp2','F3','F4','F7','F8','C3','C4','T7','T8','P3','P4','P7','P8','O1','O2'], 'ch_names')
-#flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
+flags.DEFINE_list('ch_names_pick', ['Cz','Fz','Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','Fp2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T3', 'C3', 'C4', 'T4', 'T5', 'P3', 'Pz', 'P4', 'T6', 'O1', 'O2'], 'ch_names')
-flags.DEFINE_list('ch_names_pick', ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'C3', 'C4',  'P3', 'Pz', 'P4', 'O1', 'O2'], 'ch_names')
+#flags.DEFINE_list('ch_names_pick', ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'C3', 'C4',  'P3', 'Pz', 'P4', 'O1', 'O2'], 'ch_names')
 #flags.DEFINE_list('ch_names', ['FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2','Fz','Cz'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['Cz','Fz','FP1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3','PO3','O1','Oz','Pz','O2','PO4','P4','P8','CP6','CP2','C4','T8','FC6','FC2','F4','F8','AF4','FP2'], 'ch_names')
 #flags.DEFINE_list('ch_names_pick', ['FP1','AF3','F7','F3','FC5','T7','C3','CP5','P7','P3','PO3','O1','Oz','CP1','FC1','Fz','Cz','FC2','CP2','Pz','O2','PO4','P4','P8','CP6','C4','T8','FC6','F4','F8','AF4','FP2'], 'ch_names')
@@ -85,6 +87,9 @@ flags.DEFINE_string('overlap', None, 'if None, used: duration-1/fps')
 flags.DEFINE_boolean('print_freq_once', True, 'print_freq_once')
 #flags.DEFINE_boolean('show_circle_cons', True, 'show_circle_cons')
 flags.DEFINE_boolean('show_circle_cons', False, 'show_circle_cons')
+flags.DEFINE_list('circle_cons_fullscreen_borders', [['1080', '400'], ['1024', '128'], ['1050', '175'], ] , 'circle_cons_fullscreen_borders')
+flags.DEFINE_string('circle_cons_fullscreen_h', '1080', 'circle_cons_fullscreen_h')
+flags.DEFINE_string('circle_cons_border_lr', '400', 'circle_cons_border_lr')
 #flags.DEFINE_boolean('show_spectrum_cons', True, 'show_spectrum_cons')
 flags.DEFINE_boolean('show_spectrum_cons', False, 'show_spectrum_cons')
 flags.DEFINE_boolean('sound_cons', False, 'sound_cons')
@@ -112,9 +117,9 @@ flags.DEFINE_string('apply_to_embeds', '10', 'closer to zero means apply more')
 flags.DEFINE_string('clip_prompt', 'villa by the sea in florence on a sunny day', 'clip_prompt')
 #flags.DEFINE_boolean('show_stylegan3_cons', False, 'show_stylegan3_cons')
 flags.DEFINE_boolean('show_stylegan3_cons', True, 'show_stylegan3_cons')
-flags.DEFINE_list('fullscreen_borders', [['1080', '400'], ['1024', '128'], ] , 'stylegan3_cons_fullscreen_borders')
-flags.DEFINE_string('fullscreen_h', '1080', 'stylegan3_cons_fullscreen_h')
-flags.DEFINE_string('border_lr', '400', 'stylegan3_cons_border_lr')
+flags.DEFINE_list('stylegan3_cons_fullscreen_borders', [['1080', '400'], ['1024', '128'], ['1050', '175'], ] , 'stylegan3_cons_fullscreen_borders')
+flags.DEFINE_string('stylegan3_cons_fullscreen_h', '1080', 'stylegan3_cons_fullscreen_h')
+flags.DEFINE_string('stylegan3_cons_border_lr', '400', 'stylegan3_cons_border_lr')
 #flags.DEFINE_boolean('show_game_cons', True, 'show_game_cons')
 flags.DEFINE_boolean('show_game_cons', False, 'show_game_cons')
 #flags.DEFINE_string('game_mode', '1', 'game_mode: 1 or 3')
@@ -128,10 +133,11 @@ flags.DEFINE_string('n_jobs', '1', 'n_jobs')
 flags.DEFINE_boolean('cuda_jobs', True, 'cuda_jobs')
 #flags.DEFINE_boolean('cuda_jobs', False, 'cuda_jobs')
 #flags.DEFINE_string('n_jobs', '32', "n_jobs: number of cpu jobs or 'cuda'")
-flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
-#flags.DEFINE_boolean('draw_fps', False, 'draw_fps')
+#flags.DEFINE_boolean('draw_fps', True, 'draw_fps')
+flags.DEFINE_boolean('draw_fps', False, 'draw_fps')
 #flags.DEFINE_string('from_bdf_file', 'neurofeedback-2022.09.20-21.50.13.bdf', 'from_bdf_file')
 #flags.DEFINE_string('from_bdf', 'drive/MyDrive/neuroidss/EEG-GAN-audio-video/eeg/5min_experienced_meditator_unfiltered_signals.bdf', 'from_bdf')
+#flags.DEFINE_string('from_bdf', 'neurofeedback-2023.08.01-22.21.38.bdf', 'from_bdf')
 flags.DEFINE_string('from_bdf', None, 'from_bdf')
 #flags.DEFINE_string('from_edf', None, 'from_edf')
 #flags.DEFINE_string('font_fname', 'fonts/freesansbold.ttf', 'font_fname')
@@ -337,6 +343,12 @@ if True:
   if show_circle_cons:
     canvas = np.zeros((800,800))
 #  canvas = np.zeros((480,640))
+    import cv2
+    window_name = 'circle_cons'
+    cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
+#    cv2.setWindowProperty('stylegan3_cons', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+    cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+    window_fullscreen = False
     screen = pf.screen(canvas, 'circle_cons')
 
   if show_spectrum_cons:
@@ -1230,7 +1242,7 @@ if True:
       for i in range(len(files_path)):
         download_file_from_google_drive(file_id=files_path[i][0], dest_path=files_path[i][1]+files_path[i][2]+files_path[i][3])
 #      download_file_from_google_drive(file_id=files_path[sg3_models][0], dest_path=files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3])
-      files_path=[[files_path[sg3_models][0],files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3]]]
+      files_path=[[files_path[sg3_models][0],files_path[sg3_models][1]+files_path[sg3_models][2]+files_path[sg3_models][3],'','']]
 
 
 #    os.system('pip install scipy')
@@ -3500,6 +3512,39 @@ if True:
             if FLAGS.write_video:
                 video_out.append_data(image)
             image = image[:,:,::-1]
+
+            if True:
+                  if cv2.waitKey(1) == 27:
+                    if window_fullscreen:
+                      cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+                      window_fullscreen = False
+                    else:
+                      cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+                      window_fullscreen = True
+                  window_rect = cv2.getWindowImageRect(window_name)
+#                  print(window_rect4)
+
+                  topBorderWidth = 0
+                  bottomBorderWidth = 0
+                  leftBorderWidth = 0
+                  rightBorderWidth = 0
+                  for fullscreen_border in FLAGS.circle_cons_fullscreen_borders:
+                    if (window_rect[3]==int(fullscreen_border[0])):
+                      leftBorderWidth = int(fullscreen_border[1])
+                      rightBorderWidth = int(fullscreen_border[1])
+                  if (window_rect[3]==int(FLAGS.circle_cons_fullscreen_h)):
+                    leftBorderWidth = int(FLAGS.circle_cons_border_lr)
+                    rightBorderWidth = int(FLAGS.circle_cons_border_lr)
+                  image = cv2.copyMakeBorder(
+                      image, 
+                      topBorderWidth, 
+                      bottomBorderWidth, 
+                      leftBorderWidth, 
+                      rightBorderWidth, 
+                      cv2.BORDER_CONSTANT, 
+                      value=0
+                  )
+
             screen.update(image)
 
             plt.close(fig)
@@ -4138,13 +4183,13 @@ if True:
                   bottomBorderWidth = 0
                   leftBorderWidth = 0
                   rightBorderWidth = 0
-                  for fullscreen_border in FLAGS.fullscreen_borders:
+                  for fullscreen_border in FLAGS.stylegan3_cons_fullscreen_borders:
                     if (window_rect4[3]==int(fullscreen_border[0])):
                       leftBorderWidth = int(fullscreen_border[1])
                       rightBorderWidth = int(fullscreen_border[1])
-                  if (window_rect4[3]==int(FLAGS.fullscreen_h)):
-                    leftBorderWidth = int(FLAGS.border_lr)
-                    rightBorderWidth = int(FLAGS.border_lr)
+                  if (window_rect4[3]==int(FLAGS.stylegan3_cons_fullscreen_h)):
+                    leftBorderWidth = int(FLAGS.stylegan3_cons_border_lr)
+                    rightBorderWidth = int(FLAGS.stylegan3_cons_border_lr)
                   image = cv2.copyMakeBorder(
                       image, 
                       topBorderWidth, 
